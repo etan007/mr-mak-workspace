@@ -1,22 +1,18 @@
 ---
 name: video-watch
-description: Inspect a local or publicly accessible video through sampled scene frames, timestamps and a visual report, especially for motion and 3D reference analysis.
+description: 通过采样的场景帧、时间戳和可视化报告检查本地或可公开访问的视频，尤其适用于运动和 3D 参考分析。
 ---
 
 # Video Watch
 
-Read [the workflow](../../../knowledge/video-watch.md). Use the project helper
-at `scripts/video-watch/extract.py` with a local file or supported video URL and
-a new dated Workspace folder. Install its optional dependencies in a local
-virtual environment, not the system Python environment.
+阅读[工作流说明](../../../knowledge/video-watch.md)。使用项目辅助脚本
+`scripts/video-watch/extract.py`，输入本地文件或受支持的视频 URL，并指定一个新的、
+带日期的工作区文件夹。在本地虚拟环境中安装其可选依赖，不要装进系统 Python 环境。
 
-Inspect the extracted frames. Cite timestamps for observations and open the
-original clip when a sparse sample cannot establish timing or continuity.
-For gait and fast action, use denser samples around the relevant range. Do not
-claim to have watched every frame from a contact sheet.
+检查提取出的帧。为观察结果标注时间戳；稀疏采样无法确定时序或连续性时，打开原始片段
+查看。对于步态和快速动作，在相关时间段内加密采样。不要凭一张缩略图拼板（contact sheet）
+就声称看过了每一帧。
 
-Keep visual observations separate from audio or transcript claims. URL downloads
-in this helper prefer video-only streams; do not assume they contain audio.
-For transcription, use the original audio through
-a separately configured tool. Create an English summary with evidence and links
-in the existing task card. Use `workspace-authoring` for its presentation.
+把视觉观察与音频或转写内容分开。此辅助脚本下载 URL 时优先选择纯视频流；不要假定其中
+含有音频。需要转写时，通过单独配置的工具处理原始音频。在现有任务卡片中写一份带证据和
+链接的中文摘要。其呈现方式使用 `workspace-authoring`。

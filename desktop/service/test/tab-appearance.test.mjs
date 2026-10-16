@@ -30,10 +30,10 @@ test('tab reordering respects pin boundaries, closed history positions and front
     await sessions.reorder('pin-b', 'pin-a', 'before');
     assert.deepEqual(sessions.active().map(x => x.id), ['pin-b', 'pin-a', 'last', 'first']);
     const before = sessions.list();
-    await assert.rejects(sessions.reorder('first', 'pin-a', 'before'), /same group/);
-    await assert.rejects(sessions.reorder('pin-a', 'first', 'after'), /same group/);
-    await assert.rejects(sessions.reorder('first', 'saved', 'after'), /open tabs/);
-    await assert.rejects(sessions.reorder('first', 'last', 'invalid'), /position/);
+    await assert.rejects(sessions.reorder('first', 'pin-a', 'before'), /同一组内/);
+    await assert.rejects(sessions.reorder('pin-a', 'first', 'after'), /同一组内/);
+    await assert.rejects(sessions.reorder('first', 'saved', 'after'), /已打开的标签页/);
+    await assert.rejects(sessions.reorder('first', 'last', 'invalid'), /位置/);
     assert.deepEqual(sessions.list(), before);
     sessions.get('saved').open = true;
     assert.deepEqual(sessions.active().map(x => x.id), ['pin-b', 'pin-a', 'last', 'first', 'saved']);
@@ -53,8 +53,8 @@ test('order and tab colors persist after restart without changing native chat id
     sessions.color('pin-b', '#dba3bb');
     await sessions.reorder('last', 'first', 'before');
     await sessions.reorder('pin-b', 'pin-a', 'before');
-    assert.throws(() => sessions.color('first', 'url(https://example.com)'), /valid tab color/);
-    assert.throws(() => sessions.color('first', '#123'), /valid tab color/);
+    assert.throws(() => sessions.color('first', 'url(https://example.com)'), /有效的标签页颜色/);
+    assert.throws(() => sessions.color('first', '#123'), /有效的标签页颜色/);
     await sessions.close();
     reopened = await new Sessions(repo, path.join(repo, '.mrmak')).init();
     assert.deepEqual(reopened.active().map(x => x.id), ['pin-b', 'pin-a', 'last', 'first']);

@@ -12,5 +12,5 @@ export default function MakImages({ paths }: { paths: string[] }) {
     })
     return () => { cancelled = true }
   }, [paths])
-  return <div className="voice-attachments sent" aria-label="Sent images">{images?.map(image => <div className="voice-attachment" key={image.path}><ZoomImage src={image.url} alt={image.name} /></div>)}{images && images.length < paths.length && <small>Some attached images are unavailable.</small>}</div>
+  return <div className="voice-attachments sent" aria-label="已发送的图片">{images?.map(image => <div className="voice-attachment" key={image.path}><ZoomImage src={image.url} alt={image.name} /></div>)}{images && images.length < paths.length && <small>部分附加图片无法显示。</small>}</div>
 }

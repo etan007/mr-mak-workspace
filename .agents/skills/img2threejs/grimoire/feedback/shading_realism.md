@@ -1,115 +1,102 @@
-# Material And Lighting Realism
+# 材质与光照真实感
 
-Use this reference whenever the model silhouette is acceptable but the render still looks unlike the source image.
+当模型轮廓已可接受、但渲染看起来仍与源图像不像时，使用本参考。
 
-## Common Failure Pattern
+## 常见失败模式
 
-A procedural object often fails after the shape pass because the render has:
+程序化物体在形体 pass 之后常常失败，原因是渲染存在：
 
-- one flat albedo color per material
-- no roughness variation or cavity response
-- no normal/bump/displacement response on surfaces that should be tactile
-- missing local overrides such as moss, stains, edge wear, dirt, sap, rust, dust, scorch, or faded zones
-- lighting that is only ambient or too evenly exposed
-- weak contact shadows, no rim separation, and no tone mapping/exposure target
+- 每个材质只有一种平涂 albedo 颜色
+- 没有粗糙度变化或凹腔响应
+- 本应有触感的表面没有 normal/bump/displacement 响应
+- 缺少局部覆盖层，如苔藓、污渍、边缘磨损、污垢、树液、锈迹、灰尘、焦痕或褪色区域
+- 光照只有环境光，或曝光过于均匀
+- 接触阴影弱、没有轮廓光分离、没有色调映射/曝光目标
 
-Treat this as a `LookDev Reset`, not a geometry problem.
+将其视为 `LookDev Reset`，而不是几何问题。
 
-## Material-Pass Requirements
+## Material-Pass 要求
 
-Before implementing or accepting `material-pass`, the spec must contain:
+在实现或接受 `material-pass` 之前，spec 必须包含：
 
-- `albedo` palette: dominant, secondary, accent colors, and where they appear on the object.
-- `roughness` response: base value, variation, and local response such as smoother worn edges or rougher cavities.
-- tactile response: at least one of `normal`, `bump`, or `displacement` with scale/amplitude/strength.
-- locality: `localOverrides`, dirt, wear, scratches, chips, stains, moss, patina, wetness, soot, or cavity masks tied to `viewEvidence`.
-- material-specific behavior: alpha/transmission/translucency for thin or transparent parts, metalness/clearcoat for reflective parts, cloth/fiber grain for fabric-like parts.
-- independent PBR channels: albedo, roughness, height/normal, and AO must be generated or authored separately; never reuse albedo as a roughness, height, normal, or AO map.
-- reference-derived PBR extraction: when a source image is available and fidelity matters, run `../../forge/stage1_intake/extract_pbr_evidence.py` for each important material or crop before accepting material-pass. The default target threshold is `0.7`; below that, stop or request better references unless the user explicitly accepts a lower-fidelity approximation.
-- scale hierarchy: close-up materials must describe macro, meso, and micro surface-frequency bands with object-relative frequency and amplitude.
-- projection/UV intent: state UV, triplanar, cylindrical, planar, or another projection strategy, plus repeat/texel-density intent so detail does not stretch across scaled components.
-- quality-first resolution: use at least 1024px procedural maps for important close-up materials and prefer 2048px when reference fidelity is the priority.
-- geometric relief: if a ridge, crack, seam, chip, bark plate, fold, or dent affects the visible silhouette, represent it with geometry or displacement-capable topology instead of texture alone.
+- `albedo` 调色板：主色、次色、强调色，以及它们在物体上的分布位置。
+- `roughness` 响应：基础值、变化，以及局部响应，例如磨损边缘更光滑、凹腔更粗糙。
+- 触感响应：`normal`、`bump` 或 `displacement` 至少其一，并给出尺度/幅度/强度。
+- 局部性：`localOverrides`、污垢、磨损、划痕、崩口、污渍、苔藓、包浆、潮湿、烟灰或凹腔遮罩，并关联到 `viewEvidence`。
+- 材质特有行为：薄或透明部件的 alpha/透射/半透明，反光部件的金属度/清漆层，布料类部件的布纹/纤维纹理。
+- 独立的 PBR 通道：albedo、粗糙度、height/normal 和 AO 必须分别生成或制作；绝不要把 albedo 复用为粗糙度、height、normal 或 AO 贴图。
+- 基于参考图的 PBR 提取：当有源图像且保真度重要时，在接受 material-pass 之前，对每个重要材质或裁切运行 `../../forge/stage1_intake/extract_pbr_evidence.py`。默认目标阈值为 `0.7`；低于该值时，应停止或请求更好的参考图，除非用户明确接受较低保真度的近似。
+- 尺度层级：特写材质必须描述宏观、中观和微观三个表面频段，并给出相对物体的频率和幅度。
+- 投影/UV 意图：说明 UV、triplanar、柱面、平面或其他投影策略，以及重复/texel 密度意图，避免细节在缩放后的组件上被拉伸。
+- 质量优先的分辨率：重要特写材质的程序化贴图至少 1024px，以参考保真度为优先时宜用 2048px。
+- 几何起伏：若棱线、裂纹、接缝、崩口、树皮块、褶皱或凹痕会影响可见轮廓，应使用几何体或可置换的拓扑来表现，而不是只靠纹理。
 
-Do not accept "brown bark", "gold leaves", "dark metal", or "rough stone" as sufficient. Translate it into PBR terms: albedo palette, roughness, normal/bump, AO, dirt/wear, and local masks.
+不要把"棕色树皮"、"金色叶子"、"深色金属"或"粗糙石头"当作足够的描述。将其转写为 PBR 术语：albedo 调色板、粗糙度、normal/bump、AO、污垢/磨损和局部遮罩。
 
-Do not claim exact PBR recovery from a single image. Pixels include baked lighting, exposure, shadow, view angle, and camera response. Treat extracted maps as reference-derived material evidence that still needs neutral/grazing/reference screenshot review.
+不要声称能从单张图像精确恢复 PBR。像素中包含烘焙进去的光照、曝光、阴影、视角和相机响应。将提取出的贴图视为基于参考图的材质证据，它仍需经过 neutral/grazing/参考截图评审。
 
-Do not accept a material merely because all required fields are present. The browser render must prove that:
+不要仅因所有必填字段齐全就接受某个材质。浏览器渲染必须证明：
 
-- roughness breaks highlights independently from albedo color
-- normal/height detail remains readable under grazing light
-- cavities and contacts have coherent AO rather than uniformly dark noise
-- referencePbr maps, when present, are loaded by the generated Three.js material and have confidence at or above the configured threshold
-- micro detail does not visibly tile or swim when the object is scaled
-- local overrides appear in the same regions supported by `viewEvidence`
+- 粗糙度能独立于 albedo 颜色打散高光
+- normal/height 细节在掠射光下依然可读
+- 凹腔和接触处有连贯的 AO，而不是均匀的暗噪点
+- 若存在 referencePbr 贴图，生成的 Three.js 材质确实加载了它们，且置信度不低于配置阈值
+- 物体缩放时，微观细节不会出现明显平铺重复或游移
+- 局部覆盖层出现在 `viewEvidence` 所支持的同一区域
 
-## Lighting-Pass Requirements
+## Lighting-Pass 要求
 
-Before accepting `lighting-pass`, the spec must contain:
+在接受 `lighting-pass` 之前，spec 必须包含：
 
-- key light direction, color temperature, intensity, and shadow softness
-- fill light color/intensity, or explicit reason for no fill
-- rim/back light or environment reflection cue when the silhouette needs separation
-- ambient/hemisphere/environment color
-- exposure and tone-mapping intent
-- background color or gradient
-- contact shadow / ground shadow behavior
+- 主光方向、色温、强度和阴影柔和度
+- 补光颜色/强度，或不使用补光的明确理由
+- 当轮廓需要分离时，提供轮廓/背光或环境反射线索
+- ambient/hemisphere/environment 颜色
+- 曝光与色调映射意图
+- 背景颜色或渐变
+- 接触阴影 / 地面阴影行为
 
-Separate object material from photo lighting: a material should still read correctly in neutral turntable lighting, then a reference-matching lighting setup can be added.
+将物体材质与照片光照分开：材质应先在中性转台光照下读起来正确，然后再添加匹配参考图的光照设置。
 
-## Screenshot Review
+## 截图评审
 
-For material and lighting screenshots, compare in this order:
+对材质与光照截图，按以下顺序对比：
 
-1. Albedo palette: are dominant and accent colors close to the reference?
-2. Value range: are dark cavities and bright highlights in the right places?
-3. Surface response: does roughness/normal/bump catch light?
-4. Locality: are moss, stains, dirt, wear, chips, or color patches placed where the reference shows them?
-5. Light structure: can you identify key, fill, rim/environment, contact shadow, and exposure?
-6. Material-vs-light split: if the scene is relit neutrally, does the object still have believable material detail?
+1. Albedo 调色板：主色和强调色是否接近参考图？
+2. 明度范围：暗凹腔和亮高光是否在正确位置？
+3. 表面响应：粗糙度/normal/bump 是否能接住光线？
+4. 局部性：苔藓、污渍、污垢、磨损、崩口或色块是否位于参考图所示位置？
+5. 光照结构：能否辨认出主光、补光、轮廓光/环境、接触阴影和曝光？
+6. 材质与光照分离：若用中性光重新照明，物体是否仍有可信的材质细节？
 
-For quality-first work, capture three deliberate look-dev views before choosing `continue`:
+对质量优先的工作，在选择 `continue` 之前，刻意截取三个 look-dev 视角：
 
-1. `neutral`: broad soft key/fill lighting for honest albedo and form reading.
-2. `grazing`: a low-angle hard or semi-hard key close-up that exposes smooth-plastic highlights, weak normals, uniform roughness, and texture tiling.
-3. `reference-match`: the source camera and lighting direction as closely as the available evidence allows.
+1. `neutral`：宽而柔和的主光/补光，用于如实读取 albedo 和形体。
+2. `grazing`：低角度硬光或半硬光主光下的特写，暴露塑料般光滑的高光、薄弱的法线、均匀的粗糙度和纹理平铺。
+3. `reference-match`：在现有证据允许范围内，尽量还原源图的相机和光照方向。
 
-A material that only looks convincing in the reference-matched light has not passed. Fix its PBR response first, then tune the reference lighting.
+只在匹配参考的光照下才显得可信的材质不算通过。先修正其 PBR 响应，再调参考光照。
 
-If the mismatch is mostly color/texture/lighting, choose `refine-code` only when the spec already has the above details. Otherwise choose `refine-spec` first.
+若不匹配主要在颜色/纹理/光照上，只有当 spec 已包含上述细节时才选择 `refine-code`；否则先选择 `refine-spec`。
 
 ---
 
-## Material & colour lessons — real-object reconstructions (2026-07: BMX + M9 Doppler)
+## 材质与颜色经验——真实物体重建（2026-07：BMX + M9 Doppler）
 
-**Solid colour vs reference-crop albedo — pick by finish type:**
-- **Flat paint / single-colour** (bike frame): use a **solid** albedo (dominant colour) + flat normal. A raw photo crop tiles logos/gradients into stripes across long tubes. Sample the reference's *lit mid-tone* for the paint hue, then deepen/saturate (a photo mid-tone rendered under studio light reads lighter than the sample).
-- **Patterned / gemstone finish** (Doppler blade, hydro-dip, camo, quartz): use the **real reference crop** as albedo → the exact palette + smoke/pattern is literally the reference pixels ("100% same colour"). Extract the gradient **palette stops** (guard→tip) to document the look. Make it gem-glossy: high `metalness` + low `roughness` (solid-dark roughness map) + `clearcoat` + raised `envMapIntensity` → layered shine.
+**纯色 albedo 与参考裁切 albedo——按表面处理类型选择：**
+- **平涂漆 / 单色**（自行车车架）：使用**纯色** albedo（主色）+ 平坦 normal。直接用照片裁切会把 logo/渐变平铺成长管上的条纹。取参考图中*受光的中间调*作为漆面色相，再加深/提高饱和度（照片中间调在棚拍光下渲染出来会比取样更浅）。
+- **图案 / 宝石质感表面**（Doppler 刀身、水转印、迷彩、石英）：使用**真实参考裁切**作为 albedo → 精确的调色板和烟雾/图案就是参考图像素本身（"100% 同色"）。提取渐变的**调色板色标**（护手→刀尖）来记录外观。做出宝石般的光泽：高 `metalness` + 低 `roughness`（纯暗色粗糙度贴图）+ `clearcoat` + 提高 `envMapIntensity` → 层次化的光泽。
 
-**Sample the CORRECT region per material.** Verify the crop is actually on the part you think — a "handle" crop taken from the blade region gave a navy-blue "grey" handle. Crop, *look at the crop*, then extract.
+**每种材质都要在**正确**的区域取样。** 确认裁切确实落在你以为的部件上——从刀身区域取的"刀柄"裁切，得到了一个海军蓝的"灰色"刀柄。先裁切，*看一眼裁切结果*，再提取。
 
-**Aged / worn / faded materials — preserve mottling, don't flatten.** A uniform dark band looks crude. Instead: keep the crop's real luminance variation (scratches, worn patches) but remap it into a **dark aged band** (e.g. luminance→charcoal 15–45), add micro-grain, and a **roughness map that varies** (worn high-spots slightly glossier, grooves matte). Keep the cast cool-neutral for gunmetal — a warm remap drifts to tan. Darken more than you think: a mid-grey albedo reads light under a strong key light.
+**老化 / 磨损 / 褪色材质——保留斑驳，不要压平。** 均匀的暗色带看起来很粗糙。正确做法：保留裁切中真实的亮度变化（划痕、磨损斑块），但把它重映射到一条**暗色老化带**（例如亮度→炭灰 15–45），加入微观颗粒，并使用**有变化的粗糙度贴图**（磨损的高点略亮，凹槽哑光）。枪铁灰保持冷中性色偏——暖色重映射会偏向棕褐色。压暗程度要比你预想的更多：中灰 albedo 在强主光下会显得偏亮。
 
-**Render-capture must wait for textures.** `TextureLoader` is async; a screenshot fired before maps load shows `color:white` + metalness = a false "chrome" render (and a Divine-Eye false-reject). Poll `material.map.image.complete` before capturing. The render host must serve the reference PBR maps (copy to `public/`) or they 404 → white.
+**渲染截取必须等纹理加载完。** `TextureLoader` 是异步的；在贴图加载前触发的截图会显示 `color:white` + metalness = 一个虚假的"镀铬"渲染（并导致 Divine Eye 误判拒绝）。截取前轮询 `material.map.image.complete`。渲染宿主必须能提供参考 PBR 贴图（复制到 `public/`），否则它们会 404 → 白色。
 
-**Soft shadows for a studio look:** `key.shadow.radius`/`blurSamples` + a tight shadow-camera frustum + a low `ShadowMaterial.opacity` (~0.16) beat a hard dark blob.
+**棚拍风格的柔和阴影：** `key.shadow.radius`/`blurSamples` + 收紧的阴影相机视锥 + 较低的 `ShadowMaterial.opacity`（约 0.16），效果胜过一团生硬的黑影。
 
-## Candy/anodized colour washes to blue under a bright env — and prose can fight the reference
-- **Symptom:** a doppler/candy blade whose albedo genuinely contains violet (verified by sampling the
-  PNG: mid-body RGB ~ (150,50,170)) still renders **blue** in a white-studio scene.
-- **Cause 1 — metalness steals the hue.** At `metalness ≈ 0.7–1.0` most of the surface colour is the
-  *environment reflection* (specular F0), not the albedo diffuse; a bright/cool white env reflects
-  blue-white and the albedo hue is a minority contributor. A colored PVD/candy/anodized coat is
-  visually a **dielectric-led** surface: render it `metalness ≈ 0.35` + `clearcoat ≈ 0.6`
-  (roughness ~0.18) so the albedo colour leads and the coat supplies gloss. Also trim
-  `envMapIntensity` (~0.7) and clearcoat so the white env stops desaturating the hue.
-- **Cause 2 — a blue-leaning purple reads blue when darkened.** A violet with `B > R`
-  (e.g. 158,52,206) collapses toward blue under any tone-map/shadow darkening because B dominates.
-  For a purple that *survives* shading, make it **magenta-leaning, `R ≳ B`** (e.g. 175,48,150).
-- **Cause 3 (the real one here) — prose contradicted the reference.** A written brief said
-  "cyan guard → PURPLE middle (45%) → indigo tip"; the actual reference image was
-  **violet at the ricasso → SAPPHIRE-BLUE body (dominant) → navy-black tip**. img2threejs is
-  reconstruction-*from-the-image*: when a colour brief disagrees with the reference photo, **sample
-  the reference and match the photo**, then surface the discrepancy to the user — do not chase the
-  prose (it cost 4 wasted render iterations pushing purple into a region the photo shows as blue).
+## 糖果色/阳极氧化颜色在明亮环境下被洗成蓝色——而且文字描述可能与参考图冲突
+- **症状：** 一把 doppler/糖果色刀身，其 albedo 确实含有紫罗兰色（对 PNG 取样验证：刀身中段 RGB 约 (150,50,170)），但在白色棚拍场景中仍渲染成**蓝色**。
+- **原因 1——金属度抢走了色相。** 在 `metalness ≈ 0.7–1.0` 时，表面颜色大部分来自*环境反射*（specular F0），而非 albedo 漫反射；明亮/偏冷的白色环境反射出蓝白色，albedo 色相只占少数贡献。有色 PVD/糖果色/阳极氧化涂层在视觉上是**以电介质为主**的表面：用 `metalness ≈ 0.35` + `clearcoat ≈ 0.6`（roughness 约 0.18）来渲染，让 albedo 颜色主导、由涂层提供光泽。同时降低 `envMapIntensity`（约 0.7）和 clearcoat，避免白色环境冲淡色相。
+- **原因 2——偏蓝的紫色在压暗后会读成蓝色。** `B > R` 的紫罗兰色（如 158,52,206）在任何色调映射/阴影压暗下都会塌向蓝色，因为 B 占主导。要让紫色在明暗中*存活*，应使其**偏品红，`R ≳ B`**（如 175,48,150）。
+- **原因 3（本例的真正原因）——文字描述与参考图矛盾。** 书面需求写的是"青色护手 → 紫色中段（45%）→ 靛蓝刀尖"；实际参考图却是**根部紫罗兰 → 宝石蓝刀身（主导）→ 海军黑刀尖**。img2threejs 是*依据图像*重建：当颜色需求与参考照片不一致时，**对参考图取样并匹配照片**，然后把差异告知用户——不要追着文字描述走（这次为了把紫色推到照片中显示为蓝色的区域，白白浪费了 4 次渲染迭代）。

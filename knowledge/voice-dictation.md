@@ -1,34 +1,27 @@
-# Local dictation
+# 本地听写
 
-Dictation puts recognized text into the focused terminal or text field.
-Mr. Mak's voice assistant instead carries on a conversation and can call tools.
-You can use either, both or neither.
+听写会把识别出的文字放进当前获得焦点的终端或文本框。Mr. Mak 的语音助手则是进行
+对话并可以调用工具。两者可以任选其一、同时使用或都不用。
 
-Mr. Mak now has built-in microphone dictation for desktop chats, the Mak composer,
-and mobile. See [setup and behavior](../docs/mobile-access.md#voice-input).
-Run `scripts/setup-local-dictation.ps1` once to install free local faster-whisper
-and its multilingual small model. Record, stop, review, then explicitly insert
-or send. Choose Free/Paid/Off in Phone settings or desktop Settings → Speech-to-text.
-The saved provider is shared across desktop and paired phones and overrides
-the `.env` provider default. Paid keys stay in the computer’s ignored `.env`.
+Mr. Mak 现已内置麦克风听写，支持桌面对话、Mak 输入框和手机。参见
+[配置与行为](../docs/mobile-access.md#语音输入)。运行一次
+`scripts/setup-local-dictation.ps1`，安装免费的本地 faster-whisper 及其多语言
+small 模型。录音、停止、确认后，再明确插入或发送。在手机设置或桌面端
+设置 → 语音转文字 中选择免费/付费/关闭。保存的提供方在桌面和已配对手机之间共享，
+并覆盖 `.env` 中的默认提供方。付费 key 保存在电脑上被忽略的 `.env` 中。
 
-For optional dictation into other applications, [Wispr Local](https://github.com/nsoth/wispr-local) is one Windows option built
-around whisper.cpp. Review its language and GPU build defaults before installing.
-Follow its README to select English and settings appropriate for the recipient's
-machine. The project also documents optional
-cloud text formatting. This template includes setup instructions, not a bundled
-copy of Wispr Local or another user's customized build.
+如需听写到其他应用，[Wispr Local](https://github.com/nsoth/wispr-local) 是基于
+whisper.cpp 的一个 Windows 选项。安装前检查其语言和 GPU 构建默认值。按其 README
+为接收者的机器选择合适的语言和设置。该项目还说明了可选的云端文字格式化。本模板
+只包含配置说明，不附带 Wispr Local 或其他用户的定制构建。
 
-Use a separate folder for the dictation app. Start with the language you actually
-speak and a model that fits your memory budget. Verify recognition in a text
-editor before testing it in an agent terminal. A successful microphone recording
-does not prove that text injection reached the intended window.
+听写应用请使用单独的文件夹。从你实际说的语言和适合内存预算的模型开始。在代理终端
+中测试之前，先在文本编辑器中验证识别效果。麦克风录音成功，不能证明文字已注入到
+目标窗口。
 
-Choose a non-conflicting push-to-talk shortcut. Test silence, a short phrase,
-technical names and several recordings in succession. Do not auto-submit text
-while diagnosing dictation. Keep cloud formatting off for a fully local
-transcription workflow; enabling it sends recognized text to that provider.
+选择一个不冲突的按住说话快捷键。测试静音、短句、技术名词以及连续多次录音。诊断
+听写问题时不要自动提交文字。要完全本地转写，保持云端格式化关闭；启用后，识别出的
+文字会发送给该提供方。
 
-Record the chosen model, build settings and recovery steps in a local setup
-note. Leave microphone recordings, transcripts and credentials out of a public
-handoff. Always check upstream instructions again on the recipient's machine.
+在本地配置笔记中记录所选模型、构建设置和恢复步骤。公开的交接中不要包含麦克风录音、
+转写文本和凭据。在接收者的机器上，务必再次核对上游说明。

@@ -33,7 +33,7 @@ test('dictation uses the desktop key, supported multipart audio and returns only
 test('explicit provider, legacy key aliases and changes to .env work without exposing credentials', async t => {
   const { dictation, repo, calls } = await fixture(t, { env: { MRMAK_TRANSCRIBE_PROVIDER: 'openai' } });
   assert.equal((await dictation.status()).available, false);
-  await assert.rejects(dictation.transcribe(request(), 'phone'), /needs OPENROUTER_API_KEY/);
+  await assert.rejects(dictation.transcribe(request(), 'phone'), /需要在电脑工作区 \.env 中配置 OPENROUTER_API_KEY/);
   await writeFile(path.join(repo, '.env'), 'OPENAI_KEY=private-key\nOPENROUTER_KEY=router-key\nMRMAK_TRANSCRIBE_PROVIDER=openai\n');
   await dictation.transcribe(request(), 'phone');
   assert.equal(calls[0].url, 'https://api.openai.com/v1/audio/transcriptions');
@@ -53,7 +53,7 @@ test('lost replies and concurrent retries reuse transcription; mismatched audio 
 test('invalid, oversized and revoked uploads never reach the provider', async t => {
   const { dictation, calls } = await fixture(t);
   await assert.rejects(dictation.transcribe(request(), 'phone', () => false), error => error.status === 401);
-  await assert.rejects(dictation.transcribe(request('invalid'), 'phone'), /recording ID/);
+  await assert.rejects(dictation.transcribe(request('invalid'), 'phone'), /录音 ID/);
   await assert.rejects(dictation.transcribe(request(randomUUID(), audio, { 'content-type': 'text/html' }), 'phone'), error => error.status === 415);
   await assert.rejects(dictation.transcribe(request(randomUUID(), Buffer.from('not audio')), 'phone'), error => error.status === 415);
   await assert.rejects(dictation.transcribe(request(randomUUID(), audio, { 'content-length': AUDIO_LIMIT + 1 }), 'phone'), error => error.status === 413);

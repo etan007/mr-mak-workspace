@@ -5,5 +5,5 @@ for app in "/Applications/Mr. Mak Workspace.app" "$HOME/Applications/Mr. Mak Wor
            "$root/src-tauri/target/release/bundle/macos/Mr. Mak Workspace.app"; do
   if [ -d "$app" ]; then open -a "$app" --args --repo "$root"; exit 0; fi
 done
-echo "Build the app first: ./setup.sh desktop  (see docs/getting-started.md)"
-read -r -p "Press Return to close." _
+echo "请先构建应用：./setup.sh desktop（参见 docs/getting-started.md）"
+read -r -p "按回车键关闭。" _

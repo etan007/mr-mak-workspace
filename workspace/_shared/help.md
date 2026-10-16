@@ -1,138 +1,123 @@
-# Welcome to Mr. Mak Workspace
+# 欢迎使用 Mr. Mak Workspace
 
-Work with your agents in Chats. Read, compare and keep their results in Workspace.
-Your project folders connect the two. You can use the Workspace without reading
-source code or moving every conversation into one agent's app.
+在“对话”中与代理协作，在“工作区”中阅读、比较并保存它们的成果。
+项目文件夹把两者连接起来。使用工作区无需阅读源代码，也不必把所有对话
+都搬进某一个代理的应用。
 
-## Accounts and API keys
+## 账号与 API 密钥
 
-Claude Code and Codex chats use the real installed CLI with its existing login.
-An eligible Claude Pro/Max or ChatGPT subscription can be used without adding an
-API key to Mr. Mak. Normal plan limits apply. Only the optional voice connection
-requires an OpenAI API key; optional generation services use their own accounts.
+Claude Code 和 Codex 对话使用本机已安装的真实 CLI 及其现有登录。
+符合条件的 Claude Pro/Max 或 ChatGPT 订阅无需在 Mr. Mak 中添加 API 密钥即可使用，
+按常规套餐限额计算。只有可选的语音连接需要 OpenAI API 密钥；可选的生成服务
+使用各自的账号。
 
-OpenCode is available in **+ > OpenCode** after installation. Configure its models
-and providers in OpenCode; their authentication and billing rules apply. History
-and pinned tabs keep its native conversation ID. Keep one conversation per tab.
-OpenCode connections are managed in its own MCP controls, separately from the
-Workspace MCP inspector.
+安装 OpenCode 后，可在 **+ > OpenCode** 中使用。在 OpenCode 中配置其模型和
+服务商，并遵循它们的认证与计费规则。历史和置顶标签页会保留其原生对话 ID。
+每个标签页只保留一个对话。OpenCode 的连接在它自己的 MCP 控件中管理，与
+工作区的 MCP 检查器相互独立。
 
-## Start with one task
+## 从一个任务开始
 
-1. In Chats, press **+**, choose your agent and its working folder, and give the
-   conversation a clear English name.
-2. Describe the result you want. Drop reference files or folders into the chat
-   when they help: "Compare these concepts and put the findings in a Workspace card."
-3. Let the agent work. A glowing logo marks activity; an unread completion marker
-   helps you find a result you have not reviewed.
-4. Open the Workspace card, compare its tabs and images, then give your decision
-   back to the chat: "Use version B. Keep its shape and change only the material."
-5. Keep related revisions as tabs in the same card. Archive the card when you no
-   longer need it in the active list. Archiving a card preserves its files.
+1. 在“对话”中点击 **+**，选择代理及其工作文件夹，并为对话起一个清晰的名称。
+2. 描述你想要的结果。需要时可把参考文件或文件夹拖进对话：
+   “比较这些概念，并把结论放进一张工作区卡片。”
+3. 让代理工作。发光的标志表示正在活动；未读完成标记帮助你找到尚未查看的结果。
+4. 打开工作区卡片，比较其中的标签页和图片，再把决定反馈给对话：
+   “用版本 B。保留它的造型，只改材质。”
+5. 同一任务的相关修订作为标签页放在同一张卡片中。当卡片不再需要出现在
+   活动列表里时将其归档。归档卡片会保留其文件。
 
-## Two windows, one project
+## 两个窗口，一个项目
 
-**Chats** contains real terminal sessions for your chosen CLI agents. **Workspace**
-contains the cards, reports, previews and files they produce. You can minimize
-either window independently while continuing in a browser, Blender or another app.
+**对话**窗口包含你所选 CLI 代理的真实终端会话。**工作区**窗口包含它们产出的
+卡片、报告、预览和文件。两个窗口可以分别最小化，同时你继续在浏览器、Blender
+或其他应用中工作。
 
-Drag chat tabs to reorder them. Pinned tabs stay ahead of ordinary tabs, and can
-be reordered within their own group. Use History to find and pin conversations
-you want to return to. Closing a tab and deleting a project's files are separate
-actions. Conversation recovery also depends on the selected CLI's native history.
+拖动对话标签页可调整顺序。置顶标签页始终排在普通标签页之前，并可在其分组内
+调整顺序。用“历史”查找并置顶想要回来继续的对话。关闭标签页与删除项目文件
+是两个独立操作。对话能否恢复还取决于所选 CLI 的原生历史记录。
 
-## Files and previews
+## 文件与预览
 
-**Files** shows the actual project folders. Main folders is a focused view;
-All files shows the wider tree. Hover a folder to reveal its Explorer shortcut.
-Select a file to preview it. Images can be enlarged and downloaded, and Markdown
-opens with **Preview** and **Edit** modes. Save only when you want to change the file.
+**文件**显示实际的项目文件夹。“主要文件夹”是聚焦视图；“全部文件”显示更完整的
+目录树。将鼠标悬停在文件夹上会显示其资源管理器快捷方式。选中文件即可预览。
+图片可以放大和下载，Markdown 以 **预览** 和 **编辑** 两种模式打开。只有确实
+需要修改文件时才保存。
 
-| Folder | What belongs here |
+| 文件夹 | 存放内容 |
 | --- | --- |
-| `inbox/` | References, clipboard screenshots and incoming material |
-| `projects/` | Ongoing project context and working specifications |
-| `workspace/` | Cards, reports, previews and task deliverables |
-| `knowledge/` | Lessons that should guide future work |
-| `processes/` | Repeatable workflows and checklists |
-| `.claude/skills/`, `.agents/skills/` | Project-local skills for the agents |
+| `inbox/` | 参考资料、剪贴板截图和收到的素材 |
+| `projects/` | 进行中项目的上下文与工作规格 |
+| `workspace/` | 卡片、报告、预览和任务交付物 |
+| `knowledge/` | 应指导后续工作的经验 |
+| `processes/` | 可重复的工作流与检查清单 |
+| `.claude/skills/`、`.agents/skills/` | 供代理使用的项目本地技能 |
 
-Dropping files or folders into Chats inserts their paths. Pasting a clipboard
-image saves it in `inbox/` and inserts that path. This gives the agent an input;
-it does not automatically publish or upload it to a service.
+把文件或文件夹拖进“对话”会插入它们的路径。粘贴剪贴板图片会将其保存到
+`inbox/` 并插入该路径。这只是给代理提供输入，不会自动发布或上传到任何服务。
 
-Within Files, dragging a file to another project folder moves it; dropping it
-back in the same place does nothing. Delete moves a selected item to the Windows
-Recycle Bin. Use Explorer for folder moves and other full filesystem operations.
+在“文件”中，把文件拖到另一个项目文件夹会移动它；放回原位置则不做任何操作。
+删除会把所选项目移入 Windows 回收站。移动文件夹及其他完整的文件系统操作请使用
+资源管理器。
 
-## Skills and MCP: what is the difference?
+## 技能与 MCP：有什么区别？
 
-A **skill** explains how to do a recurring task: decisions, prompts, checks and
-sometimes helper scripts. **MCP** connects an agent to a tool or service. For
-example, fal.ai MCP can run a model; the fal.ai skill explains model discovery,
-reference inputs, job recovery, review and delivery.
+**技能**说明如何完成一项重复性任务：决策、提示词、检查，有时还附带辅助脚本。
+**MCP** 把代理连接到某个工具或服务。例如，fal.ai MCP 可以运行模型；fal.ai 技能
+则说明模型发现、参考输入、任务恢复、审查和交付。
 
-Open **Skills** to read the project's Claude skills, Codex skills, knowledge and
-processes. These are real files. Keep related agents pointed at one maintained
-implementation rather than editing two independent copies.
+打开 **技能** 可阅读项目的 Claude 技能、Codex 技能、知识和流程。这些都是真实文件。
+让相关代理指向同一份维护中的实现，而不是分别编辑两份独立副本。
 
-Open **MCP** to see connection sources and check availability. An enabled entry
-means it is configured. A successful connection check means the inspector could
-reach it at that time; the intended agent still needs its own active connection
-and account login. Some tools also require an application such as Blender to run.
+打开 **MCP** 可查看连接来源并检查可用性。条目已启用表示它已配置。连接检查成功
+表示检查器当时能够访问它；目标代理仍需要自己的有效连接和账号登录。有些工具
+还需要运行 Blender 等应用。
 
-When receiving a skill pack, read its getting-started guide, copy the selected
-complete modules into your project, and install only their required dependencies.
-Use your own provider accounts and keys. A skill does not include someone else's
-subscription, running terminal, API balance or signed-in application.
+收到技能包时，先阅读其入门指南，把选定的完整模块复制到你的项目中，并只安装
+它们所需的依赖。使用你自己的服务商账号和密钥。技能不包含他人的订阅、正在运行的
+终端、API 余额或已登录的应用。
 
-## Talking to Mr. Mak
+## 与 Mr. Mak 对话
 
-Press the nose button to start or stop a voice conversation. Ask for quick actions
-such as opening a chat, finding a card, checking recent work or changing a card's
-status. For a larger task, ask Mr. Mak to create an agent conversation and follow
-its result. You can continue working directly in any terminal.
+按下鼻子按钮开始或结束语音对话。可以让它执行快捷操作，例如打开对话、查找卡片、
+查看最近的工作或更改卡片状态。较大的任务可以让 Mr. Mak 创建一个代理对话并跟进
+结果。你也可以随时直接在任何终端中继续工作。
 
-Voice uses the configured API connection. Terminal agents use their own installed
-CLI and authentication; provider generation services use their own accounts.
-The current choices are visible in Settings and in the agent or provider setup.
+语音使用已配置的 API 连接。终端代理使用各自已安装的 CLI 和认证；服务商的生成
+服务使用各自的账号。当前选择可在“设置”以及代理或服务商的配置中查看。
 
-## Useful controls
+## 常用操作
 
-| Control | Behavior |
+| 操作 | 行为 |
 | --- | --- |
-| Ctrl+C in an agent chat | Copy selected terminal text; it does not interrupt the agent |
-| Ctrl+Shift+C | Copy selected terminal text |
-| Ctrl+C in PowerShell | Normal shell interrupt behavior |
-| Ctrl+V in a chat | Paste text or a clipboard screenshot |
-| Ctrl+S while editing Markdown | Save the document |
-| Escape in an image preview | Close the enlarged image |
-| Optional Win-key recall | Bring back open Mr. Mak windows; configurable in Settings |
-| Ctrl+Esc | Open Windows Start |
+| 在代理对话中按 Ctrl+C | 复制选中的终端文本；不会中断代理 |
+| Ctrl+Shift+C | 复制选中的终端文本 |
+| 在 PowerShell 中按 Ctrl+C | 常规的 shell 中断行为 |
+| 在对话中按 Ctrl+V | 粘贴文本或剪贴板截图 |
+| 编辑 Markdown 时按 Ctrl+S | 保存文档 |
+| 在图片预览中按 Escape | 关闭放大的图片 |
+| 可选的 Win 键唤回 | 唤回已打开的 Mr. Mak 窗口；可在“设置”中配置 |
+| Ctrl+Esc | 打开 Windows 开始菜单 |
 
-Settings also contains terminal text size and appearance, the default agent,
-new-chat permission defaults and voice choices. A CLI permission setting affects
-what that agent can do on your machine; choose it deliberately for your workflow.
+“设置”中还包含终端文字大小与外观、默认代理、新对话的权限默认值以及语音选项。
+CLI 权限设置决定该代理能在你的机器上做什么；请根据你的工作流慎重选择。
 
-## Keep the Workspace understandable
+## 让工作区保持易懂
 
-- Use clear English card titles and chat names.
-- Keep Workspace information in English by default. Another language is used
-  only when explicitly requested for that particular output.
-- Put revisions of the same task in one card, with readable tab names.
-- Make images openable and downloadable. Keep editable sources beside results.
-- Record what was checked and what still needs a decision. Do not label a
-  technically completed generation as visually approved without reviewing it.
-- Archive completed work instead of mixing it into the current task list.
+- 卡片标题和对话名称要清晰。
+- 工作区信息默认使用简体中文。只有某项产出明确要求时才使用其他语言。
+- 同一任务的修订放在一张卡片中，并使用易读的标签页名称。
+- 图片要可打开、可下载。可编辑的源文件与结果放在一起。
+- 记录已检查的内容和仍需决定的事项。未经审查，不要把技术上已完成的生成结果
+  标记为视觉上已通过。
+- 已完成的工作应归档，不要混在当前任务列表中。
 
-## Bringing the workflow to another computer
+## 把工作流带到另一台电脑
 
-The project repository carries its cards, skills, knowledge and workflows.
-The desktop application, CLI agents, creative tools and account logins are
-installed or configured on that computer. Read the package's installation guide;
-copying a repository alone does not recreate every external application.
+项目仓库包含卡片、技能、知识和工作流。桌面应用、CLI 代理、创意工具和账号登录
+需要在那台电脑上安装或配置。请阅读安装包的安装指南；仅复制仓库并不能重建所有
+外部应用。
 
-Share a clean skill pack or a deliberately prepared template, not a copy of your
-working account state. Keep `.env`, credentials, private conversations, raw job
-receipts and unrelated client files out of a handoff. The supplied skill pack
-contains generic examples and instructions; each recipient supplies their own inputs.
+分享时请使用干净的技能包或专门准备的模板，而不是你工作账号状态的副本。不要把
+`.env`、凭据、私人对话、原始任务回执和无关的客户文件放进交接内容。提供的技能包
+只含通用示例和说明；每位接收者自行提供输入。

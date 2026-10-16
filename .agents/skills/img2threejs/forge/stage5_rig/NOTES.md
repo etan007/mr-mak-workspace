@@ -1,75 +1,53 @@
-# Milestone 0 findings that don't belong in the gate report
+# Milestone 0 中不属于门禁报告的发现
 
-These are things discovered while building the Milestone 0 rig emitter
-(`forge/stage5_rig/`) that are true regardless of Milestone 0's pass/fail
-result, and that matter to whoever does rig *integration* later. Read-only
-findings — nothing here changes any file outside `forge/stage5_rig/` or
-`forge/tests/test_rig_milestone0.py`.
+这些是在构建 Milestone 0 绑定生成器（`forge/stage5_rig/`）过程中发现的事情。无论 Milestone 0
+通过与否它们都成立，并且对日后负责绑定*集成*的人很重要。这些是只读发现——这里的内容不会改动
+`forge/stage5_rig/` 或 `forge/tests/test_rig_milestone0.py` 之外的任何文件。
 
-## `THREE.CapsuleGeometry`'s raw seam is a real defect; the "66 non-manifold after weld" figure was not
+## `THREE.CapsuleGeometry` 的原始接缝是真实缺陷；"焊接后 66 条非流形边"这个数字则不是
 
-> **CORRECTED 2026-07-30 (credit: worker-flatten).** The paragraph below
-> originally claimed that even a "correct" weld of `THREE.CapsuleGeometry`
-> left 66 non-manifold edges, and used that to argue the primitive needed a
-> hand-built replacement rather than a better weld. That specific claim was
-> wrong — it was a measurement artifact of `BufferGeometryUtils.mergeVertices`,
-> not a real topology defect. I reproduced worker-flatten's finding
-> independently (see below) before editing this file, rather than taking the
-> correction on faith. The **raw boundary-edge finding (194 edges) is still
-> real and still verified** — only the "non-manifold after weld" half of the
-> story was wrong.
+> **2026-07-30 更正（致谢：worker-flatten）。** 下面的段落最初声称，即使对
+> `THREE.CapsuleGeometry` 做"正确"的焊接，仍会留下 66 条非流形边，并以此论证该基本体需要手写
+> 替代品，而不是更好的焊接。这一具体说法是错的——它是
+> `BufferGeometryUtils.mergeVertices` 造成的测量伪差，而不是真实的拓扑缺陷。在编辑本文件之前，
+> 我独立复现了 worker-flatten 的发现（见下文），而不是盲信这条更正。**原始边界边的发现（194 条）
+> 仍然真实且经过验证**——只有故事中"焊接后非流形"那一半是错的。
 
-**What's actually true, verified directly:** the exact capsule call the
-pipeline used to emit (`new THREE.CapsuleGeometry(0.35, 0.7, 16, 32)`, from
-`CAPSULE_CAP_SEGMENTS = 16` / `CAPSULE_RADIAL_SEGMENTS = 32` — see "Update on
-the real pipeline" below for what's changed since) has a genuine UV-seam
-defect in its raw, unwelded form:
+**经直接验证、真正成立的事实：** 流水线过去生成的那个确切的胶囊调用
+（`new THREE.CapsuleGeometry(0.35, 0.7, 16, 32)`，来自 `CAPSULE_CAP_SEGMENTS = 16` /
+`CAPSULE_RADIAL_SEGMENTS = 32`——此后的变化见下文"真实流水线的更新"），在其未焊接的原始形态下
+确实存在 UV 接缝缺陷：
 
-| Method | vertices | triangles | boundary edges | non-manifold edges |
+| 方法 | 顶点 | 三角形 | 边界边 | 非流形边 |
 |---|---|---|---|---|
-| as-is, unwelded | 2178 | 4160 | **194** | 0 |
-| position-only + `BufferGeometryUtils.mergeVertices(geometry, 1e-5)` | 2050 | 4160 | 0 | 66 *(artifact — see below)* |
-| position-key dedup + **drop degenerate triangles** (no `mergeVertices`) | 2050 | 4096 (64 dropped) | 0 | **0** |
+| 原样，未焊接 | 2178 | 4160 | **194** | 0 |
+| 仅保留 position + `BufferGeometryUtils.mergeVertices(geometry, 1e-5)` | 2050 | 4160 | 0 | 66 *（伪差——见下文）* |
+| 按 position 键去重 + **丢弃退化三角形**（不用 `mergeVertices`） | 2050 | 4096（丢弃 64 个） | 0 | **0** |
 
-**Root cause of the "66" artifact:** `mergeVertices` re-indexes vertices by
-position but does not drop triangles that become degenerate (two or more
-corners collapsed to the same vertex) after that re-indexing. A degenerate
-triangle `(a, a, b)` contributes the undirected edge `(a, b)` to the tally
-**twice**, silently turning a legitimate 2-incidence (ordinary, non-manifold)
-edge into an apparent 4 — which a naive `count > 2` check flags as
-non-manifold even though the actual geometry, once the degenerate triangles
-are also dropped, is a perfectly ordinary closed 2-manifold. There are
-exactly 64 such degenerate triangles for this configuration — the "64
-dropped" figure in the corrected row above, which I measured myself and
-which matches worker-flatten's number exactly. This is
-stable across weld tolerances from `1e-4` down to `1e-10` (ruling out a
-tolerance-size explanation), and matches independently between two different
-implementations (mine, replicated here; worker-flatten's, done separately in
-`generate_threejs_factory.py`'s context) with the exact same numbers.
+**"66" 伪差的根因：** `mergeVertices` 按位置重新索引顶点，但不会丢弃重新索引后变得退化（两个或
+更多角塌缩到同一顶点）的三角形。退化三角形 `(a, a, b)` 会把无向边 `(a, b)` 计入统计**两次**，
+悄悄地把一条正常的 2 次关联（普通、非非流形）边变成看似 4 次关联——朴素的 `count > 2` 检查就会把
+它标为非流形，尽管实际几何在同样丢弃退化三角形之后，是一个完全普通的闭合 2-流形。这种配置下恰好
+有 64 个这样的退化三角形——即上面更正后那一行的"丢弃 64 个"，这是我亲自测得的，与 worker-flatten
+的数字完全一致。该结果在 `1e-4` 到 `1e-10` 的焊接容差范围内保持稳定（排除了容差大小的解释），并且
+在两个不同实现（我的，在此复现；worker-flatten 的，在 `generate_threejs_factory.py` 的上下文中单独
+完成）之间独立吻合，数字完全相同。
 
-**So the raw-boundary finding (194 edges) stands, but the conclusion drawn
-from it does not fully stand:** `THREE.CapsuleGeometry` is fixable with an
-ordinary weld — it just needs a weld that also drops degenerate triangles,
-which `mergeVertices` alone does not do. A hand-built watertight primitive
-(what Milestone 0 uses; see below) is *a* valid fix, but it was not, as I
-originally implied, the *only* practical one.
+**因此，原始边界的发现（194 条边）成立，但由此得出的结论并不完全成立：**
+`THREE.CapsuleGeometry` 用普通焊接就能修好——只是需要一种同时丢弃退化三角形的焊接，而单靠
+`mergeVertices` 做不到这一点。手写的水密基本体（Milestone 0 所用的方案；见下文）是*一种*有效修复，
+但并不像我最初暗示的那样，是*唯一*可行的修复。
 
-**Correction to my prior report to team-lead (kept for the record, still
-accurate on its own terms):** I previously wrote that
-`createRiggedDragon.ts:422-432`'s position-only `rawGeometry` strip-then-merge
-pattern exists "exactly because" of the UV-seam attribute-matching problem
-below. That was an inference from reading the code's *shape*, not something
-the code itself states, and team-lead is right that it postdates a different
-purpose (copying vertices out of a `MarchingCubes` result before a
-scale/translate). What IS independently verified, not inferred, is that
-`mergeVertices` only merges vertices where **every** attribute matches within
-tolerance — I confirmed this by running `mergeVertices` on the *untouched*
-geometry (all attributes intact) and getting the same 194 boundary edges, no
-change, versus a real change once stripped to position-only. Whether the
-dragon file's author had that same reasoning in mind is not established
-either way.
+**对我先前给 team-lead 报告的更正（保留以备查，就其本身而言仍然准确）：** 我之前写道，
+`createRiggedDragon.ts:422-432` 中仅保留 position 的 `rawGeometry` 先剥离后合并模式，"正是因为"
+下文所述的 UV 接缝属性匹配问题而存在。那是从代码*形态*推断出来的，并不是代码本身陈述的内容；
+team-lead 说得对，它出现得更晚，用途也不同（在缩放/平移之前，从 `MarchingCubes` 结果中复制顶点）。
+真正经过独立验证、而非推断的是：`mergeVertices` 只合并**所有**属性都在容差内匹配的顶点——我对
+*未改动*的几何（所有属性完好）运行 `mergeVertices`，得到同样的 194 条边界边，毫无变化；而剥离到
+只剩 position 后则确实发生了变化，以此确认了这一点。至于 dragon 文件的作者当时是否有同样的考虑，
+无论哪种说法都未能确立。
 
-**Reproduce (all three rows above, in one run):**
+**复现（上表三行，一次运行）：**
 ```bash
 cd img2threejs-showcase
 node --input-type=module -e "
@@ -108,42 +86,27 @@ console.log('dedup + drop-degenerate (correct):', edgeStats(kept, kept.length/3)
 "
 ```
 
-**What Milestone 0 uses, and why it's still a reasonable choice even though
-`THREE.CapsuleGeometry` turned out to be fixable:**
-`forge/stage5_rig/emit_rig.py`'s `buildWatertightCapsule()` builds its own
-grid from scratch — pole vertices shared once (not duplicated per fan
-triangle), radial index taken `mod radialSegments` so the seam column never
-exists as separate vertices in the first place. That's watertight by
-construction rather than by a weld step (0 boundary / 0 non-manifold at every
-configuration tried, no tolerance parameter to get wrong), which is still a
-simpler property to depend on for a kill test than "call `mergeVertices`,
-then remember it needs a degenerate-triangle-dropping pass too, on top of
-being position-only." It is not a drop-in replacement for
-`THREE.CapsuleGeometry` as used generally by the pipeline (arbitrary
-placement/orientation via `component.geometryDescriptor`), and I have not
-attempted to make it one.
+**Milestone 0 采用了什么，以及为什么在 `THREE.CapsuleGeometry` 被证明可修复之后，它仍是合理选择：**
+`forge/stage5_rig/emit_rig.py` 的 `buildWatertightCapsule()` 从零构建自己的网格——极点顶点只共享
+一次（不为每个扇形三角形重复），径向索引取 `mod radialSegments`，使接缝列从一开始就不会作为独立
+顶点存在。这是由构造保证的水密，而不是靠焊接步骤（在尝试过的每种配置下都是 0 边界边 / 0 非流形边，
+也没有可能设错的容差参数）。对于一个 kill test 来说，依赖这一性质仍比"调用 `mergeVertices`，然后
+记得除了只保留 position 之外还需要一个丢弃退化三角形的 pass"更简单。它并不能直接替代流水线中通用
+场景下使用的 `THREE.CapsuleGeometry`（通过 `component.geometryDescriptor` 任意摆放/定向），我也没有
+尝试把它做成那样。
 
-**Update on the real pipeline:** at the time this was first written,
-`generate_threejs_factory.py:1025` emitted the raw, unwelded
-`THREE.CapsuleGeometry` call directly, so the 194-boundary-edge defect was
-live in real output. `worker-flatten` has since ported an adapted copy of
-`buildWatertightCapsule` into `generate_threejs_factory.py` for the general
-"capsule" primitive (see `forge/tests/test_primitive_watertightness.py`), so
-that specific defect is fixed in the real pipeline as of this writing — this
-section is now a historical record of the investigation, not an open
-blocker. Decision on keeping two independently-verified copies of the
-builder (mine here, worker-flatten's in the factory) rather than a shared
-runtime module: see the message thread with worker-flatten, 2026-07-30 —
-`stage5_rig` is deliberately standalone until WS-C integration, and the two
-copies have legitimate purpose-specific differences (UV attribute, normals
-timing).
+**真实流水线的更新：** 本节最初撰写时，`generate_threejs_factory.py:1025` 直接生成未焊接的原始
+`THREE.CapsuleGeometry` 调用，因此 194 条边界边的缺陷在真实输出中是存在的。此后 `worker-flatten`
+已把 `buildWatertightCapsule` 的一个改编副本移植进 `generate_threejs_factory.py`，用于通用的
+"capsule" 基本体（见 `forge/tests/test_primitive_watertightness.py`），所以截至撰写时，该具体缺陷在
+真实流水线中已修复——本节现在是这次调查的历史记录，而不是未解决的阻塞项。关于保留两份各自独立验证
+的构建器副本（我这里的一份，worker-flatten 在工厂中的一份）而不是共享一个运行时模块的决定：见与
+worker-flatten 的消息线程，2026-07-30——`stage5_rig` 在 WS-C 集成之前有意保持独立，而且两份副本
+存在正当的、针对各自用途的差异（UV 属性、法线计算时机）。
 
-## Gate (b) needs the mesh to actually carry geometry near the joint
+## Gate (b) 要求网格在关节附近确实有几何
 
-Documented in the gate report proper (message to team-lead), not repeated
-here in full: the first version of `buildWatertightCapsule()` had exactly one
-quad band for the whole cylindrical shaft, so no vertex existed anywhere near
-an interior joint's pivot. Fixed by adding `heightSegments`, derived from the
-smallest envelope radius in play (`RING_RESOLUTION_DIVISOR = 3.0` rings per
-radius) rather than a hardcoded ring count, so resolution scales if the
-capsule or the bone spacing changes.
+已在正式的门禁报告（给 team-lead 的消息）中记录，这里不再完整重复：`buildWatertightCapsule()`
+的第一个版本在整个圆柱轴身上只有一条四边形环带，因此在内部关节的 pivot 附近没有任何顶点。修复方法
+是添加 `heightSegments`，其值由当前最小的包络半径推导（每个半径 `RING_RESOLUTION_DIVISOR = 3.0`
+个环），而不是硬编码环数，这样当胶囊或骨骼间距变化时，分辨率也会随之缩放。

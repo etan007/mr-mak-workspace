@@ -8,7 +8,7 @@ export class IntegrationManager extends EventEmitter {
   async init() { this.bindings = await readJson(`${this.stateDir}/integration-bindings.json`, []); return this; }
   list() { return this.providers.map(({ id, label }) => ({ id, label })); }
   async bind(binding) {
-    if (!binding?.providerId || !binding.externalId) throw new Error('An external provider and work-item ID are required.');
+    if (!binding?.providerId || !binding.externalId) throw new Error('需要外部提供方和工作项 ID。');
     this.bindings = [...this.bindings.filter(item => !(item.providerId === binding.providerId && item.externalId === binding.externalId)), { ...binding, boundAt: new Date().toISOString() }];
     await saveJson(`${this.stateDir}/integration-bindings.json`, this.bindings);
     return binding;

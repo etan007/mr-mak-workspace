@@ -1,25 +1,21 @@
 ---
 name: voice-dictation-setup
-description: Help configure optional local Whisper dictation into terminals and other apps, with language, hotkey and CPU or GPU checks.
+description: 协助配置可选的本地 Whisper 语音听写，输入到终端和其他应用，并检查语言、快捷键以及 CPU 或 GPU。
 ---
 
-# Voice dictation setup
+# 语音听写设置
 
-Read [the setup note](../../../knowledge/voice-dictation.md) and the chosen
-tool's current upstream instructions. Dictation is independent of Mr. Mak's
-conversational voice assistant. Keep the two workflows distinct.
+阅读[设置说明](../../../knowledge/voice-dictation.md)以及所选工具当前的上游说明。
+语音听写独立于 Mr. Mak 的对话式语音助手。保持两个工作流相互独立。
 
-Check the operating system, microphone, language and available hardware. Choose
-a local model that fits the machine. Verify the tool's defaults: a configured
-language or GPU build flag may need changing for this user. Do not promise that
-a build compiled with CUDA will run without the required runtime.
+检查操作系统、麦克风、语言和可用硬件。选择适合该机器的本地模型。核实工具的默认值：
+已配置的语言或 GPU 构建标志可能需要为该用户修改。不要承诺用 CUDA 编译的构建在缺少所需
+运行时的情况下也能运行。
 
-Choose a hotkey with the user before rebinding an existing shortcut. Test a short
-sentence in a plain text field, then in a terminal without submitting it. Check
-mixed technical vocabulary, silence and quick repeated recordings. Confirm that
-the next recording starts reliably after a failure.
+重新绑定已有快捷键之前，先与用户商定快捷键。先在纯文本输入框中测试一句短句，再在终端
+中测试（不要提交）。检查中英混杂的技术词汇、静音以及快速连续录音。确认失败后下一次
+录音能可靠启动。
 
-Leave optional cloud formatting disabled unless requested. If enabled, explain
-which text goes to the selected provider and use the user's own credentials.
-Store only reusable setup notes in this project, not voice history or account
-settings. Do not restart Mr. Mak to configure a separate dictation application.
+除非用户要求，保持可选的云端格式化处于关闭状态。若启用，说明哪些文本会发送给所选服务商，
+并使用用户自己的凭据。本项目中只保存可复用的设置说明，不保存语音历史或账号设置。不要为
+配置一个独立的听写应用而重启 Mr. Mak。

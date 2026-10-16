@@ -1,58 +1,53 @@
-# Polish — a build that renders but does not match
+# Polish——能渲染但与参考不符的构建
 
-For a model that already exists and already passes its gates, and is still wrong to look at.
+适用于模型已存在、已通过门禁，但看起来仍然不对的情况。
 
-**Why polish used to stall:** told to "fix everything that does not match", an agent rewrites the
-factory, and the next render is different in ways nobody can attribute. This prompt fixes **one
-defect per cycle**, with the measurement before and after, so a change that made things worse is
-visible immediately instead of being buried under four other changes.
+**polish 过去为何停滞：** 被告知"修正所有不匹配之处"后，代理会重写工厂函数，下一次渲染的差异无法归因到
+任何具体改动。本提示词**每轮只修一个缺陷**，并记录修改前后的测量值，这样让情况变糟的改动会立即显现，
+而不是被埋在另外四处改动之下。
 
 ````text
-Polish this img2threejs build against its reference. One defect per cycle.
+对照参考图 polish 这个 img2threejs 构建。每轮只修一个缺陷。
 
-## Inputs
+## 输入
 - Factory:    <PATH_TO_create<Name>Model.ts>
 - Spec:       <PATH_TO_object-sculpt-spec.json>
 - Reference:  <PATH_TO_REFERENCE>
-- Budget:     <N> cycles          # stop when spent, and report what is left
+- Budget:     <N> cycles          # 用完即停，并报告剩余问题
 
-## Cycle
+## 每轮
 
-1. RENDER and package one reference-vs-render sheet. One sheet, not a scattering of screenshots.
+1. RENDER：渲染并打包一张参考-渲染对比图。一张对比图，而不是零散的多张截图。
 
-2. NAME the single worst defect in one sentence — what is wrong, where, and how you can tell.
-   Rank by identity impact, not by how easy it is to fix. A wrong silhouette outranks a wrong
-   gloss, always.
+2. NAME：用一句话指出唯一最严重的缺陷——哪里不对、在什么位置、你如何判断。
+   按对身份辨识的影响排序，而不是按修复难易。错误的轮廓永远优先于错误的光泽度。
 
-3. MEASURE it before touching anything. Interior difference banded by height, ΔE00 for a colour,
-   silhouette IoU for a shape, per-region confidence for anything the view cannot show. Write the
-   number down. "It looks off" is not a measurement and cannot be checked afterwards.
+3. MEASURE：在动手之前先测量。按高度分带的内部差异，颜色用 ΔE00，形状用 silhouette IoU，
+   视角无法显示的部分用逐区域置信度。把数字记下来。"看起来不对"不是测量，事后无法核对。
 
-4. ATTRIBUTE it to a component id and a spec field. If you cannot name the field, you are guessing
-   — say so and pick the next defect instead of editing blind.
+4. ATTRIBUTE：把它归因到一个部件 id 和一个 spec 字段。如果说不出是哪个字段，你就是在猜
+   ——说明这一点，然后改选下一个缺陷，而不是盲目修改。
 
-5. FIX exactly that field. Do not touch a second component in the same cycle, however tempting.
+5. FIX：只修改那个字段。同一轮内不要碰第二个部件，无论多么诱人。
 
-6. RE-MEASURE the same number. Three outcomes and all three are results:
-     improved   -> keep it, record both numbers
-     unchanged  -> revert it. The hypothesis was wrong; say what it was.
-     worse      -> revert it, and say what that rules out.
+6. RE-MEASURE：重新测量同一个数字。三种结果，三种都是有效结果：
+     improved   -> 保留，记录前后两个数字
+     unchanged  -> 回退。假设错了；说明当时的假设是什么。
+     worse      -> 回退，并说明这排除了什么可能。
 
-7. Re-run the gates that cover what you touched. Never lower a threshold to pass one.
+7. 重新运行覆盖你所改动内容的门禁。绝不为通过门禁而降低阈值。
 
-## Rules
+## 规则
 
-  · A cycle that reverts is a successful cycle. It bought information.
-  · Never fix two defects at once. Attribution is the whole value here.
-  · Never edit the generated factory by hand — edit the spec and regenerate, or the next
-    regeneration silently discards your work.
-  · If a defect traces to something the reference cannot show, stop and say so: no number of cycles
-    will resolve what the image does not contain.
-  · If the same defect survives two cycles, stop and report it. A third attempt is guessing.
+  · 发生回退的一轮也是成功的一轮。它换来了信息。
+  · 绝不同时修两个缺陷。可归因性正是这里的全部价值。
+  · 绝不手工编辑生成的工厂函数——修改 spec 并重新生成，否则下次重新生成会静默丢弃你的工作。
+  · 如果某个缺陷源于参考图无法显示的内容，停下并说明：图像中不包含的信息，再多轮次也解决不了。
+  · 如果同一缺陷经过两轮仍然存在，停下并报告。第三次尝试就是在猜。
 
-## Report
+## 报告
 
-Per cycle: defect · measured before · field changed · measured after · kept or reverted.
-Then: which defects remain, ranked, and which of them the reference cannot resolve.
-Say "improved", never "done", unless every ranked defect is closed.
+每轮：defect · measured before · field changed · measured after · kept or reverted。
+然后：剩余哪些缺陷（排序），以及其中哪些是参考图无法解决的。
+除非所有已排序的缺陷都已关闭，否则只说 "improved"，绝不说 "done"。
 ````

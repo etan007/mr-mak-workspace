@@ -2,8 +2,8 @@
   "entities": [
     {
       "id": "my-dream-game",
-      "title": "My Dream Game",
-      "description": "Mr. Mak 64: a small Sky Islands adventure, with character studies, world layouts and a development board.",
+      "title": "我的梦想游戏",
+      "description": "Mr. Mak 64：一场小小的天空群岛冒险，包含角色研究、世界布局和开发看板。",
       "type": "group",
       "category": "project",
       "created": "2026-09-15",
@@ -22,8 +22,8 @@
     },
     {
       "id": "creative-mcp",
-      "title": "Creative MCP Connections",
-      "description": "A source-linked starter list for Blender, game engines, generation and project skills.",
+      "title": "创意 MCP 连接",
+      "description": "附来源链接的入门清单，涵盖 Blender、游戏引擎、生成服务和项目技能。",
       "type": "group",
       "category": "research",
       "created": "2026-09-15",
@@ -31,11 +31,11 @@
       "folder": "2026-09-15_creative-mcp",
       "steps": [
         {
-          "name": "Tool shortlist",
+          "name": "工具候选清单",
           "path": "report.html"
         },
         {
-          "name": "Connect a tool",
+          "name": "连接工具",
           "path": "connect.md"
         }
       ],
@@ -46,8 +46,8 @@
     },
     {
       "id": "make-workspace-yours",
-      "title": "Make Workspace Yours",
-      "description": "Install the app, understand the daily workflow and choose what to customize.",
+      "title": "打造你的工作区",
+      "description": "安装应用，了解日常工作流，并选择要自定义的内容。",
       "type": "group",
       "category": "dev",
       "created": "2026-09-15",
@@ -55,15 +55,15 @@
       "folder": "2026-09-15_make-workspace-yours",
       "steps": [
         {
-          "name": "Get started",
+          "name": "快速上手",
           "path": "get-started.md"
         },
         {
-          "name": "Everyday use",
+          "name": "日常使用",
           "path": "everyday-use.md"
         },
         {
-          "name": "Customize",
+          "name": "自定义",
           "path": "customize.md"
         }
       ],
@@ -74,8 +74,8 @@
     },
     {
       "id": "arachne-character",
-      "title": "Arachne Character Lab",
-      "description": "From creature concepts to a refined spider queen: nine design rounds and eight motion studies.",
+      "title": "Arachne 角色实验室",
+      "description": "从生物概念到精修的蜘蛛女王：九轮设计和八个动作研究。",
       "type": "group",
       "category": "image-gen",
       "created": "2026-09-15",
@@ -83,43 +83,43 @@
       "folder": "2026-09-15_arachne-character",
       "steps": [
         {
-          "name": "Version 1 · Creature concepts",
+          "name": "第 1 版 · 生物概念",
           "path": "report.html"
         },
         {
-          "name": "Version 2 · A stronger premise",
+          "name": "第 2 版 · 更有力的设定",
           "path": "report_v2.html"
         },
         {
-          "name": "Version 3 · Four directions",
+          "name": "第 3 版 · 四个方向",
           "path": "report_v3.html"
         },
         {
-          "name": "Version 4 · Targeted refinement",
+          "name": "第 4 版 · 定向细化",
           "path": "report_v4.html"
         },
         {
-          "name": "Version 5 · Arachne exploration",
+          "name": "第 5 版 · Arachne 探索",
           "path": "report_v5.html"
         },
         {
-          "name": "Version 6 · Style refinement",
+          "name": "第 6 版 · 风格细化",
           "path": "report_v6.html"
         },
         {
-          "name": "Version 7 · The mixed direction",
+          "name": "第 7 版 · 混合方向",
           "path": "report_v7.html"
         },
         {
-          "name": "Version 8 · A coherent queen",
+          "name": "第 8 版 · 统一的女王",
           "path": "report_v8.html"
         },
         {
-          "name": "Version 9 · Palette studies",
+          "name": "第 9 版 · 配色研究",
           "path": "report_v9.html"
         },
         {
-          "name": "Motion Tests",
+          "name": "动作测试",
           "path": "report_motion.html"
         }
       ],

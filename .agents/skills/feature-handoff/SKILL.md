@@ -1,35 +1,29 @@
 ---
 name: feature-handoff
-description: Prepare a precise handoff for an agent or developer implementing a feature, continuing a task or reviewing a finished change.
+description: 为实现功能、继续任务或审查已完成改动的代理或开发者准备一份精确的交接。
 ---
 
-# Feature handoff
+# 功能交接
 
-Read the current project files and relevant terminal or report before writing
-a handoff. Use the evidence currently on disk, not an earlier progress message.
+编写交接之前，先阅读当前项目文件以及相关的终端或报告。以磁盘上的当前证据为准，而不是
+早先的进度消息。
 
-Include the intended behavior, affected files, useful starting points, exact
-skill paths, known constraints and acceptance checks. For a continuation, add
-what is already implemented, what remains, current test results and any running
-process that must not be interrupted. Keep secrets and login material out.
+写明预期行为、受影响文件、有用的切入点、确切的技能路径、已知限制和验收检查。对于继续
+任务，补充已实现的内容、剩余工作、当前测试结果，以及任何不得中断的运行中进程。不要写入
+密钥和登录信息。
 
-Make ownership clear when several agents are working. Identify files that must
-not be overwritten. Carry forward accepted choices and unresolved questions.
-Do not assign the user work that the receiving agent can complete itself.
+多个代理同时工作时，明确归属。指出不得覆盖的文件。延续已接受的选择和未解决的问题。
+不要把接收方代理自己能完成的工作分派给用户。
 
-Separate the source baseline, selected proposal, implemented behavior, agent
-verification and owner acceptance. A selected mockup is not a shipped feature.
-For assets, include stable IDs, relevant hashes, local dependency paths and
-actual event markers. Name the receiving scene or system, and describe how to
-check it at normal gameplay speed. Leave missing values unresolved rather than
-turning an example's timing, project names or design taste into requirements.
+区分源基线、选定方案、已实现行为、代理验证和负责人验收。选定的样稿不等于已上线的功能。
+对于素材，写明稳定 ID、相关哈希、本地依赖路径和实际事件标记。写明接收的场景或系统，并
+说明如何在正常游戏速度下检查。缺失的值保持未定，不要把示例中的时序、项目名称或设计偏好
+变成需求。
 
-State who owns shared files and the expected base revision. Re-read shared
-state before applying the handoff; reconcile changed inputs instead of
-overwriting another agent's work. Keep the current specification current and
-put chronological implementation details in a separate log.
+说明共享文件归谁所有以及预期的基准版本。应用交接前重新读取共享状态；对已变化的输入进行
+协调，而不是覆盖其他代理的工作。保持当前规格为最新，并把按时间顺序的实现细节放在单独的
+日志中。
 
-For a completed feature, lead with its practical result, then summarize the
-change and verification. Link the relevant report or artifacts. Distinguish a
-prepared build from an installed update and a submitted job from a reviewed
-asset. Read `workspace-authoring` when the handoff is a Workspace deliverable.
+对于已完成的功能，先说明其实际效果，再概述改动和验证。链接相关报告或产物。区分已准备的
+构建与已安装的更新，以及已提交的任务与已审查的素材。交接内容是工作区交付物时，阅读
+`workspace-authoring`。

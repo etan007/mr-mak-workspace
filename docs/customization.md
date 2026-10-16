@@ -1,71 +1,68 @@
-# Make Workspace yours
+# 打造你的工作区
 
-## Change in Settings
+## 在设置中修改
 
-Use the right-hand Settings rail for the available display and behavior controls.
-Under **Appearance**, choose **Dark**, **Light** or **System** for Workspace.
-Dark is the default. Light uses dark text on white; System follows your device.
-The choice applies immediately to navigation, file previews, Markdown and
-standard reports, and is saved for the next launch. It also syncs between
-Workspace windows connected to the same local service. Browser Preview has a
-Settings button in the top bar and saves the choice in that browser.
+右侧的设置栏提供可用的显示和行为选项。在 **外观** 下，为工作区选择 **深色**、
+**浅色** 或 **跟随系统**。默认是深色。浅色使用白底深色文字；跟随系统随设备设置。
+该选择会立即应用到导航、文件预览、Markdown 和标准报告，并保存到下次启动。连接到
+同一本地服务的工作区窗口之间也会同步。浏览器 Preview 在顶栏有设置按钮，并把选择
+保存在该浏览器中。
 
-Terminal text settings and tab colors live with Chats. The Win-key shortcut is
-optional: when enabled, a single Win press returns to hidden Mr. Mak windows;
-when they are already in view, it opens Start. Win combinations remain normal.
-The template leaves it disabled.
+终端文字设置和标签页颜色属于对话窗口。Win 键快捷方式是可选的：启用后，单按一次
+Win 键会回到隐藏的 Mr. Mak 窗口；窗口已在视野中时，则打开“开始”菜单。Win 组合键
+保持正常。模板默认关闭此功能。
 
-Choose chat permission bypass deliberately. Ordinary permissions are the default.
-Voice settings can adjust the voice profile, speed and conversation behavior.
-Some voice changes take effect on the next voice connection.
+谨慎选择对话的跳过权限确认。默认使用普通权限。语音设置可调整语音风格、语速和对话
+行为。部分语音更改在下一次语音连接时生效。
 
-## Change with an agent
+## 让代理来修改
 
-| Ask for | Where it belongs |
+| 你的请求 | 放在哪里 |
 | --- | --- |
-| “Remember how I want reports written.” | `context/preferences.md` |
-| “Save this reliable modeling method.” | A focused note in `knowledge/` |
-| “Make this repeatable.” | A workflow in `processes/` and, if useful, a project skill |
-| “Add a report tab to this project.” | The existing card's steps in `workspace/workspace.json` |
-| “Create a new research task.” | A dated Workspace folder and one registry entry |
-| “Change fonts, colors or spacing everywhere.” | Shared application and report styles |
-| “Add another main folder.” | Files rail defaults in the application source |
+| “记住我希望报告怎么写。” | `context/preferences.md` |
+| “保存这个可靠的建模方法。” | `knowledge/` 中一篇聚焦的笔记 |
+| “把这个做成可重复的流程。” | `processes/` 中的工作流，必要时再加一个项目技能 |
+| “给这个项目加一个报告标签页。” | `workspace/workspace.json` 中现有卡片的 steps |
+| “新建一个调研任务。” | 一个带日期的工作区文件夹和一条注册表条目 |
+| “全局修改字体、颜色或间距。” | 共享的应用和报告样式 |
+| “再加一个主要文件夹。” | 应用源码中的文件侧栏默认值 |
 
-A useful instruction is: “Read AGENTS.md, propose a small change, implement it,
-verify the result, and prepare the update. Ask before restarting the desktop app.”
+一条好用的指令：“阅读 AGENTS.md，提出一个小改动，实现它，验证结果，并准备好更新。
+重启桌面应用前先问我。”
 
-## A small project structure
+## 一个小型项目结构
 
-Keep one pinned project hub with Brief, Plan and Assets tabs. Put lasting source
-files under `projects/<project>/`; keep the pages you read under its Workspace
-folder. Add one card for an independent task, not one card per generated image.
-Related iterations become tabs in the same card. Mark superseded work archived.
+保留一个置顶的项目主页卡片，带 Brief、Plan 和 Assets 标签页。长期保留的源文件放在
+`projects/<project>/` 下；用于阅读的页面放在其工作区文件夹中。每个独立任务一张卡片，
+而不是每张生成图片一张卡片。相关迭代作为同一卡片中的标签页。被取代的工作标记为
+归档。
 
-## Optional providers
+## 可选的提供方
 
-The template does not install MCP servers globally. Use the MCP panel to inspect
-project and global configuration, then follow the provider's current instructions.
-For this project, use `.mcp.json` for Claude and `.codex/config.toml` for Codex.
-Connection credentials remain local or in the provider's own login store.
-Follow the selected client's documented environment-secret support rather than
-placing a token directly in a tracked connection file.
+模板不会全局安装 MCP 服务器。用 MCP 面板查看项目和全局配置，然后按提供方当前的
+说明操作。本项目中，Claude 使用 `.mcp.json`，Codex 使用 `.codex/config.toml`。
+连接凭据保存在本地或提供方自己的登录存储中。按所选客户端文档中对环境变量密钥的
+支持方式配置，不要把令牌直接写进被跟踪的连接文件。
 
-For fal.ai, read the bundled `fal-ai-generation` skill, connect the MCP or use its
-Python helper, and set `FAL_KEY` in `.env`. Discover the exact model schema before
-starting a paid job. Higgsfield uses its own CLI setup and account.
+使用 fal.ai 时，阅读附带的 `fal-ai-generation` 技能，连接 MCP 或使用其 Python
+辅助脚本，并在 `.env` 中设置 `FAL_KEY`。开始付费任务前，先查明确切的模型 schema。
+Higgsfield 使用其自己的 CLI 配置和账号。
 
-## Design rules
+## 存储语言
 
-Use the shared report style, readable headings and consistent card spacing.
-Standard HTML reports use `data-mak-report="document"` on the root element and
-follow the reader's Workspace theme. Use shared color tokens so custom sections
-remain readable. For an intentionally independent design, such as a game demo,
-add `data-mak-theme="custom"` to the root element to keep its original palette.
-Images, videos and canvases keep their colors in every theme.
+工作区中存储的内容（卡片、报告、笔记、工作流）默认使用简体中文。需要其他语言时，
+在请求中明确说明即可；对话本身使用什么语言，不改变已存储成果的默认语言。对话标题
+例外：应用只接受英文标题。
 
-Every report image must open at full size and offer a download. Keep wide tables
-scrollable inside the report, and test tabs at narrow window widths. Preserve
-the selected document surface while a tab loads so switching does not flash.
+## 设计规则
 
-The Workspace authoring skill contains the maintained rules. If you change the
-design system, update that skill and the shared implementation together.
+使用共享报告样式、易读的标题和一致的卡片间距。标准 HTML 报告在根元素上使用
+`data-mak-report="document"`，并跟随读者的工作区主题。使用共享颜色变量，让自定义
+区块保持可读。对于有意独立设计的页面（例如游戏演示），在根元素上添加
+`data-mak-theme="custom"` 以保留其原有配色。图片、视频和 canvas 在所有主题下都
+保持原色。
+
+每张报告图片都必须能以原尺寸打开并提供下载。宽表格在报告内部滚动，并在窄窗口宽度
+下测试标签页。标签页加载时保留所选的文档底色，避免切换时闪烁。
+
+工作区撰写技能包含维护中的规则。如果修改设计系统，请同时更新该技能和共享实现。

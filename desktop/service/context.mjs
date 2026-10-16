@@ -22,7 +22,7 @@ export class ContextLibrary {
   }
   async skills(query = '') {
     const rg = commandPath('rg');
-    if (!rg) return { skills: [], note: 'The rg file search tool is unavailable. Workers can still use their own skills.' };
+    if (!rg) return { skills: [], note: 'rg 文件搜索工具不可用。工作代理仍可使用自己的技能。' };
     const roots = [];
     for (const root of this.skillRoots) if ((await stat(root).catch(() => null))?.isDirectory()) roots.push(root);
     if (!roots.length) return { skills: [] };
@@ -44,16 +44,16 @@ export class ContextLibrary {
     const relative = path.relative(this.repo, actual);
     const privateFile = relative.split(/[\\/]/).some(part => part.startsWith('.'));
     const credential = /(?:^|[/\\])(?:\.env(?:\..*)?|auth\.[^/\\]+|tokens?\.[^/\\]+|credentials\.[^/\\]+|settings\.local\.json)$/i.test(actual);
-    if ((!within(this.repo, actual) && !trustedSkill) || (!trustedSkill && privateFile) || credential || !/\.(md|txt|json|toml|ya?ml)$/i.test(actual)) throw new Error('Read a repository context document or an installed skill. Private runtime and credential files are excluded.');
-    if ((await stat(actual)).size > 2 * 1024 * 1024) throw new Error('Choose a context document smaller than 2 MB.');
+    if ((!within(this.repo, actual) && !trustedSkill) || (!trustedSkill && privateFile) || credential || !/\.(md|txt|json|toml|ya?ml)$/i.test(actual)) throw new Error('只能读取仓库上下文文档或已安装的技能。私有运行时文件和凭据文件除外。');
+    if ((await stat(actual)).size > 2 * 1024 * 1024) throw new Error('请选择小于 2 MB 的上下文文档。');
     const text = await readFile(actual, 'utf8');
     const start = Math.max(0, Number(offset) || 0);
     return { path: actual, text: text.slice(start, start + 24000), nextOffset: start + 24000 < text.length ? start + 24000 : null };
   }
   async search(query) {
-    if (typeof query !== 'string' || !query.trim() || query.length > 200) throw new Error('Use a short context search phrase.');
+    if (typeof query !== 'string' || !query.trim() || query.length > 200) throw new Error('请使用简短的上下文搜索短语。');
     const rg = commandPath('rg');
-    if (!rg) throw new Error('The rg context search tool is unavailable.');
+    if (!rg) throw new Error('rg 上下文搜索工具不可用。');
     const roots = ['context', 'processes', 'knowledge', 'projects'].map(folder => path.join(this.repo, folder));
     const { stdout } = await execute(rg, ['-n', '-i', '--fixed-strings', '--max-count', '2', '-g', '*.md', '-g', '!node_modules', '--', query, ...roots], { windowsHide: true, maxBuffer: 128 * 1024 }).catch(error => ({ stdout: error.stdout || '' }));
     return { matches: stdout.slice(0, 18000), truncated: stdout.length > 18000 };

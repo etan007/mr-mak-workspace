@@ -1,96 +1,78 @@
-# VFX — the effects layer for a character that already moves
+# VFX——为已经能动的角色添加特效层
 
-Use this once the rig and its clips exist and play. It is the effects pass, not a rigging pass.
+在绑定和动画片段已存在且能播放后使用。这是特效轮次，不是绑定轮次。
 
-**Read this first: img2threejs has no particle subsystem.** There is no emitter type, no VFX gate,
-no effect registry. What the pipeline gives you is anchors, a destruction model, and — the part that
-matters most here — **a way to measure the clips instead of eyeballing them**:
+**先读这一点：img2threejs 没有粒子子系统。** 没有发射器类型，没有特效门禁，没有特效注册表。流水线给你的是
+锚点、破坏模型，以及——这里最重要的部分——**一种测量动画片段而非目测的方法**：
 
-    actionProfile.sockets[]   attachment / effect / grip / joint positions, in local coordinates
+    actionProfile.sockets[]   attachment / effect / grip / joint 位置，使用局部坐标
     destruction{}             breakable, fractureGroup, seamRefs, detachableFragments,
                               breakImpulse, debrisMaterial
-    material.emissive         the glow channel
+    material.emissive         发光通道
     userData.sculptRuntime    nodes, meshes, sockets, colliders, destructionGroups, height
-    userData.tick             the per-frame hook
+    userData.tick             逐帧钩子
 
-Everything visual is code you write, in plain `three`. Say which parts are authored rather than
-measured — the same honesty rule the rest of the pipeline runs on, applied to effects.
+所有视觉效果都是你用纯 `three` 写的代码。要说明哪些部分是编写的而非测量的——这与流水线其余部分遵循的
+诚实规则相同，只是应用到了特效上。
 
-## The measuring machinery already exists — call it, don't rebuild it
+## 测量机制已经存在——调用它，不要重建
 
-The prompt below asks you to sweep every clip through a real `AnimationMixer` rather than reading
-timings off a scrub bar. That harness is already emitted:
+下面的提示词要求你让每个动画片段都通过真实的 `AnimationMixer` 扫描一遍，而不是从拖动条上读时间。
+这套工具已经生成好了：
 
-- `emit_animation_runtime.py` emits `seek(name, t)` — play, pause, set time, `mixer.update(0)`,
-  `updateMatrixWorld(true)`. That is a real evaluation at a real time, which is exactly what Gate R1
-  uses to tell a clip that plays from one that merely exists.
-- `clip_features.py` already measures `handRange`, `footRange`, `stance` intervals and `poseReturn`
-  at N = 25 samples per clip.
-- Everything in this project is expressed as a fraction of figure height `H`, and
-  `userData.sculptRuntime.height` carries it. The prompt's "normalise to figure heights" is that
-  same convention, not a new one.
+- `emit_animation_runtime.py` 生成 `seek(name, t)`——play、pause、设置时间、`mixer.update(0)`、
+  `updateMatrixWorld(true)`。这是在真实时间点上的真实求值，正是 Gate R1 用来区分"能播放的片段"与
+  "仅仅存在的片段"的方式。
+- `clip_features.py` 已经以每片段 N = 25 个采样测量 `handRange`、`footRange`、`stance` 区间和 `poseReturn`。
+- 本项目中的一切都以人物高度 `H` 的比例表示，`userData.sculptRuntime.height` 承载该值。提示词中的
+  "按人物高度归一化"就是同一约定，不是新约定。
 
-## Anchoring — the rule that keeps effects alive through a rebuild
+## 锚定——让特效在重新构建后依然有效的规则
 
-Every effect binds to a socket, a bone, or a destruction group **that already exists in the spec**.
-No magic coordinates. If the anchor you need is not there, add it to the spec and regenerate — a
-`sockets[]` entry with an id and a local position — rather than hard-coding a vector into the effect
-code. A hard-coded position silently detaches the moment geometry is regenerated, and nothing warns
-you.
+每个特效都绑定到 spec 中**已经存在**的 socket、骨骼或破坏组。不使用魔法坐标。如果你需要的锚点不存在，
+就把它加入 spec 并重新生成——一个带 id 和局部位置的 `sockets[]` 条目——而不是把向量硬编码进特效代码。
+硬编码的位置会在几何重新生成的那一刻静默脱离，而且没有任何警告。
 
-On a rigged model an effect that must follow a limb binds to the **bone**, not to a pivot: rigging
-merges the mesh and the per-part pivots no longer reach the geometry.
+在已绑定的模型上，必须跟随肢体的特效要绑定到**骨骼**，而不是 pivot：绑定会合并网格，逐部件的 pivot
+不再能作用到几何上。
 
-Additive blending for anything emissive; disable depth WRITE but keep depth TEST, or the effect
-punches a hole through the model it is attached to. One `userData.tick(dt, elapsed)` per effect
-group. The mixer takes the frame **delta** while the generic tick contract passes elapsed — say in a
-comment which one each call site is passing. Plain `three` only, no new dependency, no runtime
-fetch, and every effect disposable: geometry, material and texture released on teardown.
+任何自发光效果都用加法混合；关闭深度写入（depth WRITE）但保留深度测试（depth TEST），否则特效会在其
+附着的模型上打出一个洞。每个特效组一个 `userData.tick(dt, elapsed)`。mixer 接收帧 **delta**，而通用
+tick 约定传递的是 elapsed——在注释中说明每个调用点传的是哪一个。只用纯 `three`，不加新依赖，不在运行时
+fetch，且每个特效都可释放：拆除时释放几何、材质和贴图。
 
-## The prompt
+## 提示词
 
 ````text
-Build the effects layer for the character already in this showcase — the rig and its clips exist,
-only the VFX is missing.
+为这个 showcase 中已有的角色构建特效层——绑定和动画片段都已存在，只缺特效。
 
-Start from the subject. Study what this character is and how its actions read in the world it
-comes from; the effects should belong to it, not to a generic effect kit. Then find the events —
-don't eyeball timings off a scrub bar. Sweep every embedded clip through a real AnimationMixer and
-measure where a strike actually stops at extension, where weight actually meets the ground, and
-where the body is driven by a force arriving from outside the clip. Normalise to figure heights so
-the table survives a change of scale.
+从主体出发。研究这个角色是什么，以及它的动作在它所来自的世界中如何被解读；特效应当属于它，而不是
+来自一套通用特效包。然后找出事件——不要从拖动条上目测时间。让每个内嵌动画片段都通过真实的
+AnimationMixer 扫描一遍，测量一次打击在伸展到位时实际停在哪里、重心实际在哪里接触地面，以及身体在
+哪里受到来自片段之外的力的驱动。按人物高度归一化，使这张表在尺度变化后依然有效。
 
-Build around the stop, not the travel — the interesting part of any impact is the instant it
-arrests. Schedule the effects against that measured table rather than a live "it just decelerated"
-test: scheduling fires on the exact frame, and it's the only way a windup can exist at all,
-because nothing else knows a strike is coming. Add hitstop; the clip itself slowing for a few tens
-of milliseconds is most of the felt impact.
+围绕"停止"来构建，而不是围绕"行程"——任何冲击最有意思的部分都是它被止住的那一瞬间。依据这张测量表
+排期特效，而不是用实时的"刚刚减速了"检测：排期能在准确的那一帧触发，而且这是蓄力动作能够存在的唯一
+方式，因为没有别的东西知道一次打击即将到来。加入 hitstop；片段本身放慢几十毫秒，就占了冲击手感的
+大部分。
 
-Give the character a small vocabulary of impact kinds and make them differ in motion first, colour
-second — a light hit that is only a paler heavy hit is still a heavy hit. Take the palette from
-the world the character lives in, not from an element wheel, and keep one contrasting accent so
-something in frame reads against the rest. A blow the character takes is not a strike played
-backwards: rings turn inward, debris comes off the body, no flash at the hand.
+给角色一小套冲击类型的词汇，让它们首先在运动上不同，其次才是颜色——一个只是更淡一些的重击的轻击，
+仍然是重击。调色板取自角色所处的世界，而不是元素色轮，并保留一个对比强调色，使画面中有某样东西能
+与其余部分区分开。角色受到的打击不是倒放的出击：光环向内收、碎屑从身体上脱落、手部没有闪光。
 
-Calibrate continuous layers — motion trails, breath, ambient drift — per clip against that clip's
-own measured speed; one global threshold smears the fast clips and leaves the slow ones bare. Pool
-everything, allocate nothing after construction, and start every object invisible so the viewer's
-framing pass never measures an effect. Then show me the loudest action, the quietest one, and a
-ground contact.
+按每个片段自己测得的速度来校准连续层——运动拖尾、呼吸、环境飘动；一个全局阈值会把快速片段糊成一片，
+同时让慢速片段光秃秃的。所有对象都放进对象池，构造之后不再分配任何东西，并让每个对象初始不可见，
+这样查看器的取景轮次永远不会把特效算进去。然后给我展示最响亮的动作、最安静的动作，以及一次地面接触。
 ````
 
-## Report
+## 报告
 
-The measured event table — clip, time, event kind, position in figure heights — before any effect
-exists, because everything downstream is scheduled against it. Then per effect: anchor
-(socket / bone / destruction group id), scale basis, blend mode, tick owner, disposal path. Finally
-one line naming what is authored rather than measured, and the frame cost you measured — not the one
-you expect.
+在任何特效存在之前，先给出测量的事件表——片段、时间、事件类型、以人物高度表示的位置——因为下游的一切
+都依据它排期。然后逐个特效列出：锚点（socket / bone / destruction group id）、尺度基准、混合模式、
+tick 归属、释放路径。最后用一行指出哪些是编写的而非测量的，以及你实测的帧开销——而不是你预期的。
 
-## For an object rather than a character
+## 针对物体而非角色
 
-An object has no clips to sweep, so there is no event table to measure and the whole scheduling
-argument does not apply. Anchor on the same sockets and destruction groups, drive from
-`userData.tick`, and break along the `seamRefs` and `detachableFragments` the spec already declares —
-`debrisMaterial` is authored there, so use it rather than inventing a second material that will
-drift from it.
+物体没有可扫描的动画片段，因此没有事件表可测量，整套排期论证也不适用。锚定到同样的 socket 和破坏组，
+由 `userData.tick` 驱动，并沿着 spec 已声明的 `seamRefs` 和 `detachableFragments` 破碎——
+`debrisMaterial` 已在那里编写好，直接使用它，而不是另造一个会与之逐渐偏离的第二种材质。

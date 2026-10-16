@@ -1,14 +1,13 @@
-# Visual Hull Reconstruction
+# 视觉外壳（Visual Hull）重建
 
-This is WS2. It reconstructs geometry from clean silhouette views, then treats the
-hidden areas as low confidence instead of inventing detail.
+这是 WS2。它从干净的轮廓视图重建几何体，并把隐藏区域视为低置信度，而不是凭空
+捏造细节。
 
-Use it when you have at least two clean orthographic-ish masks and the silhouette is
-the main thing that is holding back the model.
+当你至少有两张干净的近似正交遮罩，且轮廓是拖累模型的主要因素时使用它。
 
-## What the spec carries
+## spec 携带的内容
 
-The spec uses `geometryDescriptor.visualHull` with these fields:
+规格（spec）使用 `geometryDescriptor.visualHull`，包含以下字段：
 
 ```json
 {
@@ -25,34 +24,33 @@ The spec uses `geometryDescriptor.visualHull` with these fields:
 }
 ```
 
-The `views` array needs distinct axes. Valid axes are `front`, `side`, and `top`.
-Each mask is a binary string grid.
+`views` 数组中的轴必须互不相同。有效轴为 `front`、`side` 和 `top`。
+每个遮罩是一个二进制字符串网格。
 
-## Limits
+## 限制
 
-- At least two views are required.
-- `resolution` must stay between 4 and 32.
-- `triangleBudget` must be positive and stay at or below 400000.
-- The budget must also cover the worst-case triangle count implied by the chosen resolution.
-- Masks must stay within the supported size window and contain foreground pixels.
+- 至少需要两个视图。
+- `resolution` 必须在 4 到 32 之间。
+- `triangleBudget` 必须为正数，且不超过 400000。
+- 该预算还必须覆盖所选分辨率下最坏情况的三角形数。
+- 遮罩必须在支持的尺寸范围内，且包含前景像素。
 
-## Generator behavior
+## 生成器行为
 
-The generator carves the volume from silhouettes, welds the result, and stores the
-visual-hull metadata on the runtime geometry. The emitted source keeps the hidden
-regions visible in the metadata so the review loop can mark them low confidence.
+生成器根据轮廓雕刻体积、焊接结果，并把视觉外壳元数据存到运行时几何体上。生成的
+源码在元数据中保留隐藏区域信息，以便审查循环将其标记为低置信度。
 
-This path does not combine with `sdf` or `subdivide` on the same component.
+这条路径不能与同一组件上的 `sdf` 或 `subdivide` 组合使用。
 
-## Validation rules
+## 校验规则
 
-- `projection` must be `orthographic`.
-- `boundsSpace` must be `component-local`.
-- Repeated axes are rejected.
-- Contradictory masks fail at runtime with a typed occupancy error.
+- `projection` 必须是 `orthographic`。
+- `boundsSpace` 必须是 `component-local`。
+- 重复的轴会被拒绝。
+- 相互矛盾的遮罩会在运行时以带类型的占用错误失败。
 
-## Acceptance criteria
+## 验收标准
 
-- Two clean silhouettes produce a welded mesh whose silhouette matches each view.
-- Hidden regions stay marked low confidence.
-- The turnaround path improves the reference baseline instead of flattening into noise.
+- 两张干净的轮廓生成一个焊接网格，其轮廓与每个视图一致。
+- 隐藏区域保持标记为低置信度。
+- 环视（turnaround）路径改善参考基线，而不是退化成噪声。

@@ -71,7 +71,7 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    document.title = entity ? `Mr. Mak — ${entity.title}` : 'Mr. Mak — Workspace'
+    document.title = entity ? `Mr. Mak — ${entity.title}` : 'Mr. Mak — 工作区'
   }, [entity])
 
   const goHome = useCallback(() => {
@@ -146,8 +146,8 @@ export default function App() {
       <button
         className="sidebar-reopen"
         onClick={() => setCollapsed(false)}
-        title="Show menu — press Mr. Mak's nose ( [ )"
-        aria-label="Show menu"
+        title="显示菜单 — 点 Mr. Mak 的鼻子（[）"
+        aria-label="显示菜单"
       >
         <MakLogo size={38} animated={route.id !== 'my-dream-game'} />
       </button>

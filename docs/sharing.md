@@ -1,24 +1,21 @@
-# Sharing your version
+# 分享你的版本
 
-Start from this template's clean history. Add only the examples and instructions
-you mean to publish. An empty MCP configuration does not hide a token pasted into
-a report, so review the actual files you are sharing.
+请从本模板干净的历史开始。只添加你打算发布的示例和说明。
+空的 MCP 配置无法隐藏粘贴进报告里的令牌，所以请审查你实际要分享的文件。
 
-Keep `.env`, `.mrmak`, agent login files, global configuration, raw generation
-receipts and private inbox materials local. The supplied `.gitignore` covers
-common runtime paths. It cannot recognize private text you put in an ordinary
-Markdown file.
+`.env`、`.mrmak`、代理登录文件、全局配置、原始生成回执和
+inbox 中的私有材料都应只保留在本地。随附的 `.gitignore` 覆盖了
+常见的运行时路径，但无法识别你写进普通 Markdown 文件的私密文本。
 
-Use generic placeholders in `context/`. Remove personal project names, private
-links, message drafts and account details from exported cards and skills.
-Review media as well as text. Keep third-party licenses and source attribution.
+在 `context/` 中使用通用占位内容。从导出的卡片和技能中删除个人项目名称、
+私有链接、消息草稿和账号信息。媒体与文本都要审查。保留第三方许可证和来源署名。
 
-To share selected skills, copy their canonical folders from `.agents/skills`
-with every referenced resource. Repository workflows may also depend on
-`knowledge/`, `processes/` or `scripts/`; read `docs/skills.md` before copying a
-single folder. The complete `.claude/skills` copies can be shared with Claude
-users as well. Run `npm run skills:sync` after changing the maintained source.
+如需分享选定的技能，请从 `.agents/skills` 复制其规范文件夹，
+并带上所有引用的资源。仓库工作流还可能依赖
+`knowledge/`、`processes/` 或 `scripts/`；复制单个文件夹前请先阅读 `docs/skills.md`。
+完整的 `.claude/skills` 副本也可分享给 Claude 用户。
+修改维护中的源文件后请运行 `npm run skills:sync`。
 
-An agent preparing a release should run lint, service tests, template checks
-and the desktop build. Check the four starter cards in a fresh browser session,
-inspect the staged file list, then publish the source and installer checksum.
+准备发布的代理应运行 lint、服务测试、模板检查和桌面构建。
+在全新浏览器会话中检查四张入门卡片，查看暂存文件列表，
+然后发布源码和安装程序校验和。

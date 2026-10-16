@@ -5,7 +5,7 @@ function open(): Promise<IDBDatabase> {
     const request = indexedDB.open('mrmak-mobile-voice', 1)
     request.onupgradeneeded = () => request.result.createObjectStore('recordings')
     request.onsuccess = () => resolve(request.result)
-    request.onerror = () => reject(new Error('Could not save the recording on this phone.'))
+    request.onerror = () => reject(new Error('无法在这部手机上保存录音。'))
   })
 }
 async function transaction<T>(mode: IDBTransactionMode, action: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
@@ -13,7 +13,7 @@ async function transaction<T>(mode: IDBTransactionMode, action: (store: IDBObjec
   return new Promise((resolve, reject) => {
     const tx = db.transaction('recordings', mode), request = action(tx.objectStore('recordings'))
     tx.oncomplete = () => { db.close(); resolve(request.result) }
-    tx.onerror = tx.onabort = () => { db.close(); reject(new Error('Could not save the recording on this phone.')) }
+    tx.onerror = tx.onabort = () => { db.close(); reject(new Error('无法在这部手机上保存录音。')) }
   })
 }
 // Recordings are stored as bytes, not Blobs: Safari's Private Browsing (and

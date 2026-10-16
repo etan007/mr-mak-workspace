@@ -263,7 +263,7 @@ test('Tailscale setup preserves other routes and refuses a public Funnel route',
   assert.ok(!calls.flat().includes('reset')); assert.ok(calls[0].includes('--https=8444'));
   await transport.disable({ hostname: 'pc.example.ts.net', port: 8443, target: 'http://127.0.0.1:12345' }); assert.equal(calls.length, 1);
   config.AllowFunnel = { 'pc.example.ts.net:8444': true };
-  await assert.rejects(transport.enable('http://127.0.0.1:12346', saved), /publicly shared/);
+  await assert.rejects(transport.enable('http://127.0.0.1:12346', saved), /已公开共享/);
 });
 
 

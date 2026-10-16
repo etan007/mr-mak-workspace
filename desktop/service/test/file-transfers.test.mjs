@@ -38,15 +38,15 @@ test('invalid names, interrupted uploads and size limits leave no partial copies
   const invalidNames = ['../escape.txt', '..\\escape.txt', '.', '..', 'a/b.txt'];
   if (process.platform === 'win32') invalidNames.push('CON.txt', 'C:secret', 'trailing.', 'trailing ');
   for (const name of invalidNames) {
-    await assert.rejects(importFile(Readable.from(['bad']), folder, name), /file name/);
+    await assert.rejects(importFile(Readable.from(['bad']), folder, name), /文件名/);
   }
   await assert.rejects(importFile(Readable.from([Buffer.from('123'), Buffer.from('456')]), folder, 'Large.bin', 4), /1 GB/);
   async function* interrupted() { yield Buffer.from('partial'); throw new Error('Transfer interrupted'); }
   await assert.rejects(importFile(interrupted(), folder, 'Interrupted.bin'), /interrupted/);
   assert.deepEqual(await readdir(folder), []);
-  await assert.rejects(importFile(Readable.from([]), path.join(repo, 'ui', 'index.html'), 'file.txt'), /folder/);
+  await assert.rejects(importFile(Readable.from([]), path.join(repo, 'ui', 'index.html'), 'file.txt'), /文件夹/);
   assert.deepEqual(await dragFiles([folder]), [await realpath(folder)]);
-  await assert.rejects(dragFiles([]), /1 and 100/);
+  await assert.rejects(dragFiles([]), /1 到 100/);
 });
 
 test('file import and native drag use authenticated control and a selected folder', async () => {
@@ -94,7 +94,7 @@ test('internal drops move files, same-folder drops do nothing, collisions retain
   const destination = path.join(repo, 'workspace');
   const target = path.join(destination, 'Move me.txt');
   await writeFile(target, 'Destination bytes');
-  await assert.rejects(moveFile(source, destination), /already exists/);
+  await assert.rejects(moveFile(source, destination), /已存在同名文件/);
   assert.equal(await readFile(source, 'utf8'), 'Source bytes');
   assert.equal(await readFile(target, 'utf8'), 'Destination bytes');
   const empty = path.join(repo, 'Moved'); await mkdir(empty);
@@ -102,6 +102,6 @@ test('internal drops move files, same-folder drops do nothing, collisions retain
   assert.equal(result.moved, true);
   assert.equal(await readFile(result.path, 'utf8'), 'Source bytes');
   assert.deepEqual(await readdir(folder), []);
-  await assert.rejects(recyclePath(repo, repo), /repository/);
+  await assert.rejects(recyclePath(repo, repo), /仓库/);
   assert.equal(await recyclePath(result.path, repo), result.path);
 });

@@ -1,49 +1,47 @@
-# Divine Eye Microscope — four-tier fidelity review
+# Divine Eye 显微镜——四级保真度评审
 
-Divine Eye today scores a whole silhouette against a whole silhouette. That answers "is this the
-right shape" and cannot answer "is tear-04 on the right wing the right width", because the two
-questions live at different scales. This document specifies the microscope: a review that descends
-macro → component → feature → micro, and where **one critical feature failing fails the iteration
-regardless of a high global score**.
+目前的 Divine Eye 是拿整体轮廓与整体轮廓打分。它能回答"形状对不对"，却无法回答"右翼上的
+tear-04 宽度对不对"，因为这两个问题处在不同的尺度上。本文档规定"显微镜"：一种按
+宏观 → 组件 → 特征 → 微观逐级下钻的评审，并且**只要有一个关键特征失败，无论全局分数多高，
+本轮迭代都判定失败**。
 
-## Audit first — what is already here
+## 先审计——已有哪些能力
 
-Do not re-implement these. Verified against the code, not assumed:
+不要重新实现这些。以下均对照代码核实过，而非假设：
 
-| Capability | State | Where |
+| 能力 | 状态 | 位置 |
 |---|---|---|
-| Critical-feature AND gate | **already implemented** | `stage4_review/per_feature.py` — `is_gating()` returns true for `tier == "critical"` or `mustPass`, and `passed` is false if any gating feature is missing or below threshold |
-| Arbitrary named ROIs in the inventory | **already implemented** | `stage1_intake/build_detail_inventory.py` — `component-zones` mode plus `--components` takes named normalized regions. The *default* (`DEFAULT_COMPONENT_ZONES`) is only upper/middle/lower thirds, which is what makes it feel grid-only |
-| Chamfer distance | referenced | `stage4_review/divine_eye.py` |
-| ΔE colour difference | present | `stage4_review/diagnose_render.py` |
-| SSIM | present | `stage4_review/divine_eye.py` |
+| 关键特征 AND 门禁 | **已实现** | `stage4_review/per_feature.py`——`is_gating()` 对 `tier == "critical"` 或 `mustPass` 返回 true；若任一门禁特征缺失或低于阈值，`passed` 为 false |
+| 清单中的任意具名 ROI | **已实现** | `stage1_intake/build_detail_inventory.py`——`component-zones` 模式加 `--components` 接受具名的归一化区域。*默认值*（`DEFAULT_COMPONENT_ZONES`）只有上/中/下三等分，这正是它看起来只支持网格的原因 |
+| Chamfer 距离 | 有引用 | `stage4_review/divine_eye.py` |
+| ΔE 色差 | 已有 | `stage4_review/diagnose_render.py` |
+| SSIM | 已有 | `stage4_review/divine_eye.py` |
 
-Genuinely absent, and therefore the actual work: `setViewOffset` zoom patches, render targets, SDF,
-Hausdorff, ID/depth/normal/albedo passes, per-ROI ΔE2000, and **occlusion masking in stage 4**
-(occlusion appears in stage 2 spec and stage 1 intake, nowhere in review).
+真正缺失、因而才是实际工作的部分：`setViewOffset` 缩放 patch、render target、SDF、Hausdorff、
+ID/depth/normal/albedo pass、逐 ROI 的 ΔE2000，以及**第 4 阶段的遮挡遮罩**（遮挡只出现在
+第 2 阶段 spec 和第 1 阶段 intake 中，评审中完全没有）。
 
-## The resolution problem, stated exactly
+## 分辨率问题的精确表述
 
-`divine_eye.py` sets `LUMA_SIZE = 64` and `EDGE_SIZE = 96`. Every SSIM, tonal, blowout and
-edge-overlap signal is computed on those grids. A tear a few pixels wide in a 1920px reference is
-sub-pixel at 64×64 — it is not scored badly, it is **absent**. No threshold tuning recovers it; the
-information is gone before any comparison happens.
+`divine_eye.py` 设置了 `LUMA_SIZE = 64` 和 `EDGE_SIZE = 96`。所有 SSIM、色调、过曝和边缘重叠信号
+都在这些网格上计算。在 1920px 参考图中只有几个像素宽的破口，在 64×64 下是亚像素级的——它不是
+得分差，而是**根本不存在**。调阈值无法把它找回来；信息在任何比较发生之前就已丢失。
 
-`per_feature.py` cannot compensate: `evaluate_features(feature_targets, feature_scores)` consumes a
-scores dict. It never opens an image. So the tier machinery is sound and starved — it gates
-faithfully on numbers nothing produces at feature scale.
+`per_feature.py` 无法弥补：`evaluate_features(feature_targets, feature_scores)` 消费的是一个分数
+字典，它从不打开图像。所以分级机制本身是健全的，只是"饿着"——它忠实地对一些在特征尺度上根本
+没人产出的数字做门禁。
 
-`make_comparison_sheet.py` composites whole reference beside whole render. At sheet scale a
-few-pixel tear is invisible to a human reviewer and to a VLM alike.
+`make_comparison_sheet.py` 把整张参考图和整张渲染图并排合成。在对比图的尺度下，几个像素的破口
+对人工评审者和 VLM 都不可见。
 
-## Tier structure
+## 分级结构
 
-1. **Macro** — whole model, every required view.
-2. **Component** — wing-left, wing-right, head, torso, tail.
-3. **Feature** — individual spar, ear, eye, fang, tear.
-4. **Micro** — contour, tear edge, bevel, roughness, colour gradient.
+1. **宏观**——整个模型，每个必需视角。
+2. **组件**——左翼、右翼、头、躯干、尾巴。
+3. **特征**——单根翼骨、耳朵、眼睛、獠牙、破口。
+4. **微观**——轮廓、破口边缘、倒角、粗糙度、颜色渐变。
 
-## Microscope plan — the feature descriptor
+## 显微镜方案——特征描述符
 
 ```json
 {
@@ -59,114 +57,101 @@ few-pixel tear is invisible to a human reviewer and to a VLM alike.
 }
 ```
 
-Missing ROI, missing render, missing camera, or a missing required feature **fails closed**. Exit
-nonzero — never a printed complaint and a zero exit.
+缺少 ROI、缺少渲染、缺少相机或缺少必需特征时，**一律按失败处理（fail closed）**。以非零码退出——
+绝不能只打印一句抱怨却以零退出。
 
-## Active zoom in Three.js
+## 在 Three.js 中主动缩放
 
-Do **not** move the camera closer and do **not** switch to orthographic. Both change the
-projection, so the patch no longer shows what the reference view shows. NotebookLM's orthographic
-suggestion is only correct when the reference itself is orthographic.
+**不要**把相机拉近，也**不要**切换为正交相机。两者都会改变投影，导致 patch 不再显示参考视角所
+显示的内容。NotebookLM 提出的正交建议，只有在参考图本身是正交投影时才正确。
 
-- `PerspectiveCamera.setViewOffset()` — crop a sub-rectangle of the *original* projection.
-- `WebGLRenderTarget` — render the patch at 512² or 1024².
-- `camera.layers` or visibility masks — isolate the component. **See the occlusion warning below.**
-- Object-ID pass — one flat unique colour per mesh.
-- Depth and normal passes — separate geometry error from material error.
-- `readRenderTargetPixelsAsync()` for pixel readback.
-- DPR pinned to 1. Hardware antialias **off**; supersample 2×/4× and downsample deterministically.
-- Camera, viewport, FOV, target, near/far, tone mapping and exposure all frozen.
+- `PerspectiveCamera.setViewOffset()`——在*原始*投影中裁出一个子矩形。
+- `WebGLRenderTarget`——以 512² 或 1024² 渲染该 patch。
+- `camera.layers` 或可见性遮罩——隔离组件。**见下方的遮挡警告。**
+- Object-ID pass——每个网格一种唯一的平涂颜色。
+- Depth 和 normal pass——把几何误差与材质误差分开。
+- 用 `readRenderTargetPixelsAsync()` 回读像素。
+- DPR 固定为 1。硬件抗锯齿**关闭**；以 2×/4× 超采样后确定性地降采样。
+- 相机、视口、FOV、目标点、near/far、色调映射和曝光全部冻结。
 
-### Occlusion warning — isolation renders are not what the reference sees
+### 遮挡警告——隔离渲染看到的不是参考图看到的
 
-**This one is empirically established, not theoretical.** It produced a confident false finding in
-the mini-dragon build and cost a full correction cycle before it was caught.
+**这一条是经验上确立的，不是理论推演。** 它在 mini-dragon 构建中产生了一个言之凿凿的错误结论，
+直到被发现前白白耗掉了一整个修正周期。
 
-Isolating a component by layers or `visible` hides everything else, so the render reveals parts of
-the component that are **hidden in the real frame**. Measured that way the dragon's wings read
-`darkShare` 0.4362 against a reference 0.2240 — "the spars are twice too thick". Spar radii were
-scaled to 0.72× on the strength of it. Measured correctly at the *original* radii the same wings
-read 0.1891 against 0.2240, a delta of 0.0349, comfortably inside tolerance. **The spars were never
-too thick.**
+用 layers 或 `visible` 隔离一个组件会隐藏其他所有东西，于是渲染会暴露出该组件在**真实画面中被
+挡住**的部分。用这种方式测量，龙翼的 `darkShare` 为 0.4362，参考图为 0.2240——"翼骨粗了一倍"。
+于是翼骨半径据此被缩到了 0.72×。而在*原始*半径下正确测量，同样的翼得到 0.1891 对 0.2240，差值
+0.0349，完全在容差之内。**翼骨从来就没有太粗。**
 
-The cause: the reference's wing material spans 0.924–2.135 face widths from the centre, the model's
-spans 0.519–1.739 — the same span to within 1%, but reaching 0.405 face widths further inboard,
-because in the isolation render nothing occluded the wing root. That root carries the thickest spars
-and the arm spar, so the model was charged for dark geometry the reference photograph cannot contain.
+原因：参考图中翼的材质分布在距中心 0.924–2.135 个面宽处，模型则是 0.519–1.739——跨度在 1% 以内
+相同，但向内多延伸了 0.405 个面宽，因为在隔离渲染中没有任何东西挡住翼根。翼根恰恰带有最粗的
+翼骨和臂骨，所以模型被计入了参考照片中根本不可能出现的深色几何。
 
-The fix, and the rule:
+修正方法与规则：
 
-> A fidelity comparison must measure the component's **visible footprint**: render the full frame,
-> render it again with only that component hidden, and take the pixels that differ. Those are the
-> pixels where the component is the frontmost thing drawn — which is exactly what a photograph of
-> the same pose shows of it. Keep isolation renders for *structural* questions (is the spar present,
-> are left and right consistent), where seeing occluded geometry is a feature rather than a bias.
+> 保真度对比必须测量组件的**可见占位**：渲染完整画面，再渲染一次只隐藏该组件的画面，取两者
+> 不同的像素。这些像素就是该组件作为最前方被绘制物体的位置——恰好就是同一姿势的照片所能显示
+> 的它的部分。隔离渲染保留用于*结构性*问题（翼骨是否存在、左右是否一致），在这类问题中看到被
+> 遮挡的几何是优点而非偏差。
 
-Note also which instrument caught this. Thinning the spars improved the new feature metric and cost
-the older silhouette ratchet 0.0075 IoU on one view, twice its tolerance. **Two instruments
-disagreeing is information, and the newer one is not automatically right.** Never let a freshly
-written metric override a regression in one already trusted; investigate the disagreement instead.
+还要注意是哪个仪器发现了这个问题。把翼骨变细改善了新的特征指标，却让较早的轮廓棘轮在一个视角
+上损失了 0.0075 IoU，是其容差的两倍。**两个仪器结论不一致本身就是信息，而且较新的那个并不自动
+正确。** 绝不要让刚写出来的指标压过一个已受信任指标的回退；应当去调查这一分歧。
 
-## Micro algorithms
+## 微观算法
 
-- **Image pyramid / MS-SSIM** — compare at multiple scales rather than one.
-- **Patch-wise comparison** — so a large correct skin area cannot mask a small wrong tear edge.
-- **3-SSIM** — weight edge and texture above smooth regions.
-- **SDF** — signed distance between two contours.
-- **Bidirectional / directional Chamfer** — position *and* orientation of a tear edge.
-- **Curvature extrema** — locate each notch's apex and lobes.
-- **Hausdorff / worst-edge distance** — catch the worst local error, which averages hide.
-- **Occlusion mask** — never score a hidden region. See the warning above.
-- **Multi-view correspondence** — the same tear must sit consistently across views.
-- **Adaptive subdivision** — subdivide ROIs that are edge-dense or uncertain.
+- **图像金字塔 / MS-SSIM**——在多个尺度而非单一尺度上比较。
+- **逐 patch 比较**——避免一大片正确的皮肤区域掩盖一个错误的小破口边缘。
+- **3-SSIM**——边缘和纹理的权重高于平滑区域。
+- **SDF**——两条轮廓之间的有符号距离。
+- **双向 / 定向 Chamfer**——破口边缘的位置*和*朝向。
+- **曲率极值**——定位每个缺口的顶点和瓣叶。
+- **Hausdorff / 最差边缘距离**——捕捉被平均值掩盖的最大局部误差。
+- **遮挡遮罩**——绝不对被遮挡区域打分。见上方警告。
+- **多视角对应**——同一破口在各视角中的位置必须一致。
+- **自适应细分**——对边缘密集或不确定的 ROI 进一步细分。
 
-Saliency alone is insufficient: a small tear need not be salient. Combine three sources — the
-declared feature inventory (mandatory), automatic edge/curvature discovery, and saliency/uncertainty
-for finding regions worth zooming that nobody declared.
+仅靠显著性是不够的：小破口未必显著。应结合三个来源——声明的特征清单（必需）、自动的边缘/曲率
+发现，以及用于找出无人声明但值得放大区域的显著性/不确定性。
 
-## Tear descriptor
+## 破口描述符
 
-Store each tear independently; never mirror descriptors between wings.
+每个破口单独存储；绝不要在两翼之间镜像描述符。
 
-Centre in normalized u/v · mouth width · tear depth · mouth angle · apex position · left and right
-edge angle · curvature at apex · distance to previous and next tear · profile (V, U, slit, scallop) ·
-edge thickness and bevel · roughness/fray amplitude · relation to nearest spar · side and asymmetry ·
-visibility and occlusion per view.
+归一化 u/v 中心 · 开口宽度 · 破口深度 · 开口角度 · 顶点位置 · 左右边缘角度 · 顶点曲率 · 与前后
+破口的距离 · 剖面（V、U、狭缝、扇贝形）· 边缘厚度与倒角 · 粗糙度/毛边幅度 · 与最近翼骨的关系 ·
+所在侧与不对称性 · 各视角的可见性与遮挡。
 
-That is what lets the review say "tear-04 is 12% too wide, 8% too shallow, 6px off its spar" instead
-of "wing score low".
+正是这些让评审能说"tear-04 宽了 12%、浅了 8%、偏离翼骨 6px"，而不是"翼的分数偏低"。
 
-## Colour microscope
+## 颜色显微镜
 
-Three separate passes:
+三个独立的 pass：
 
-1. **Geometry pass** — unlit, no tone mapping. Silhouette, ID, depth, normal.
-2. **Albedo pass** — neutral light or map-stripped, to check base colour.
-3. **Beauty/PBR pass** — fixed lighting/HDRI/tone mapping, to check appearance.
+1. **几何 pass**——无光照、无色调映射。轮廓、ID、depth、normal。
+2. **Albedo pass**——中性光或去除贴图，用于检查基础色。
+3. **Beauty/PBR pass**——固定光照/HDRI/色调映射，用于检查外观。
 
-Colour metrics: convert sRGB to linear properly · de-light the reference before comparing albedo ·
-CIELAB/ΔE2000 per ROI · mask highlights, shadows and occluded regions · check hue, chroma and
-luminance separately · derive roughness/specular from highlight width and intensity under controlled
-relighting only.
+颜色指标：正确地把 sRGB 转换为线性 · 比较 albedo 前先对参考图去光照 · 逐 ROI 的 CIELAB/ΔE2000 ·
+遮罩高光、阴影和被遮挡区域 · 分别检查色相、色度和亮度 · 只在受控重新照明下，从高光宽度和强度
+推导粗糙度/高光。
 
-**Do not hard-gate roughness from an image whose lighting is unknown.** `hueZoneParity` and specular
-signals stay report-only until a calibration corpus exists.
+**不要对光照未知的图像做粗糙度硬门禁。** 在有校准语料之前，`hueZoneParity` 和高光信号只做报告。
 
-### Corollary — a dark ratio cannot separate material from shadow on a concave part
+### 推论——在凹形部件上，暗部比例无法区分材质与阴影
 
-Also empirically established. The mini-dragon's reference ear reads 14.3% "dark keratin" even along
-its own axis corridor, so it is not a crop artefact. But bucketing those pixels by `min(r,g,b)` shows
-only 14% near-black, peaking at 60–79 — a gradient. The wing's dark over the same classifier is 32.9%
-near-black. The ear's dark is **cavity shading**, and the model reading 0.0% is not a missing
-material. Gating on it would have driven a dark inner-ear material to be invented to match a shadow.
+这同样是经验上确立的。mini-dragon 的参考耳朵即使沿其自身轴线走廊也有 14.3% 的"深色角质"，所以
+这不是裁切伪差。但按 `min(r,g,b)` 对这些像素分桶后，只有 14% 接近纯黑，峰值在 60–79——是一个
+渐变。用同一分类器，翼的暗部有 32.9% 接近纯黑。耳朵的暗部是**凹腔阴影**，模型读数为 0.0% 并不是
+缺少材质。若以它为门禁，就会逼着人为了匹配一片阴影而凭空造出深色内耳材质。
 
-> Before promoting any ROI to a colour-gating metric, bucket its reference dark pixels by
-> `min(r,g,b)`. A material clusters near-black; shading spreads mid-grey. Concave, unlit features are
-> report-only.
+> 在把任何 ROI 提升为颜色门禁指标之前，先按 `min(r,g,b)` 对其参考图暗部像素分桶。材质会聚集在
+> 接近纯黑处；阴影则散布在中灰区间。凹形、无光照的特征只做报告。
 
-## Aggregation
+## 汇总
 
-Never average globally.
+绝不做全局平均。
 
 ```
 critical feature AND gate
@@ -180,26 +165,25 @@ critical feature AND gate
  overall verdict
 ```
 
-One missing critical tear fails the whole iteration.
+缺少一个关键破口，整轮迭代即失败。
 
-## Acceptance criteria
+## 验收标准
 
-- [ ] Divine Eye accepts a view × component × feature manifest.
-- [ ] Zoom patches rendered via `setViewOffset`, projection unchanged.
-- [ ] Every critical feature rendered at ≥128–256 px.
-- [ ] ID, depth, normal, albedo and beauty outputs produced.
-- [ ] SDF + directional Chamfer for contours.
-- [ ] Per-ROI ΔE2000 for colour.
-- [ ] Any missing required patch exits nonzero.
-- [ ] **Fidelity metrics measured on the visible footprint (full minus component-hidden), not on an isolation render.**
-- [ ] A fixture identical everywhere but missing one small tear **fails**.
-- [ ] A VLM may not override a geometry or micro-detail hard gate.
-- [ ] Overall verdict from worst patch/view, not an average.
-- [ ] Every artifact carries plan hash, model hash, camera, renderer config and iteration ID.
+- [ ] Divine Eye 接受 视角 × 组件 × 特征 的 manifest。
+- [ ] 缩放 patch 通过 `setViewOffset` 渲染，投影不变。
+- [ ] 每个关键特征以 ≥128–256 px 渲染。
+- [ ] 产出 ID、depth、normal、albedo 和 beauty 输出。
+- [ ] 轮廓使用 SDF + 定向 Chamfer。
+- [ ] 颜色使用逐 ROI 的 ΔE2000。
+- [ ] 任何缺失的必需 patch 都以非零码退出。
+- [ ] **保真度指标在可见占位（完整画面减去隐藏组件后的画面）上测量，而不是在隔离渲染上测量。**
+- [ ] 一个处处相同、只少了一个小破口的测试夹具会**失败**。
+- [ ] VLM 不得推翻几何或微观细节的硬门禁。
+- [ ] 总体结论取最差 patch/视角，而非平均值。
+- [ ] 每个产物都带有 plan 哈希、模型哈希、相机、渲染器配置和迭代 ID。
 
-## The hard limit
+## 硬性极限
 
-**Zoom cannot create information the reference does not contain.** If a tear occupies 1–2 pixels in
-the source image, Divine Eye must return `insufficient-reference-resolution`. Super-resolution output
-is never ground truth — it is a plausible invention, and gating a model against an invention is worse
-than not gating it at all.
+**缩放无法创造参考图中不存在的信息。** 若某个破口在源图像中只占 1–2 个像素，Divine Eye 必须返回
+`insufficient-reference-resolution`。超分辨率输出绝不是基准真相——它只是一种看似合理的虚构，拿
+模型去对一个虚构做门禁，比完全不做门禁更糟。

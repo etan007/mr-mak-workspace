@@ -50,9 +50,9 @@ test('coordinator images must be actual, bounded images inside the upload folder
   const outside = await mkdtemp(path.join(os.tmpdir(), 'mrmak-outside-image-'));
   await writeFile(path.join(outside, 'secret.png'), png);
   const alias = path.join(repo, 'inbox/attachments/linked'); await symlink(outside, alias, process.platform === 'win32' ? 'junction' : 'dir');
-  await assert.rejects(attachments.coordinatorImages([path.join(alias, 'secret.png')]), /uploaded through Mr. Mak/);
+  await assert.rejects(attachments.coordinatorImages([path.join(alias, 'secret.png')]), /通过 Mr. Mak 上传/);
   const handle = await open(image.path, 'r+'); await handle.truncate(MAX_IMAGE_BYTES + 1); await handle.close();
-  await assert.rejects(attachments.coordinatorImages([image.path]), /smaller than 25 MB/);
+  await assert.rejects(attachments.coordinatorImages([image.path]), /小于 25 MB/);
 });
 
 test('coordinator cannot increase the UI-selected default chat permission level', async () => {
@@ -65,14 +65,14 @@ test('coordinator cannot increase the UI-selected default chat permission level'
   };
   const create = bypass => service.coordinator.execute('open_chat', { agent: 'codex', name: 'Review Reference', bypass }, 'fixture');
   try {
-    await assert.rejects(create(true), /choose it yourself/); assert.equal(created.length, 0);
+    await assert.rejects(create(true), /自行选择/); assert.equal(created.length, 0);
     await create(undefined); assert.equal(created.at(-1).bypass, false);
     assert.equal((await request('/settings', { defaultBypass: true })).status, 200);
     await create(undefined); assert.equal(created.at(-1).bypass, true);
     await create(false); assert.equal(created.at(-1).bypass, false);
     await create(true); assert.equal(created.at(-1).bypass, true);
     assert.equal((await request('/settings', { defaultBypass: false })).status, 200);
-    await assert.rejects(create(true), /choose it yourself/);
-    await assert.rejects(create('true'), /valid chat permission/);
+    await assert.rejects(create(true), /自行选择/);
+    await assert.rejects(create('true'), /有效的对话权限/);
   } finally { await service.close(); }
 });

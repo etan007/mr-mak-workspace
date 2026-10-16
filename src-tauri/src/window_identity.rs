@@ -43,7 +43,7 @@ pub fn set_window(window: &tauri::WebviewWindow) -> Result<(), Box<dyn std::erro
     window.set_icon(tauri::image::Image::from_bytes(png)?)?;
     let icon = icon_path(app, label)?;
     let command = format!("\"{}\" --show {label}", std::env::current_exe()?.display());
-    let title = if label == "chats" { "Mr. Mak Chats" } else { "Mr. Mak Workspace" };
+    let title = if label == "chats" { "Mr. Mak 对话" } else { "Mr. Mak 工作区" };
     unsafe {
         let hwnd = window.hwnd()?.0;
         let dpi = GetDpiForWindow(hwnd);

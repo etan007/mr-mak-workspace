@@ -1,11 +1,10 @@
-# Working preferences
+# 工作偏好
 
-This is a starting point. Replace it with your preferences when you are ready.
+这只是起点。准备好后换成你自己的偏好。
 
-- Stored content: English unless explicitly requested otherwise.
-- Communication: clear, practical updates and visible results.
-- Reports: shared Workspace styling, readable tabs, image enlargement and downloads.
-- Changes: keep revisions together and record what was checked.
-- Permissions: choose the level appropriate for each task; do not infer a personal
-  preference for bypassing approvals from the examples.
-- Restarts: ask before interrupting a running application or agent chat.
+- 存储内容：默认简体中文，除非另有明确要求。
+- 沟通：清晰、务实的进度更新和可见的成果。
+- 报告：共享的工作区样式、易读的标签页、图片可放大和下载。
+- 改动：相关修订放在一起，并记录检查了什么。
+- 权限：按任务选择合适的级别；不要从示例中推断用户偏好跳过审批。
+- 重启：中断正在运行的应用或代理对话前先询问。

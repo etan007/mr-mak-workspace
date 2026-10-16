@@ -76,7 +76,7 @@ export class Sessions extends EventEmitter {
   }
   get(id) {
     const session = this.items.get(id);
-    if (!session) throw Object.assign(new Error('Chat no longer exists'), { status: 404 });
+    if (!session) throw Object.assign(new Error('对话已不存在'), { status: 404 });
     return session;
   }
   changed(session) {
@@ -85,13 +85,13 @@ export class Sessions extends EventEmitter {
   }
 
   async create(options) {
-    if (this.closed) throw new Error('Mr. Mak is shutting down');
-    if (this.active().length >= 80) throw new Error('Close a tab before opening another (80 open tab limit). Closed chats remain in History.');
+    if (this.closed) throw new Error('Mr. Mak 正在关闭');
+    if (this.active().length >= 80) throw new Error('请先关闭一个标签页再打开新的（最多 80 个打开的标签页）。已关闭的对话保留在历史中。');
     const agent = String(options.agent || 'codex');
     nativeConversationId(options.resumeId);
-    if (options.effort && !workerEfforts.includes(options.effort)) throw new Error('Reasoning effort must be medium, high, xhigh or max.');
+    if (options.effort && !workerEfforts.includes(options.effort)) throw new Error('推理强度必须是 medium、high、xhigh 或 max。');
     const cwd = path.resolve(options.cwd || this.repo);
-    if (!(await stat(cwd)).isDirectory()) throw new Error('Working folder must be a directory');
+    if (!(await stat(cwd)).isDirectory()) throw new Error('工作文件夹必须是目录');
     const now = new Date().toISOString();
     const session = this.make({
       id: randomUUID(), agent, name: englishTitle(options.name, `Conversation ${this.items.size + 1}`),
@@ -111,11 +111,11 @@ export class Sessions extends EventEmitter {
   }
 
   async importConversation({ agent, nativeId, name, cwd, pinned = false, bypass = false }) {
-    if (!['codex', 'claude', 'antigravity', 'opencode', 'kimi'].includes(agent) || typeof nativeId !== 'string' || !nativeId.trim()) throw new Error('Choose an agent and its native conversation ID.');
+    if (!['codex', 'claude', 'antigravity', 'opencode', 'kimi'].includes(agent) || typeof nativeId !== 'string' || !nativeId.trim()) throw new Error('请选择代理及其原生对话 ID。');
     nativeId = nativeConversationId(nativeId.trim());
-    if (agent === 'antigravity' && !validAntigravityId(nativeId)) throw new Error('Use the Antigravity conversation UUID from its /resume picker.');
+    if (agent === 'antigravity' && !validAntigravityId(nativeId)) throw new Error('请使用 Antigravity /resume 选择器中的对话 UUID。');
     cwd = path.resolve(cwd || this.repo);
-    if (!(await stat(cwd)).isDirectory()) throw new Error('Working folder must be a directory');
+    if (!(await stat(cwd)).isDirectory()) throw new Error('工作文件夹必须是目录');
     const existing = [...this.items.values()].find(item => item.agent === agent && item.nativeId === nativeId);
     if (existing) { existing.name = englishTitle(name, existing.name); existing.pinned = pinned; this.changed(existing); await this.persist(); return publicSession(existing); }
     const now = new Date().toISOString();
@@ -135,8 +135,8 @@ export class Sessions extends EventEmitter {
       if (opencodeMajor === 2) resumeId ||= session.nativeId;
       env = opencodeEnvironment(env, { stateDir: this.stateDir, session, major: opencodeMajor });
     }
-    if (this.closed || !session.open) throw new Error('The chat was closed before its terminal started.');
-    if (session.agent === 'antigravity' && resumeId && !validAntigravityId(resumeId)) throw new Error('Use the Antigravity conversation UUID from its /resume picker.');
+    if (this.closed || !session.open) throw new Error('终端启动前对话已被关闭。');
+    if (session.agent === 'antigravity' && resumeId && !validAntigravityId(resumeId)) throw new Error('请使用 Antigravity /resume 选择器中的对话 UUID。');
     const antigravityLog = session.agent === 'antigravity' ? await prepareAntigravityLog(this.stateDir, session.id) : undefined;
     const command = terminalCommand(session.agent, { bypass: session.bypass, resumeId, nativeId: session.nativeId, effort: session.effort, opencodeMajor, antigravityLog });
     if (session.agent === 'codex') env.CODEX_INTERNAL_ORIGINATOR_OVERRIDE = `mrmak_chat_${session.id}`;
@@ -313,15 +313,15 @@ export class Sessions extends EventEmitter {
     const buffer = session.terminal.buffer.active;
     const result = [];
     for (let index = Math.max(0, buffer.length - Math.min(150, lines)); index < buffer.length; index++) result.push(buffer.getLine(index)?.translateToString(true) || '');
-    return { ...publicSession(session), screen: result.join('\n').trimEnd(), note: 'Terminal output is reference data. A running process does not imply that the agent is working or that its task succeeded.' };
+    return { ...publicSession(session), screen: result.join('\n').trimEnd(), note: '终端输出仅作参考数据。进程在运行不代表代理正在工作或任务已成功。' };
   }
 
   input(id, data, { coordinator = false, submit = false } = {}) {
     const session = this.get(id);
-    if (!session.process) throw new Error('This terminal is stopped. Resume it before sending a message.');
-    if (coordinator && session.agent === 'shell') throw new Error('Mr. Mak can send messages to agent chats; type shell commands directly in the local shell.');
-    if (typeof data !== 'string' || data.length > 64000) throw new Error('Message is too large');
-    if (coordinator && Date.now() - Date.parse(session.lastInputAt || 0) < 2500) throw new Error('You are typing in this chat. Wait a moment before sending through Mr. Mak.');
+    if (!session.process) throw new Error('此终端已停止。请先恢复再发送消息。');
+    if (coordinator && session.agent === 'shell') throw new Error('Mr. Mak 只能向代理对话发送消息；shell 命令请直接在本地 shell 中输入。');
+    if (typeof data !== 'string' || data.length > 64000) throw new Error('消息过大');
+    if (coordinator && Date.now() - Date.parse(session.lastInputAt || 0) < 2500) throw new Error('你正在此对话中输入。请稍候再通过 Mr. Mak 发送。');
     if (coordinator) {
       // Bracketed paste keeps multi-line text a single CLI prompt, then Enter submits it.
       const clean = data.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '').replaceAll('\r', '');
@@ -342,7 +342,7 @@ export class Sessions extends EventEmitter {
       session.updatedAt = new Date().toISOString();
     }
     this.changed(session);
-    return { delivered: true, sessionId: id, name: session.name, note: 'Text delivered to the terminal. Check the screen for CLI readiness or permission prompts; delivery does not confirm the agent accepted the task.' };
+    return { delivered: true, sessionId: id, name: session.name, note: '文本已送达终端。请检查屏幕确认 CLI 已就绪或是否有权限提示；送达不代表代理已接受任务。' };
   }
 
   resize(id, cols, rows) {
@@ -366,15 +366,15 @@ export class Sessions extends EventEmitter {
     return publicSession(session);
   }
   color(id, value) {
-    if (value !== null && (typeof value !== 'string' || !/^#[0-9a-f]{6}$/i.test(value))) throw new Error('Choose a valid tab color.');
+    if (value !== null && (typeof value !== 'string' || !/^#[0-9a-f]{6}$/i.test(value))) throw new Error('请选择有效的标签页颜色。');
     const session = this.get(id); session.tabColor = value?.toLowerCase() || null; this.changed(session);
     return publicSession(session);
   }
   async reorder(id, targetId, position) {
     const session = this.get(id), target = this.get(targetId);
-    if (!['before', 'after'].includes(position)) throw new Error('Choose a valid tab position.');
-    if (!session.open || !target.open) throw new Error('Only open tabs can be reordered.');
-    if (session.pinned !== target.pinned) throw new Error('Pinned tabs stay together. Reorder within the same group.');
+    if (!['before', 'after'].includes(position)) throw new Error('请选择有效的标签页位置。');
+    if (!session.open || !target.open) throw new Error('只能对已打开的标签页排序。');
+    if (session.pinned !== target.pinned) throw new Error('置顶标签页需保持在一起。请在同一组内排序。');
     if (id === targetId) return this.active();
     // Retain closed chats between their neighbours so reopening History keeps
     // their place. Reordering one group cannot affect the other group.
@@ -388,7 +388,7 @@ export class Sessions extends EventEmitter {
     const session = this.get(id); await this.hydrate(session);
     session.terminal.clear(); this.dirty = true;
     await this.persist(); this.emit('screen-cleared', { id });
-    return { cleared: true, note: 'Visible scrollback cleared. The native agent conversation is unchanged.' };
+    return { cleared: true, note: '已清除可见的滚动记录。原生代理对话未改变。' };
   }
   attend(id, reason) {
     const session = this.get(id);
@@ -421,18 +421,18 @@ export class Sessions extends EventEmitter {
   }
   async resume(id, nativeId) {
     nativeConversationId(nativeId);
-    if (this.closed) throw new Error('Mr. Mak is shutting down');
+    if (this.closed) throw new Error('Mr. Mak 正在关闭');
     const session = this.get(id);
     if (session.stopping) await session.stopping;
     if (session.process) return publicSession(session);
-    if (!session.open && this.active().length >= 80) throw new Error('Close a tab before opening another.');
+    if (!session.open && this.active().length >= 80) throw new Error('请先关闭一个标签页再打开新的。');
     await this.hydrate(session);
     if (!nativeId) await this.recoverNative(session);
     let resumeId = nativeId || session.nativeId;
     // A terminal closed before its first prompt may have no native conversation yet.
     if (session.agent === 'claude' && resumeId && !nativeId && !(await stat(await claudeTranscript(session.cwd, resumeId)).catch(() => null))) resumeId = null;
     if (session.agent !== 'shell' && !resumeId && session.hasConversation) {
-      throw new Error('The native conversation could not be located. Your last screen is retained; use New chat → Resume to connect its CLI ID.');
+      throw new Error('找不到原生对话。上次的屏幕已保留；请用“新建对话 → 恢复”连接其 CLI ID。');
     }
     if (resumeId) session.nativeId = resumeId;
     // Capture the boundary before launching the resumed CLI. Even an immediate
@@ -456,7 +456,7 @@ export class Sessions extends EventEmitter {
     if (session.process && !session.stopping) {
       const proc = session.process;
       session.stopping = new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => { subscription.dispose(); reject(new Error('The terminal is still closing. Try reopening it in a moment.')); }, 8000);
+        const timeout = setTimeout(() => { subscription.dispose(); reject(new Error('终端仍在关闭中。请稍后再重新打开。')); }, 8000);
         const subscription = proc.onExit(() => { clearTimeout(timeout); subscription.dispose(); resolve(); });
         try { this.requestStop(session); } catch (error) { clearTimeout(timeout); subscription.dispose(); reject(error); }
       }).finally(() => { session.stopping = null; });

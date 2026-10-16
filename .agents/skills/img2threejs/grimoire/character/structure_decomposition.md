@@ -1,99 +1,85 @@
-# Character Structure Decomposition
+# 角色结构分解
 
-Use this reference when `objectClass.primaryDomain` is `character` or `hybrid`, alongside
-`grimoire/character/reconstruction.md`. That document fixes *proportions and landmarks*;
-this one fixes *what parts exist and how each one is built and rigged*.
+当 `objectClass.primaryDomain` 为 `character` 或 `hybrid` 时，与
+`grimoire/character/reconstruction.md` 一起使用本参考。那份文档确定*比例和关键点*；
+本文确定*有哪些部件，以及每个部件如何构建和绑定*。
 
-A character that has every part but no layer discipline produces the same failure every
-time: rigid jewellery clipping through skin, membranes tearing at seams, holes that were
-modelled as geometry instead of subtracted, and details invented from nothing. The layer
-system exists to make each of those a classification error you can catch, not a judgement
-call.
+一个部件齐全却没有分层纪律的角色，每次都会出现同样的失败：刚性饰品穿进皮肤、膜在接缝处撕裂、
+本该减去的孔洞被建成了几何体，以及凭空编造的细节。分层体系的存在，就是要把这些问题都变成可以
+捕获的分类错误，而不是主观判断。
 
-## The Layer Ontology
+## 层级本体
 
-Nine layers. Every part of every character belongs to exactly one **primary geometry
-layer** and may additionally carry **modifier layers**.
+共九层。每个角色的每个部件恰好属于一个**主几何层**，并可额外带有若干**修饰层**。
 
-| Layer | Definition | Membership test | Build method | Rig treatment |
+| 层 | 定义 | 归属判定 | 构建方法 | 绑定处理 |
 |---|---|---|---|---|
-| **L-1 Proportion Scaffold** | Bounding volumes + head-unit system that fix overall silhouette | Not a part — a constraint every part is clamped into | Math bounds only | none |
-| **L0 Core Volume** | The continuous central mass: head, torso, limbs | Crosses joints; cannot be detached | Implicit SDF smooth-union → marching cubes | `SkinnedMesh`, spatial `W(p)` falloff |
-| **L1 Deformable Appendages** | Elongated parts extending off L0 that must bend along their length: tail, wings, long ears | Crosses joints; has its own bone chain reaching outside the core volume | Sweep / loft along a spline | `SkinnedMesh`, same skeleton, same `W(p)` |
-| **L-Void Negative Space** | Subtractive volumes: mouth cavity, ear concha, torn hems, pierced holes | Produces no visible surface; only removes | SDF difference / CSG subtract | none |
-| **L2 Internal Cavities** | Parts that sit inside an L-Void: eyes, teeth, tongue, gums | Only visible because something was subtracted | Primitives, inverted-normal shells | Tongue skinned; eyes/teeth single-bone (see L3) |
-| **L3 Single-Bone Isolates** | Anything whose whole extent lies inside one bone's dominant region: horns, claws, hooves, cuffs, rings, tail spade | **Does not cross a joint** | Primitives, lathe, extrude, boolean | `SkinnedMesh` with weight forced to `(1,0,0,0)` |
-| **L4 Cross-Joint Shells** | Offset layers over L0 that span a joint: loincloth, tunic, cape, armour plates spanning a limb | Crosses joints, sits outside the skin surface | Offset shell from L0 + trim | `SkinnedMesh`, spatial `W(p)` |
-| **L5 Surface Markings** | Colour that does not change silhouette: stripes, scars, tattoos, gradients | Zero geometric footprint | Shader mixing on spatial function (§ Markings) | inherits host mesh |
-| **L6 VFX / Ephemera** | Non-material elements: fire, smoke, glow | No solid geometry at all | Sprites, particles, scrolling-UV meshes | Emitter parented to a bone |
-| **L-Proxy Collision** | Invisible primitives for raycast/physics | Never rendered | Box / capsule / sphere | Parented to bones; already modelled by `root.userData.sculptRuntime.colliders` |
+| **L-1 比例骨架** | 确定整体轮廓的包围体 + 头身单位体系 | 不是部件——是所有部件都要被约束进去的限制 | 仅数学边界 | 无 |
+| **L0 核心体积** | 连续的中心体块：头、躯干、四肢 | 跨越关节；不可拆分 | 隐式 SDF 平滑并集 → marching cubes | `SkinnedMesh`，空间 `W(p)` 衰减 |
+| **L1 可形变附属物** | 从 L0 延伸出、必须沿长度方向弯曲的细长部件：尾巴、翅膀、长耳朵 | 跨越关节；有自己的骨骼链，延伸到核心体积之外 | 沿样条扫掠 / 放样 | `SkinnedMesh`，同一骨架，同一 `W(p)` |
+| **L-Void 负空间** | 减去用的体积：口腔、耳甲腔、撕裂的下摆、穿孔 | 不产生可见表面；只做移除 | SDF 差集 / CSG 减法 | 无 |
+| **L2 内部腔体** | 位于 L-Void 内部的部件：眼睛、牙齿、舌头、牙龈 | 只因为有东西被减去才可见 | 基本体、法线反向壳体 | 舌头蒙皮；眼睛/牙齿单骨骼（见 L3） |
+| **L3 单骨骼独立件** | 整体范围都位于一根骨骼主导区域内的任何东西：角、爪、蹄、护腕、环、尾端铲形尖 | **不跨越关节** | 基本体、车削、挤出、布尔 | `SkinnedMesh`，权重强制为 `(1,0,0,0)` |
+| **L4 跨关节壳层** | 覆盖在 L0 上、跨越关节的偏移层：腰布、束腰外衣、斗篷、跨越肢体的护甲片 | 跨越关节，位于皮肤表面之外 | 从 L0 偏移出壳 + 修剪 | `SkinnedMesh`，空间 `W(p)` |
+| **L5 表面标记** | 不改变轮廓的颜色：条纹、伤疤、纹身、渐变 | 几何占用为零 | 基于空间函数的着色器混合（§ 标记） | 继承宿主网格 |
+| **L6 VFX / 瞬态元素** | 非实体元素：火、烟、光晕 | 完全没有实体几何 | 精灵、粒子、滚动 UV 网格 | 发射器挂在骨骼下 |
+| **L-Proxy 碰撞** | 用于射线检测/物理的不可见基本体 | 从不渲染 | 盒体 / 胶囊体 / 球体 | 挂在骨骼下；已由 `root.userData.sculptRuntime.colliders` 建模 |
 
-## The Classification Test That Actually Matters
+## 真正关键的分类判定
 
-The naive test is "is this part hard or soft?" That test is wrong and it produces the
-clipping bug.
+朴素的判定是"这个部件是硬的还是软的？"这个判定是错的，它会导致穿插 bug。
 
-The real test is **does this part cross a joint?**
+真正的判定是：**这个部件是否跨越关节？**
 
-Because weights are a pure spatial function `W(p_world)` (see
-`docs/PLAN_1.5_ANIMATION_READY_RIGS.md` §3), a mesh lying entirely inside one bone's
-dominant region *automatically* receives `≈(1,0,0,0)` and therefore *automatically* moves
-rigidly. Rigid and skinned converge. There is no second code path.
+因为权重是纯空间函数 `W(p_world)`（见 `docs/PLAN_1.5_ANIMATION_READY_RIGS.md` §3），
+完全位于一根骨骼主导区域内的网格会*自动*获得 `≈(1,0,0,0)`，因此*自动*刚性运动。
+刚性与蒙皮殊途同归。不存在第二条代码路径。
 
-Consequences:
+推论：
 
-- A gold cuff placed mid-forearm is skinned, and moves rigidly anyway. Nothing special
-  needed.
-- A gold cuff placed **at the wrist** picks up a blend of forearm and hand — the metal
-  visibly squashes. Fix: tag it `L3` and **override** every one of its vertices to weight
-  `1.0` on the bone nearest its bounding-box centre, bypassing the falloff. It stays a
-  `SkinnedMesh` sharing one shader; it is simply permanently rigid.
-- Do **not** solve clipping by making rigid parts skinned in the general case. That
-  trades a clipping bug for a stretching-metal bug.
+- 放在前臂中段的金护腕是蒙皮的，但依然刚性运动。无需特殊处理。
+- 放在**手腕处**的金护腕会混合前臂和手的权重——金属会明显被挤压变形。修复：把它标为 `L3`，
+  并把它的每个顶点**覆盖**为在离其包围盒中心最近的骨骼上权重 `1.0`，绕过衰减。它仍是共用同一
+  着色器的 `SkinnedMesh`；只是永久刚性。
+- **不要**在一般情况下通过把刚性部件改为蒙皮来解决穿插。那只是把穿插 bug 换成了金属拉伸 bug。
 
-Soft goods (L4) need the opposite reasoning. A loincloth sits 1–2 cm off the skin, so its
-vertices are not coincident with skin vertices — but that offset is deep inside the
-hip/thigh envelope, so `W(p_cloth) ≈ W(p_skin)` and the cloth follows the leg correctly
-without copying weights from anywhere. If the cloth gets its own secondary bones for
-sway, those bones join the **same** skeleton but must be given a very small envelope
-radius, so no skin vertex ever falls inside their influence.
+软质物件（L4）需要相反的推理。腰布离皮肤 1–2 cm，所以它的顶点与皮肤顶点并不重合——但这个偏移
+深处于髋部/大腿的包络之内，因此 `W(p_cloth) ≈ W(p_skin)`，布料无需从任何地方复制权重就能正确
+跟随腿部。如果布料有自己的次级骨骼用于摆动，这些骨骼加入**同一**骨架，但必须给它们非常小的
+包络半径，确保没有任何皮肤顶点落入其影响范围。
 
-## Primary + Modifier Rule
+## 主层 + 修饰层规则
 
-Some parts genuinely feel like they belong to two layers. Resolve it, don't debate it:
+有些部件确实看起来同时属于两层。直接裁定，不要争论：
 
-> Each part is assigned exactly **one** primary geometry layer (L0, L1, L2, L3, L4, L6),
-> which determines how it is built and skinned. It may additionally carry any number of
-> **modifier** layers (L-1, L-Void, L5, L-Proxy).
+> 每个部件恰好分配**一个**主几何层（L0、L1、L2、L3、L4、L6），由它决定构建和蒙皮方式。
+> 它还可以额外带有任意数量的**修饰**层（L-1、L-Void、L5、L-Proxy）。
 
-- Ear = primary **L1** + modifier **L-Void** (concha cavity)
-- Loincloth = primary **L4** + modifier **L-Void** (torn hem)
-- Tail spade and tail ring = primary **L3**, parented to the last bone of the tail's L1
-  chain — a rigid tip on a deformable chain is not ambiguous, it is two parts
-- Purple shoulder stripes = modifier **L5** on the L0 host
+- 耳朵 = 主层 **L1** + 修饰层 **L-Void**（耳甲腔）
+- 腰布 = 主层 **L4** + 修饰层 **L-Void**（撕裂下摆）
+- 尾端铲形尖和尾环 = 主层 **L3**，挂在尾巴 L1 链的最后一根骨骼下——可形变链上的刚性尖端并不
+  含糊，它就是两个部件
+- 紫色肩部条纹 = L0 宿主上的修饰层 **L5**
 
-## Ontology Order ≠ Execution Order
+## 本体顺序 ≠ 执行顺序
 
-The table above reads inside-out. The build DAG does not. In particular L-Void must enter
-the SDF **before** meshing, so it cannot run "after" L1.
+上表是由内向外读的。构建 DAG 不是。特别是 L-Void 必须在网格化**之前**进入 SDF，所以它不能
+在 L1"之后"运行。
 
-1. **Scaffold** — establish L-1 bounds; derive joint positions.
-2. **Field construction** *(parallel)* — build the SDF equations for L0, L1, L4. No
-   surfaces yet.
-3. **Subtraction** *(choke point)* — apply every L-Void operator to those fields.
-4. **Meshing** — marching cubes / dual contouring → `BufferGeometry`.
-5. **Discrete geometry** *(parallel)* — instantiate L2 and L3 primitives.
-6. **Skinning** — evaluate `W(p_world)` for every vertex; apply L3 weight overrides;
-   attach L-Proxy colliders.
-7. **Appearance** — apply L5 shader mixing and L6 emitters.
+1. **骨架** —— 建立 L-1 边界；推导关节位置。
+2. **场构建** *（并行）* —— 为 L0、L1、L4 构建 SDF 方程。此时还没有表面。
+3. **减法** *（汇聚点）* —— 把每个 L-Void 算子应用到这些场上。
+4. **网格化** —— marching cubes / dual contouring → `BufferGeometry`。
+5. **离散几何** *（并行）* —— 实例化 L2 和 L3 基本体。
+6. **蒙皮** —— 为每个顶点计算 `W(p_world)`；应用 L3 权重覆盖；挂接 L-Proxy 碰撞体。
+7. **外观** —— 应用 L5 着色器混合和 L6 发射器。
 
-## Markings Without Textures
+## 不用纹理的标记
 
-L5 must not use vertex colours on an implicit-surface mesh. Marching-cubes topology is
-irregular, so vertex-interpolated colour bands and produces jagged transitions instead of
-a gradient.
+L5 不得在隐式表面网格上使用顶点色。marching cubes 的拓扑是不规则的，所以顶点插值的颜色会
+出现色带，并产生锯齿状过渡而不是渐变。
 
-Mix in the shader from a spatial function instead, via `onBeforeCompile`:
+改为通过 `onBeforeCompile` 在着色器中基于空间函数混合：
 
 ```glsl
 // object-space gradient, e.g. magenta body → orange muzzle/chin
@@ -101,138 +87,125 @@ float g = smoothstep(zStart, zEnd, vPosition.z) * smoothstep(yStart, yEnd, -vPos
 diffuseColor.rgb = mix(colorBase, colorAccent, g);
 ```
 
-This is topology-independent, needs no texture file, and stays diffable.
+这种方式与拓扑无关，不需要纹理文件，并且保持可 diff。
 
-## Layers Deliberately Excluded
+## 有意排除的层
 
-Studio pipelines carry these; a code-only Three.js generator should not.
+工作室管线会有这些；纯代码的 Three.js 生成器不应该有。
 
-| Excluded | Why |
+| 排除项 | 原因 |
 |---|---|
-| Strand-level hair / fur / feather grooming | Draw-call and simulation cost far beyond a code generator. Force it into solid masses under L1 or L3 |
-| Secondary/tertiary form passes (wrinkle maps, pore maps) | Requires multi-million-poly sculpting and baking. Approximate in L5 material terms |
-| LOD chains | Real in AAA, but the pipeline has no LOD concept and a showcase does not need one. Revisit only if a demo demonstrably needs it — do not make it a handoff gate |
-| Bone naming as a *layer* | It is a rule, not a layer. Enforce it in L-1 metadata |
+| 发丝级头发 / 毛发 / 羽毛梳理 | draw call 和模拟成本远超代码生成器的承受范围。强制把它做成 L1 或 L3 下的实心体块 |
+| 次级/三级形体处理（皱纹贴图、毛孔贴图） | 需要数百万面的雕刻和烘焙。用 L5 材质手段近似 |
+| LOD 链 | 在 AAA 中真实存在，但本管线没有 LOD 概念，showcase 也不需要。只有当某个 demo 确实需要时再考虑——不要把它设为交接门禁 |
+| 把骨骼命名当作一个*层* | 它是规则，不是层。在 L-1 元数据中强制执行 |
 
-## Worked Coverage Test — stylized imp / mini-dragon
+## 实例覆盖测试——风格化小恶魔 / 迷你龙
 
-Reference: `vijay-ghume-mini-dragon-{ref,1..5}.jpg` — 2D concept plus five 3D views
-(front, front-¾, rear-¾, side, rear). This character is the stress test for the system
-because it contains at least one part from every layer.
+参考图：`vijay-ghume-mini-dragon-{ref,1..5}.jpg` —— 2D 概念图加五张 3D 视图
+（正面、正面 ¾、背面 ¾、侧面、背面）。这个角色是本体系的压力测试，因为它至少包含每一层的一个部件。
 
-| Part | Primary | Modifiers | Build | Bone | Material zone |
+| 部件 | 主层 | 修饰层 | 构建 | 骨骼 | 材质区 |
 |---|---|---|---|---|---|
-| Head, torso, arms, legs | L0 | L-1, L5 | SDF smooth-union | spine / limb chains | magenta skin |
-| Tail (root → pre-tip) | L1 | — | curve sweep | tail chain | magenta skin |
-| Wing membranes ×2 | L1 | L-Void (ragged trailing edge) | surface spanned between spar splines | wing chains | pink membrane |
-| Wing leading edge + 3 spars ×2 | L1 | — | tube sweeps | wing chains | black |
-| Ears ×2 | L1 | L-Void (concha) | flattened cone shell | ear bones | magenta / orange inner |
-| Mouth bag | L2 | depends on L-Void | inverted-normal shell | head / jaw | dark interior |
-| Eyes ×2 | L2 | L5 (iris/sclera) | spheres | eye or head | yellow-orange iris, violet corner |
-| Fangs — 4 upper canines pointing **down**, 2 per side | L2 | — | cones | maxilla / head | white |
-| Horns ×2 (long, swept back) | L3 | — | tapered tube | head | black |
-| Hand claws | L3 | — | curved cones | finger bones | black |
-| Wing wrist claws ×2 | L3 | — | curved cone | wing wrist | black |
-| Cloven hooves ×2 | L3 | — | split solid | foot bones | black |
-| Ear hoop | L3 | — | torus | ear bone | gold |
-| Neck strap + hanging ring pendant | L3 | — | torus + strap loop | chest / neck | brown leather, gold |
-| Forearm cuffs ×2 (gold ring / black band / gold ring) | L3 | — | stacked cylinders | lower arm | gold + black |
-| Ankle rings ×2 | L3 | — | cylinder | lower leg | gold |
-| Tail ring | L3 | — | cylinder | tail tip | gold |
-| Tail spade | L3 | — | extruded arrow | tail tip | pink |
-| Loincloth + brown belt | L4 | L-Void (torn hem, open back) | offset shell + trim | hips (+ optional sway bones) | navy cloth, brown leather |
-| Purple stripes (3 per upper arm, 2 per scapula) | — | L5 on L0 | shader mix | inherits | violet |
-| Fire | L6 | — | sprites / particles | head, hips, wrists, tail | emissive |
-| Hitboxes | L-Proxy | — | capsules | major bones | not rendered |
+| 头、躯干、手臂、腿 | L0 | L-1, L5 | SDF 平滑并集 | 脊柱 / 肢体链 | 品红皮肤 |
+| 尾巴（根部 → 尖端前） | L1 | — | 曲线扫掠 | 尾巴链 | 品红皮肤 |
+| 翼膜 ×2 | L1 | L-Void（参差的后缘） | 张在翼骨样条之间的曲面 | 翅膀链 | 粉色膜 |
+| 翼前缘 + 3 根翼骨 ×2 | L1 | — | 管状扫掠 | 翅膀链 | 黑色 |
+| 耳朵 ×2 | L1 | L-Void（耳甲腔） | 压扁的圆锥壳 | 耳骨 | 品红 / 内侧橙色 |
+| 口腔袋 | L2 | 依赖 L-Void | 法线反向壳体 | 头 / 下颌 | 深色内部 |
+| 眼睛 ×2 | L2 | L5（虹膜/巩膜） | 球体 | 眼骨或头 | 黄橙色虹膜，紫罗兰色眼角 |
+| 獠牙——4 颗上颌犬齿指向**下方**，每侧 2 颗 | L2 | — | 圆锥 | 上颌 / 头 | 白色 |
+| 角 ×2（长，向后掠） | L3 | — | 渐细管 | 头 | 黑色 |
+| 手爪 | L3 | — | 弯曲圆锥 | 指骨 | 黑色 |
+| 翼腕爪 ×2 | L3 | — | 弯曲圆锥 | 翼腕 | 黑色 |
+| 偶蹄 ×2 | L3 | — | 分瓣实体 | 足骨 | 黑色 |
+| 耳环 | L3 | — | 圆环体 | 耳骨 | 金色 |
+| 颈带 + 悬挂的环形吊坠 | L3 | — | 圆环体 + 带环 | 胸 / 颈 | 棕色皮革，金色 |
+| 前臂护腕 ×2（金环 / 黑带 / 金环） | L3 | — | 叠放的圆柱 | 前臂 | 金色 + 黑色 |
+| 脚踝环 ×2 | L3 | — | 圆柱 | 小腿 | 金色 |
+| 尾环 | L3 | — | 圆柱 | 尾尖 | 金色 |
+| 尾端铲形尖 | L3 | — | 挤出的箭头 | 尾尖 | 粉色 |
+| 腰布 + 棕色腰带 | L4 | L-Void（撕裂下摆、背后开口） | 偏移壳 + 修剪 | 髋部（+ 可选摆动骨骼） | 藏青色布料，棕色皮革 |
+| 紫色条纹（每条上臂 3 道，每侧肩胛 2 道） | — | L0 上的 L5 | 着色器混合 | 继承 | 紫罗兰色 |
+| 火焰 | L6 | — | 精灵 / 粒子 | 头、髋、手腕、尾巴 | 自发光 |
+| 碰撞盒 | L-Proxy | — | 胶囊体 | 主要骨骼 | 不渲染 |
 
-### Two findings this test surfaced
+### 本测试暴露的两个发现
 
-- **There is no mane.** The black mass appearing between the horns in the rear-¾ view is
-  the far wing folded forward — it has a hook (the wing wrist claw) and a sliver of pink
-  membrane beside it. The pure rear view shows the nape and spine are smooth pink. A
-  generator that emits a mane is hallucinating; reject it.
-- **There are no scales.** All five 3D views show completely smooth skin with soft muscle
-  forms only. The demo's `dragon-skin_*` / `dragon-body-skin_*` texture set contradicts the
-  reference and should not be carried forward.
+- **没有鬃毛。** 背面 ¾ 视图中两角之间出现的黑色体块，是向前折叠的远侧翅膀——它带一个钩
+  （翼腕爪），旁边还有一小条粉色翼膜。纯背面视图显示后颈和脊柱是光滑的粉色。生成鬃毛的生成器
+  是在幻觉；应拒绝。
+- **没有鳞片。** 五张 3D 视图全都显示完全光滑的皮肤，只有柔和的肌肉形体。demo 的
+  `dragon-skin_*` / `dragon-body-skin_*` 纹理集与参考图矛盾，不应沿用。
 
-### Measured proportions
+### 实测比例
 
-Total height `H` = crown to hoof, **excluding horns and wings**. These are read off the
-front and rear views; the inferred rows are marked because the pose foreshortens them.
+总高 `H` = 头顶到蹄，**不含角和翅膀**。这些数值从正面和背面视图读出；推断行已标注，因为姿势
+导致了透视缩短。
 
-| Measure | Ratio of H | Source |
+| 度量 | 占 H 的比例 | 来源 |
 |---|---|---|
-| Head height | **0.33** | measured |
-| Skull width (no ears) | 0.25–0.28 | measured |
-| Total width including flared ears | 0.45–0.50 | measured |
-| Neck length | 0.05 | measured — chin nearly on chest |
-| Torso, shoulder → hip | 0.35 | measured |
-| Leg, hip → hoof | 0.27 | measured |
-| Shoulder span | 0.35 | measured |
-| Arm, shoulder → wrist | ~0.45 | inferred (foreshortened) |
-| Wingspan | 1.5–1.8 | inferred (wings folded) |
-| Tail length | 0.8–0.9 | inferred (curled) |
+| 头高 | **0.33** | 实测 |
+| 颅骨宽度（不含耳朵） | 0.25–0.28 | 实测 |
+| 含张开耳朵的总宽 | 0.45–0.50 | 实测 |
+| 颈长 | 0.05 | 实测——下巴几乎贴在胸口 |
+| 躯干，肩 → 髋 | 0.35 | 实测 |
+| 腿，髋 → 蹄 | 0.27 | 实测 |
+| 肩宽 | 0.35 | 实测 |
+| 手臂，肩 → 腕 | ~0.45 | 推断（透视缩短） |
+| 翼展 | 1.5–1.8 | 推断（翅膀折叠） |
+| 尾长 | 0.8–0.9 | 推断（卷曲） |
 
-Total ≈ **3 head-units** — the chibi/figurine end of the scale in
-`reconstruction.md`. Head height + neck + torso + legs sums to 1.00, which is the
-consistency check.
+总计 ≈ **3 个头身单位**——处于 `reconstruction.md` 中 Q 版/手办那一端。头高 + 颈 + 躯干 + 腿
+合计 1.00，这就是一致性校验。
 
-**Use skull width, not total width, for the L-1 scaffold.** Ears are L1 and are explicitly
-allowed to extend beyond the core volume's bounds. Scaffolding to the ear span produces a
-head like a barrel.
+**L-1 骨架使用颅骨宽度，而不是总宽。** 耳朵属于 L1，明确允许延伸到核心体积的边界之外。按耳展
+做骨架会得到一个木桶般的头。
 
-### Material recipe for smooth stylized skin
+### 光滑风格化皮肤的材质配方
 
-`MeshPhysicalMaterial`: `roughness` 0.5–0.6, `metalness` 0.0, `clearcoat` 0.15 with
-`clearcoatRoughness` 0.6, `sheen` 1.0 with a pink-violet `sheenColor` for the rim
-falloff.
+`MeshPhysicalMaterial`：`roughness` 0.5–0.6，`metalness` 0.0，`clearcoat` 0.15 配
+`clearcoatRoughness` 0.6，`sheen` 1.0 配粉紫色 `sheenColor` 用于边缘衰减。
 
-Forbidden for this character: any noise-derived `normalMap` or `bumpMap`. The surface
-reads as smooth rubber; let the subdivided geometry carry the form.
+此角色禁止：任何由噪声派生的 `normalMap` 或 `bumpMap`。表面读起来是光滑的橡胶；让细分后的几何
+承载形体。
 
-## Structural Completeness Checklist
+## 结构完整性检查清单
 
-A character is structurally complete when all of the following hold. Every line is
-checkable by code or by direct inspection.
+满足以下全部条件时，角色在结构上才算完整。每一行都可以通过代码或直接检查来验证。
 
-1. Every component in the spec maps to exactly one primary geometry layer.
-2. The core volume's bounding box fits entirely inside the L-1 proportion scaffold.
-3. Every L-Void operator was applied to the SDF **before** meshing, not after.
-4. No degenerate faces (area ≈ 0) along any L-Void-trimmed edge.
-5. Bone names follow the project naming convention and are unique.
-6. Every bone's `scale` is `(1,1,1)` at bind pose, with identity rest rotation.
-7. No vertex has more than four non-zero influences.
-8. Every vertex's weights sum to 1.0 within `1e-5`, and no vertex has a zero sum.
-9. Every L3 part, and every rigid L2 part, carries a forced single weight of 1.0.
-10. At L0↔L1 seams, paired vertices are spatially coincident within `1e-4`.
-11. Pose sweep passes: at 90° joint flexion the bounding sphere neither collapses nor
-    diverges, and no vertex lands on the origin.
-12. Every joint centre lies inside the built volume (allow ≤5% of bbox outside for parts
-    under armour or clothing).
-13. No L4 shell clips through L0 anywhere in the pose sweep.
-14. L-Proxy colliders exist for every physics- or raycast-relevant bone, exposed through
-    `root.userData.sculptRuntime.colliders`.
-15. Every part in the spec traces to an `evidenceRef` in an admitted reference view — and
-    any part that cannot is deleted, not guessed.
+1. spec 中的每个组件都恰好映射到一个主几何层。
+2. 核心体积的包围盒完全位于 L-1 比例骨架之内。
+3. 每个 L-Void 算子都在网格化**之前**应用到 SDF，而不是之后。
+4. 任何被 L-Void 修剪的边上都没有退化面（面积 ≈ 0）。
+5. 骨骼名称遵循项目命名约定且唯一。
+6. 每根骨骼在绑定姿势下 `scale` 为 `(1,1,1)`，静止旋转为单位旋转。
+7. 没有顶点有超过四个非零影响。
+8. 每个顶点的权重之和在 `1e-5` 误差内等于 1.0，且没有顶点权重和为零。
+9. 每个 L3 部件，以及每个刚性 L2 部件，都带有强制的单一权重 1.0。
+10. 在 L0↔L1 接缝处，成对顶点在 `1e-4` 内空间重合。
+11. 姿势扫描通过：关节屈曲 90° 时包围球既不塌缩也不发散，且没有顶点落到原点。
+12. 每个关节中心都位于构建出的体积之内（护甲或衣物下的部件允许 ≤5% 的 bbox 在外）。
+13. 在整个姿势扫描中，没有任何 L4 壳层穿过 L0。
+14. 每根与物理或射线检测相关的骨骼都有 L-Proxy 碰撞体，并通过
+    `root.userData.sculptRuntime.colliders` 暴露。
+15. spec 中的每个部件都能追溯到某个已采纳参考视图中的 `evidenceRef`——无法追溯的部件要删除，
+    而不是去猜。
 
-## Predicted Failure Points
+## 预测的失败点
 
-The three things a generator gets wrong most often on a character like this:
+在这类角色上，生成器最常出错的三件事：
 
-- **Wing membrane built as a flat sheet intersecting the spar tubes** instead of a surface
-  spanned *between* the spars. Detect by checking normals at the membrane–spar boundary: a
-  sudden perpendicular flip is an intersection, not an organic join.
-- **Degenerate polygons along the torn loincloth hem**, from the boolean trim. Detect by
-  scanning triangle areas on the emitted geometry.
-- **Inner thighs webbing together.** The legs are short and thick, so left and right thigh
-  are spatially close at bind pose and the spatial falloff bleeds weight across. Detect in
-  the pose sweep: lift one leg and measure displacement on the other. If the planted leg
-  moves, the envelope overlap factor `F` is too high.
+- **翼膜被建成一张与翼骨管相交的平面**，而不是张在翼骨*之间*的曲面。检测方法：检查翼膜与翼骨
+  边界处的法线：突然的垂直翻转是相交，而不是有机连接。
+- **撕裂的腰布下摆处出现退化多边形**，来自布尔修剪。检测方法：扫描输出几何的三角形面积。
+- **大腿内侧粘连成蹼。** 腿短而粗，所以绑定姿势下左右大腿在空间上很接近，空间衰减会把权重渗到
+  对侧。在姿势扫描中检测：抬起一条腿，测量另一条腿的位移。如果支撑腿动了，说明包络重叠系数
+  `F` 过高。
 
-## Gate Notes
+## 门禁说明
 
-Layer assignment is spec data and must be validated in
-`forge/stage2_spec/validate_sculpt_spec.py` — a part with no primary layer, or with two,
-is a rejected spec. Items 6–13 of the checklist are exactly what the pose-sweep rig gate
-in `docs/PLAN_1.5_ANIMATION_READY_RIGS.md` §7 measures; item 15 is the existing
-detail-inventory evidence discipline applied to structure.
+层级分配是 spec 数据，必须在 `forge/stage2_spec/validate_sculpt_spec.py` 中校验——没有主层或
+有两个主层的部件，意味着 spec 被拒绝。检查清单第 6–13 项正是
+`docs/PLAN_1.5_ANIMATION_READY_RIGS.md` §7 中姿势扫描绑定门禁所测量的内容；第 15 项是把现有的
+细节清单证据纪律应用到结构上。

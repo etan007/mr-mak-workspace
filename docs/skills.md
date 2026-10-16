@@ -1,84 +1,73 @@
-# Project skills
+# 项目技能
 
-Twenty skills live in this project. `.agents/skills` is the maintained source
-for Codex; `.claude/skills` contains complete, identical copies for Claude Code,
-including scripts and references. Both Skills sections open the full instructions.
-These are local project files, not global installations.
+本项目包含二十个技能。`.agents/skills` 是供 Codex 使用的维护源；`.claude/skills`
+包含供 Claude Code 使用的完整、一致的副本，包括脚本和参考资料。两处的技能部分都会
+打开完整说明。这些是本地项目文件，不是全局安装。
 
-Claude reads the instructions in its own `SKILL.md` when a skill is used; a
-Markdown link is just a request to read another file, not automatic inheritance.
-The template includes full folders so a normal Windows clone needs no symlinks.
-See [Claude's skill format](https://code.claude.com/docs/en/skills).
+Claude 使用某个技能时读取其自身 `SKILL.md` 中的说明；Markdown 链接只是请求读取
+另一个文件，不会自动继承。模板包含完整文件夹，因此普通的 Windows 克隆不需要符号
+链接。参见 [Claude 的技能格式](https://code.claude.com/docs/en/skills)。
 
-For shared changes, edit `.agents/skills`, then run `npm run skills:sync`.
-If you edited a Claude copy directly, first move that intended change into the
-maintained source. `npm run test:template` checks that the two copies agree.
+共享改动请编辑 `.agents/skills`，然后运行 `npm run skills:sync`。如果你直接编辑了
+Claude 副本，先把预期的改动移到维护源中。`npm run test:template` 会检查两份副本
+是否一致。
 
-| Skill | Use it for |
+| 技能 | 用途 |
 | --- | --- |
-| [3d-production-routing](../.agents/skills/3d-production-routing/SKILL.md) | Choose a practical workflow for 3D concepts, generated meshes, material maps, procedural Three.js reconstruction and game animation. |
-| [blender-game-animation](../.agents/skills/blender-game-animation/SKILL.md) | Rig and animate supplied characters in Blender, revise motion from references, and deliver editable sources plus a verified game export. |
-| [character-sheet-pipeline](../.agents/skills/character-sheet-pipeline/SKILL.md) | Prepare strict-front character sheets, isolated parts and optional multiview references for 3D modeling from an approved image. |
-| [fal-ai-generation](../.agents/skills/fal-ai-generation/SKILL.md) | Generate and edit images, create video, audio, 3D assets or material maps through fal.ai MCP or the Python queue client. Use for fal model discovery, reference uploads, generation, recovery and local delivery. |
-| [feature-handoff](../.agents/skills/feature-handoff/SKILL.md) | Prepare a precise handoff for an agent or developer implementing a feature, continuing a task or reviewing a finished change. |
-| [game-animation-integration](../.agents/skills/game-animation-integration/SKILL.md) | Bring approved animation into a game, including clip mapping, turn exits, locomotion phase and gameplay event timing. |
-| [game-audio-workflow](../.agents/skills/game-audio-workflow/SKILL.md) | Audition, select and integrate sounds with stable asset IDs, contact events, mixer rules and native listening checks. |
-| [game-level-design](../.agents/skills/game-level-design/SKILL.md) | Build reviewable level drafts, validate scale and traversal, and apply accepted changes to the actual scene. |
-| [game-ui-workflow](../.agents/skills/game-ui-workflow/SKILL.md) | Take a HUD or menu from a visual study to live game data, input behavior and native review. |
-| [game-vfx-workflow](../.agents/skills/game-vfx-workflow/SKILL.md) | Develop effect layers, event timing, attachment, cleanup and in-game visual comparisons. |
-| [gameplay-visual-review](../.agents/skills/gameplay-visual-review/SKILL.md) | Verify game changes with controlled native captures and separate implementation, visual review and acceptance. |
-| [higgsfield-workflow](../.agents/skills/higgsfield-workflow/SKILL.md) | Use the official Higgsfield CLI or its Blender integration to discover models, generate requested assets and resume recorded jobs. |
-| [image-reference-workflow](../.agents/skills/image-reference-workflow/SKILL.md) | Explore image concepts and make faithful edits of accepted references for 3D or creative production, with explicit model choices and visual review. |
-| [img2threejs](../.agents/skills/img2threejs/SKILL.md) | Turn an object or character reference image into a quality-gated, animation-ready procedural Three.js model built in code. Use for image-to-3D reconstruction, detail-accurate object rebuilds, stylized/likeness-maximized human characters, sculpt specs, and staged code generation. |
-| [materials-to-game](../.agents/skills/materials-to-game/SKILL.md) | Create or apply material maps and bake a textured high-poly mesh onto a game mesh, with channel, UV and export checks. |
-| [motion-reference-workflow](../.agents/skills/motion-reference-workflow/SKILL.md) | Prepare and select character motion references, or transfer approved motion to a human reference for a later mocap workflow. |
-| [plan](../.agents/skills/plan/SKILL.md) | Turn a broad project request into a small actionable plan with concrete deliverables, dependencies and acceptance checks. |
-| [video-watch](../.agents/skills/video-watch/SKILL.md) | Inspect a local or publicly accessible video through sampled scene frames, timestamps and a visual report, especially for motion and 3D reference analysis. |
-| [voice-dictation-setup](../.agents/skills/voice-dictation-setup/SKILL.md) | Help configure optional local Whisper dictation into terminals and other apps, with language, hotkey and CPU or GPU checks. |
-| [workspace-authoring](../.agents/skills/workspace-authoring/SKILL.md) | Create or maintain Workspace cards, report tabs and Markdown deliverables with consistent styling, working media previews and clear project organization. |
+| [3d-production-routing](../.agents/skills/3d-production-routing/SKILL.md) | 为 3D 概念、生成网格、材质贴图、程序化 Three.js 重建和游戏动画选择实用的工作流。 |
+| [blender-game-animation](../.agents/skills/blender-game-animation/SKILL.md) | 在 Blender 中为提供的角色做绑定和动画，依据参考修改动作，交付可编辑源文件和经过验证的游戏导出。 |
+| [character-sheet-pipeline](../.agents/skills/character-sheet-pipeline/SKILL.md) | 从已认可的图片制作严格正视的角色设定图、拆分部件和可选的多视图参考，用于 3D 建模。 |
+| [fal-ai-generation](../.agents/skills/fal-ai-generation/SKILL.md) | 通过 fal.ai MCP 或 Python 队列客户端生成和编辑图片，创建视频、音频、3D 资产或材质贴图。用于 fal 模型发现、参考上传、生成、任务恢复和本地交付。 |
+| [feature-handoff](../.agents/skills/feature-handoff/SKILL.md) | 为实现功能、继续任务或审查已完成改动的代理或开发者准备精确的交接。 |
+| [game-animation-integration](../.agents/skills/game-animation-integration/SKILL.md) | 把已认可的动画接入游戏，包括动画片段映射、转身退出、移动相位和玩法事件时机。 |
+| [game-audio-workflow](../.agents/skills/game-audio-workflow/SKILL.md) | 试听、挑选并集成声音，使用稳定的资产 ID、接触事件、混音规则和原生试听检查。 |
+| [game-level-design](../.agents/skills/game-level-design/SKILL.md) | 制作可审查的关卡草稿，验证比例和通行，并把已接受的改动应用到实际场景。 |
+| [game-ui-workflow](../.agents/skills/game-ui-workflow/SKILL.md) | 把 HUD 或菜单从视觉研究推进到实时游戏数据、输入行为和原生审查。 |
+| [game-vfx-workflow](../.agents/skills/game-vfx-workflow/SKILL.md) | 开发特效层、事件时机、挂点、清理和游戏内视觉对比。 |
+| [gameplay-visual-review](../.agents/skills/gameplay-visual-review/SKILL.md) | 用受控的原生截取验证游戏改动，并把实现、视觉审查和验收分开。 |
+| [higgsfield-workflow](../.agents/skills/higgsfield-workflow/SKILL.md) | 使用官方 Higgsfield CLI 或其 Blender 集成来发现模型、生成所需资产并恢复已记录的任务。 |
+| [image-reference-workflow](../.agents/skills/image-reference-workflow/SKILL.md) | 为 3D 或创意生产探索图像概念，并对已接受的参考做忠实修改，明确模型选择并做视觉审查。 |
+| [img2threejs](../.agents/skills/img2threejs/SKILL.md) | 把物体或角色参考图转换为经过质量门禁、可用于动画、用代码构建的程序化 Three.js 模型。用于图像转 3D 重建、细节精确的物体重建、风格化/最大化相似度的人物角色、雕刻规格和分阶段代码生成。 |
+| [materials-to-game](../.agents/skills/materials-to-game/SKILL.md) | 创建或应用材质贴图，把带纹理的高模烘焙到游戏网格上，并检查通道、UV 和导出。 |
+| [motion-reference-workflow](../.agents/skills/motion-reference-workflow/SKILL.md) | 准备和挑选角色动作参考，或把已认可的动作迁移到真人参考上，供后续动捕流程使用。 |
+| [plan](../.agents/skills/plan/SKILL.md) | 把宽泛的项目请求变成一份小而可执行的计划，包含具体交付物、依赖和验收检查。 |
+| [video-watch](../.agents/skills/video-watch/SKILL.md) | 通过场景采样帧、时间戳和可视化报告检查本地或公开可访问的视频，尤其用于动作和 3D 参考分析。 |
+| [voice-dictation-setup](../.agents/skills/voice-dictation-setup/SKILL.md) | 帮助配置可选的本地 Whisper 听写，输入到终端和其他应用，并检查语言、快捷键以及 CPU 或 GPU。 |
+| [workspace-authoring](../.agents/skills/workspace-authoring/SKILL.md) | 创建或维护工作区卡片、报告标签页和 Markdown 交付物，保持样式一致、媒体预览可用、项目组织清晰。 |
 
-## Game production in 0.4.14
+## 0.4.14 中的游戏生产
 
-The six new game workflows connect concept work to implementation. They describe
-how to inspect an existing project, preserve accepted work, hand over exact
-event markers and review the result in the engine. They contain no private game
-assets, character names, fixed balance values or personal working preferences.
-Examples are illustrative; the receiving project's rules remain authoritative.
+六个新的游戏工作流把概念工作和实现连接起来。它们说明如何检查现有项目、保留已
+接受的工作、交接确切的事件标记，以及在引擎中审查结果。其中不包含私有游戏资产、
+角色名、固定的平衡数值或个人工作偏好。示例仅作说明；接收项目自身的规则具有最终
+效力。
 
-Blender animation now covers multiple Action owners, slots, bind-basis checks
-and portable clip exports. Motion references keep a stable take ledger and
-separate appearance transfer from mocap. Handoffs separate a selected proposal,
-implementation, agent verification and user acceptance. The routing skill helps
-an agent choose among these workflows.
+Blender 动画现已涵盖多个 Action 所有者、slot、绑定基准检查和可移植的动画片段导出。
+动作参考保留稳定的拍摄记录表，并把外观迁移与动捕分开。交接把选定方案、实现、
+代理验证和用户验收分开。路由技能帮助代理在这些工作流之间做选择。
 
-These are instructions for agents, not bundled editor integrations. Use your
-existing Unity or Blender connection, and check its available operations.
-Generation is optional. A skill does not install an engine, connect an MCP
-server or perform paid work by itself.
+这些是给代理的说明，不是附带的编辑器集成。使用你现有的 Unity 或 Blender 连接，
+并检查其可用操作。生成是可选的。技能本身不会安装引擎、连接 MCP 服务器或执行
+付费工作。
 
-## Use the skills in another project
+## 在其他项目中使用技能
 
-The release includes a separate **Mr-Mak-Skills-0.4.14.zip**. Extract it to a
-temporary folder, then ask your agent to read `SKILLS-README.md` and copy only
-the chosen modules and their dependencies into your project. Keep full skill
-folders, including scripts, references and licences. The ZIP includes complete
-Codex and Claude copies; no global installation or symlink is required.
+发布版本包含单独的 **Mr-Mak-Skills-0.4.14.zip**。解压到临时文件夹，然后让代理阅读
+`SKILLS-README.md`，只把选中的模块及其依赖复制到你的项目中。保留完整的技能文件夹，
+包括脚本、参考资料和许可证。ZIP 包含完整的 Codex 和 Claude 副本；不需要全局安装或
+符号链接。
 
-The eight original creative modules and six new game workflows can be copied
-with their own local resources. Preserve any referenced sibling skill when you
-choose to use it. Keep the full img2threejs folder and its licences.
+八个原有创意模块和六个新的游戏工作流可以连同各自的本地资源一起复制。选择使用某个
+被引用的同级技能时，一并保留它。保留完整的 img2threejs 文件夹及其许可证。
 
-Workspace authoring, video inspection and dictation setup also reference this
-repository's processes, knowledge and scripts. Copy those referenced files when
-extracting a module; the ZIP includes these support files and shared report
-assets. Merge them with an existing project instead of replacing its instructions,
-reports or shared styles. Planning and handoff skills use the receiving project's
-conventions. The standalone pack contains no Workspace cards or application.
+工作区撰写、视频检查和听写配置还引用了本仓库的流程、知识和脚本。提取模块时一并
+复制这些被引用的文件；ZIP 包含这些支持文件和共享报告资源。把它们合并到现有项目中，
+而不是替换其说明、报告或共享样式。规划和交接技能使用接收项目的约定。独立技能包
+不包含工作区卡片或应用。
 
-A skill does not authenticate a provider or install a tool. Follow its setup
-references and bring your own account. Credentials and raw paid-job receipts
-must stay outside a shared skill pack.
+技能不会为提供方完成认证，也不会安装工具。按其配置参考操作，并使用你自己的账号。
+凭据和原始付费任务回执必须放在共享技能包之外。
 
-For an existing Mr. Mak installation, see the
-[update guide](https://github.com/witnesstodark/mr-mak-workspace/blob/main/docs/updating.md). Installing the
-desktop update alone does not put new skills into your repository.
+对于已安装的 Mr. Mak，参见
+[更新指南](https://github.com/witnesstodark/mr-mak-workspace/blob/main/docs/updating.md)。
+只安装桌面更新不会把新技能放进你的仓库。

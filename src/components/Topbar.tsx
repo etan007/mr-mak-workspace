@@ -14,9 +14,9 @@ interface TopbarProps {
 export default function Topbar({ entity, stepIndex, onStep, onHome, reportUrl }: TopbarProps) {
   return (
     <div className="topbar">
-      <nav className="breadcrumb" aria-label="Breadcrumb">
+      <nav className="breadcrumb" aria-label="导航路径">
         <button className="crumb-link" onClick={onHome}>
-          Workspace
+          工作区
         </button>
         {entity && (
           <>
@@ -52,7 +52,7 @@ export default function Topbar({ entity, stepIndex, onStep, onHome, reportUrl }:
               href={reportUrl}
               target="_blank"
               rel="noreferrer"
-              title="Open report in a new tab"
+              title="在新标签页中打开报告"
             >
               ↗
             </a>

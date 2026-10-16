@@ -4,11 +4,11 @@ import os from 'node:os';
 import { StringDecoder } from 'node:string_decoder';
 
 export function completedTurn(record, agent) {
-  if (agent === 'codex' && record.type === 'event_msg' && record.payload?.type === 'task_complete') return { kind: 'turn-completed', id: record.payload.turn_id, text: 'The agent finished its turn. Review the result.', preview: String(record.payload.last_agent_message || '').slice(-350) };
+  if (agent === 'codex' && record.type === 'event_msg' && record.payload?.type === 'task_complete') return { kind: 'turn-completed', id: record.payload.turn_id, text: '代理已完成本回合。请查看结果。', preview: String(record.payload.last_agent_message || '').slice(-350) };
   // Claude writes thinking and text as separate records with the same message ID
   // and stop reason. Only the actual final answer creates a completion notice.
-  if (agent === 'claude' && !record.isSidechain && record.type === 'assistant' && record.message?.stop_reason === 'end_turn' && record.message.content?.some(item => item.type === 'text')) return { kind: 'turn-completed', id: record.message.id, text: 'The agent finished its turn. Review the result.', preview: record.message.content.filter(item => item.type === 'text').map(item => item.text).join('\n').slice(-350) };
-  if (agent === 'claude' && !record.isSidechain && record.type === 'system' && record.subtype === 'api_error') return { kind: 'attention', text: 'The agent reported an API error.' };
+  if (agent === 'claude' && !record.isSidechain && record.type === 'assistant' && record.message?.stop_reason === 'end_turn' && record.message.content?.some(item => item.type === 'text')) return { kind: 'turn-completed', id: record.message.id, text: '代理已完成本回合。请查看结果。', preview: record.message.content.filter(item => item.type === 'text').map(item => item.text).join('\n').slice(-350) };
+  if (agent === 'claude' && !record.isSidechain && record.type === 'system' && record.subtype === 'api_error') return { kind: 'attention', text: '代理报告了 API 错误。' };
   return null;
 }
 

@@ -1,385 +1,314 @@
-# Character Pipeline
+# 角色流水线
 
-**Packaged here** as an opt-in img2threejs integration (see `README.md`): parameterised, runnable copies
-of the character-agnostic scripts under `python/` and `node/`, a generic orchestrator
-(`build-character.sh`), and two `.env` configs (`configs/girl-character.env`, reproducing girl-character's
-own build; `configs/example.env`, a template for a new reference). This integration runs entirely against
-a companion `img2threejs-showcase` checkout, pointed to via `IMG2THREEJS_SHOWCASE_ROOT` — every showcase-
-relative path below (`public/mesh/`, `work/progress.txt`, `src/demos/...`) means "inside that checkout,"
-never inside this repo.
+**在此打包**为一项需主动启用的 img2threejs 集成（见 `README.md`）：`python/` 和 `node/` 下与具体角色
+无关的脚本的参数化可运行副本、一个通用编排器（`build-character.sh`），以及两份 `.env` 配置
+（`configs/girl-character.env`，复现 girl-character 自身的构建；`configs/example.env`，用于新参考的
+模板）。本集成完全针对一个配套的 `img2threejs-showcase` checkout 运行，通过 `IMG2THREEJS_SHOWCASE_ROOT`
+指向它——下文所有相对 showcase 的路径（`public/mesh/`、`work/progress.txt`、`src/demos/...`）都指
+"在该 checkout 内"，绝不是本仓库内。
 
-Distilled from building `girl-character` in that showcase: a GLB baseline reconstructed as code-only
-TypeScript/three.js, with a fully procedural walk rig and no external asset fetched at runtime. This
-document is the reusable process, kept separate from the demo's own source so it can be applied to the
-next character. Where a stage references a script by a bare `scripts/...` path, that script lives only in
-the showcase repo's own top-level `scripts/` (character-specific, not packaged here); where it references
-`python/...` or `node/...`, that is a script packaged in this integration.
+提炼自在该 showcase 中构建 `girl-character` 的过程：一个以纯代码 TypeScript/three.js 重建的 GLB 基线，
+带完全程序化的行走绑定，运行时不获取任何外部资产。本文档是可复用的流程，与 demo 自身的源码分开保存，
+以便应用到下一个角色。凡某个阶段以裸 `scripts/...` 路径引用脚本，该脚本只存在于 showcase 仓库自己的
+顶层 `scripts/` 中（与具体角色相关，未在此打包）；凡以 `python/...` 或 `node/...` 引用，则是本集成中
+打包的脚本。
 
-Everything here is grounded in the showcase's own `work/progress.txt` (48 recorded runs as of packaging)
-and the actual scripts. Where a step says "measure," it means a script produced a number before the next
-decision was made — not that the number was assumed.
+这里的一切都以 showcase 自己的 `work/progress.txt`（打包时已记录 48 次运行）和实际脚本为依据。凡某一步
+写着"测量"，意思是在做出下一个决策之前，确实有脚本产出了一个数字——而不是假设了这个数字。
 
-## When to use this
+## 何时使用
 
-You have a multipart GLB (or several — a PBR and a shaded variant, ideally) as a **measurement target**,
-not an asset to ship, and you want a character that:
-- renders from TypeScript/three.js code alone, with no `.glb`/`.bin` fetched by the running demo
-- matches the baseline's silhouette and surface character closely enough that the two are hard to tell
-  apart in a side-by-side, while remaining honest that it is a reconstruction, not a copy
-- animates (at minimum a walk cycle) without a rig baked into the source file
+你有一个多部件 GLB（或几个——理想情况下有一个 PBR 版本和一个着色版本）作为**测量目标**，而不是要
+交付的资产，并且你想要一个这样的角色：
+- 仅凭 TypeScript/three.js 代码渲染，运行中的 demo 不获取任何 `.glb`/`.bin`
+- 在轮廓和表面特征上与基线足够接近，并排对比时难以分辨，同时诚实地说明它是重建而非复制
+- 能动画（至少一个行走循环），且不依赖源文件中烘焙的绑定
 
-## Applicability gate — GLB is optional, check for it before anything else
+## 适用性门禁——GLB 是可选的，先检查有没有
 
-**A GLB reference is optional for a character build, and this whole integration only applies when one
-exists.** Before running anything below, check the current build request for a GLB reference (a
-`CHARACTER_GLB` path, an attached/linked `.glb`, or an explicit mention of one):
+**对角色构建而言，GLB 参考是可选的，而整个集成只在存在 GLB 时才适用。** 在运行下文任何内容之前，
+检查当前构建请求中是否有 GLB 参考（`CHARACTER_GLB` 路径、附带/链接的 `.glb`，或明确提到了一个）：
 
-- **A GLB reference exists** → proceed through Stage 0 onward, as described below.
-- **No GLB reference** → **skip every stage in this document (Stage 0 through Stage 9) entirely.** Do
-  not treat the absence as an error, a blocker, or something to substitute a placeholder for. Build the
-  character through the core img2threejs image-driven procedural pipeline instead (`forge/`) — that path
-  never depends on a GLB. This integration has no code path that runs without one; every stage below
-  (the cross-section loft included) measures a real GLB point cloud, so there is nothing here to
-  partially apply to an image-only build.
+- **存在 GLB 参考** → 按下文所述，从 Stage 0 开始往下进行。
+- **没有 GLB 参考** → **完全跳过本文档中的每个阶段（Stage 0 到 Stage 9）。** 不要把缺失当作错误、
+  阻塞项，或需要用占位符替代的东西。改为通过 img2threejs 核心的图像驱动程序化流水线（`forge/`）构建
+  角色——那条路径从不依赖 GLB。本集成没有任何不依赖 GLB 就能运行的代码路径；下面每个阶段（包括
+  横截面放样）都测量真实的 GLB 点云，所以这里没有任何内容可以部分应用到仅有图像的构建中。
 
-## Stage 0 — Intake
+## Stage 0 — Intake（接收）
 
-1. Symlink the baseline GLB(s) into `public/mesh/` and `public/baseline/` (both gitignored — they are
-   measurement instruments, never shipped). A missing symlink resolves to `index.html` under Vite and
-   masquerades as a 200 response with the wrong content; check the magic bytes of anything you load, not
-   just the HTTP status.
-2. Parse the GLB in JavaScript (see `node/encode_surfaces.mjs`'s `cloudMinima`) or Python
-   (`python/build_head_surface.py`'s accessor walk) — whichever the rest of that stage's tooling uses.
-   Do **not** assume `numpy` is installed; check first (`python3 -c "import numpy"`), and if it is not,
-   write the JS equivalent rather than blocking the whole pipeline on one dependency.
-3. Record per-node: vertex/triangle count, whether `NORMAL` is present (needed for oriented SDF splatting),
-   whether the primitive is single-material/single-connected-component (needed later if you ever want to
-   separate sub-features like eye/lash cards — see Stage 6's negative result).
-4. Capture a reference photo if one exists and register it as `referenceImage` in the demo entry — it is
-   what a human compares the result against, and it is not part of the reconstruction pipeline itself.
+1. 把基线 GLB 符号链接到 `public/mesh/` 和 `public/baseline/`（两者都被 gitignore——它们是测量仪器，
+   绝不交付）。在 Vite 下，缺失的符号链接会解析为 `index.html`，并伪装成内容错误的 200 响应；对你
+   加载的任何东西都要检查魔数字节，而不只是 HTTP 状态。
+2. 用 JavaScript（见 `node/encode_surfaces.mjs` 的 `cloudMinima`）或 Python
+   （`python/build_head_surface.py` 的 accessor 遍历）解析 GLB——取决于该阶段其余工具用的是哪种。
+   **不要**假设已安装 `numpy`；先检查（`python3 -c "import numpy"`），若未安装，就写等价的 JS 实现，
+   而不是让整条流水线卡在一个依赖上。
+3. 逐节点记录：顶点/三角形数量、是否存在 `NORMAL`（有向 SDF 泼溅需要）、该 primitive 是否为单材质/
+   单连通分量（如果以后想拆出眼睛/睫毛卡片之类的子特征就需要——见 Stage 6 的负面结果）。
+4. 若有参考照片，截取它并在 demo 条目中注册为 `referenceImage`——它是人用来对比结果的依据，本身不属于
+   重建流水线。
 
-## Stage 1 — Cross-section loft (the code-only floor)
+## Stage 1 — Cross-section loft（横截面放样，纯代码底线）
 
-Build the coarse body from **measured cross-sections** of each node's own point cloud: cluster the cloud,
-slice by height, take the radial concave outline per band, resample onto fixed spokes, loft between bands.
-This is real code, fully parametric, and must always work with **zero external data** — it is the fallback
-path (`?sdf=0` in this demo) and the thing that proves the pipeline is not secretly shipping the source
-mesh.
+用每个节点自身点云的**实测横截面**构建粗略身体：对点云聚类，按高度切片，逐带取径向凹轮廓，重采样到
+固定辐条上，在带与带之间放样。这是真正的代码，完全参数化，并且必须始终在**零外部数据**下可用——它是
+回退路径（本 demo 中的 `?sdf=0`），也是证明流水线没有偷偷交付源网格的东西。
 
-Key parameters, tuned by measurement, not assumption:
-- **spokes per node** = `min(convergence, density)`, where convergence is where the radial outline stops
-  changing and density is the most spokes that keep a monotone outline — both measured per node, not
-  shared globally.
-- **centripetal (α=0.5) Catmull-Rom**, not uniform: uniform overshoot was measured at 31 mm on this model;
-  centripetal cut it to 6 mm. Do not clamp the curve to the control polygon — that removes the exact
-  bowing that turns a polygon into a circle.
-- **adaptive subdivision** to a target edge length matched to the baseline's own measured median edge, not
-  a fixed triangle budget.
+关键参数，靠测量而非假设调定：
+- **每节点辐条数** = `min(convergence, density)`，其中 convergence 是径向轮廓不再变化的位置，density
+  是仍能保持单调轮廓的最大辐条数——两者都按节点测量，而不是全局共享。
+- 使用**向心（α=0.5）Catmull-Rom**，而不是均匀参数化：在本模型上测得均匀参数化的过冲为 31 mm；向心
+  参数化将其降到 6 mm。不要把曲线钳制到控制多边形内——那会去掉恰好把多边形变成圆的那份外凸。
+- **自适应细分**到一个目标边长，该边长与基线自身实测的中位边长匹配，而不是固定的三角形预算。
 
-This stage alone will not match the baseline closely on organic detail (a face, a navel) — a cross-section
-is fundamentally 2.5D (one radius per angular bin), and no amount of spoke density recovers a fold that
-doubles back on itself (an eyelid, a nostril). That is what Stage 2 is for.
+单靠这一阶段，在有机细节（脸、肚脐）上无法与基线紧密匹配——横截面本质上是 2.5D 的（每个角度区间一个
+半径），再多的辐条密度也无法恢复向自身折回的褶皱（眼睑、鼻孔）。这正是 Stage 2 的用途。
 
-**Read this before treating Stage 2/3 as "more of the same" measurement-to-parameter process this stage
-is.** Stage 1 measures the GLB down to a SPARSE set of ring samples per node (girl-character: 748 rings,
-86,240 points total, from a 2.1-million-vertex source) plus a handful of tuning numbers (spoke counts,
-control-curve behaviour, a target edge length). At runtime a loft function SYNTHESISES the walls between
-consecutive rings by interpolation -- that geometry does not exist in the measurement at all. Stage 2/3
-does the opposite: it measures DENSELY (every sign-changing voxel cell, millions of vertices) and
-re-encodes that whole capture (compressed, but still the whole thing) as embedded code, with no
-interpolation at decode time -- what comes back out is the measured surface itself, not a synthesis
-between sparse samples of it. Both are "code-only, no runtime fetch," and both embed genuinely measured
-data as committed TypeScript; they differ in how much of the surface that data is and whether runtime
-code synthesises between it or merely decodes it. Stage 2/3 is reached for only where Stage 1's 2.5D
-loft-and-interpolate cannot express the geometry at all (a fold that doubles back on itself).
+**在把 Stage 2/3 当作与本阶段"同类的测量→参数流程"之前，先读这一段。** Stage 1 把 GLB 测量成每个
+节点一组**稀疏**的环采样（girl-character：748 个环，共 86,240 个点，源网格有 210 万顶点），外加少数
+几个调参数字（辐条数、控制曲线行为、目标边长）。运行时由放样函数通过插值**合成**相邻环之间的壁面——
+这些几何在测量数据中根本不存在。Stage 2/3 恰好相反：它**稠密**地测量（每个符号变化的体素格子，数百万
+顶点），并把整份采集结果（经过压缩，但仍是全部）重新编码为嵌入式代码，解码时不做插值——还原出来的
+就是测得的表面本身，而不是在其稀疏采样之间合成的结果。两者都是"纯代码、运行时不获取"，也都把真实测得
+的数据作为提交的 TypeScript 嵌入；区别在于这些数据占表面的多少，以及运行时代码是在数据之间合成还是
+只做解码。只有在 Stage 1 的 2.5D 放样加插值完全无法表达几何（向自身折回的褶皱）的地方，才动用
+Stage 2/3。
 
-## Stage 2 — Implicit surface reconstruction (Surface Nets)
+## Stage 2 — Implicit surface reconstruction（隐式表面重建，Surface Nets）
 
-For nodes where the loft is not enough, splat a signed distance field from that node's own point cloud
-using its own `NORMAL` attribute (oriented reconstruction — unoriented has to guess inside from outside)
-and contour it with **Surface Nets**, not marching cubes: Surface Nets is a few dozen lines and one vertex
-per sign-changing cell, marching cubes is a 256-case table that is easy to get subtly wrong with only
-stdlib available.
+对于放样不够用的节点，用该节点自身的点云及其自身的 `NORMAL` 属性泼溅出有符号距离场（有向重建——无向
+重建只能去猜哪边是内、哪边是外），然后用 **Surface Nets** 而不是 marching cubes 提取等值面：Surface Nets
+只有几十行代码、每个符号变化格子一个顶点；marching cubes 是一张 256 种情况的表，在只有标准库的条件下
+很容易写出细微错误。
 
-- `python/build_head_surface.py <node> <cell>` — the field + Surface Nets for one node.
-- `python/export_sdf_surfaces.py <node...> [xN]` — batches the above across every node that needs it,
-  bakes per-vertex colour from the diffuse texture (mean of 4 nearest source vertices, **sRGB decoded to
-  linear** — three.js treats a vertex colour attribute as already being in the working space), and writes
-  a versioned binary (`HEDS`, magic-checked, not just HTTP-status-checked) as the intermediate artifact.
-- Cell size per node, not a global constant: a lid margin is ~1 mm, so the head needs ~1.5 mm; the
-  trousers carry nothing that fine and cost twice the file for no measured gain at anything below 2.5 mm.
-  Measure the noise-vs-cell curve before picking one.
+- `python/build_head_surface.py <node> <cell>`——单个节点的距离场 + Surface Nets。
+- `python/export_sdf_surfaces.py <node...> [xN]`——对所有需要的节点批量执行上述过程，从漫反射纹理烘焙
+  逐顶点颜色（取 4 个最近源顶点的均值，**sRGB 解码为线性**——three.js 把顶点颜色属性视为已处于工作
+  色彩空间），并写出一个带版本号的二进制文件（`HEDS`，检查魔数，而不只检查 HTTP 状态）作为中间产物。
+- 格子大小按节点设定，而不是全局常量：眼睑边缘约 1 mm，所以头部需要约 1.5 mm；裤子没有那么细的细节，
+  在 2.5 mm 以下任何格子大小都没有测得的收益，却要付出两倍的文件体积。选定之前先测量噪声-格子曲线。
 
-**This intermediate binary is not the deliverable.** It is 107.6 MB for this model, larger than the GLB it
-is measured against — the point of Stage 2 is fidelity, and Stage 3 is what makes that fidelity shippable
-as code.
+**这个中间二进制不是交付物。** 在本模型上它有 107.6 MB，比用来对照测量的 GLB 还大——Stage 2 的意义
+在于保真度，而 Stage 3 才是让这份保真度能以代码形式交付的环节。
 
-## Stage 3 — Compact TypeScript encoding (no binary asset ships)
+## Stage 3 — Compact TypeScript encoding（紧凑 TypeScript 编码，不交付任何二进制资产）
 
-The insight that makes this stage possible: **Surface Nets places exactly one vertex per sign-changing
-voxel cell.** A vertex's cell coordinate identifies it, so the index buffer is derivable from cell
-adjacency and does not need to be stored — that was 50.6 MB of 107.6 on this model. Normals are similarly
-derivable by recomputing them from the rebuilt triangles (another 25 MB). **Verify this claim on the real
-data before encoding anything**, on every node, not just the ones that look regular:
-- recover the grid origin from the builder's own rule (`lo = point-cloud min − 5×cell`, read from the GLB
-  accessor minima) — it is not safely *searchable* by sweeping a sub-cell phase; that put 29% of vertices
-  in an already-occupied cell in this project.
-- require vertex → cell to be a bijection (watch for exact-boundary float ties; resolve by searching the
-  27-cell neighbourhood for one that still contains the point, with a tolerance scaled to the actual
-  float32 precision at that coordinate magnitude — not an arbitrary epsilon).
-- rebuild every triangle from cell adjacency alone and diff the triangle **sets** (not just counts) against
-  the source. `node/verify_cells.mjs <bin> [glb]` does this and must show 0 collisions and every quad
-  rebuilt before you write a single byte of encoder.
+使这一阶段成为可能的关键洞察：**Surface Nets 在每个符号变化的体素格子中恰好放置一个顶点。** 顶点的
+格子坐标就能标识它，因此索引缓冲可以由格子邻接关系推导出来，无需存储——在本模型上这部分占 107.6 MB 中
+的 50.6 MB。法线同样可以由重建的三角形重新计算得出（又省下 25 MB）。**在编码任何东西之前，先在真实
+数据上验证这一论断**，而且要在每个节点上验证，不只是看起来规整的那些：
+- 按构建器自身的规则恢复网格原点（`lo = point-cloud min − 5×cell`，从 GLB accessor 最小值读取）——
+  通过扫描亚格子相位来*搜索*它并不安全；在本项目中那样做让 29% 的顶点落进了已被占用的格子。
+- 要求顶点 → 格子是双射（注意恰好落在边界上的浮点平局；解决办法是在 27 格邻域中搜索仍包含该点的格子，
+  容差按该坐标量级下实际的 float32 精度缩放——而不是随意的 epsilon）。
+- 仅凭格子邻接重建每个三角形，并将三角形**集合**（不只是数量）与源数据做差异比对。
+  `node/verify_cells.mjs <bin> [glb]` 就做这件事；在写下编码器的任何一个字节之前，它必须显示 0 次冲突、
+  所有四边形均已重建。
 
-What actually gets written, per node (`node/encode_surfaces.mjs <level...>`):
-- the active cell list as **varint deltas of the linear index** (zigzag, signed — the source order must be
-  *preserved*, not re-sorted, or every later index-based comparison becomes meaningless; sorting to fix an
-  apparent non-monotonicity is what silently reordered 1,193 vertices on one run of this project)
-- the in-cell offset, 8 bits/axis
-- colour, 8 bits/channel
-- **4 bits per axis of connectivity** — exists / reversed / which corner the quad's diagonal split starts
-  from. Two bits (exists + reversed) is *not enough*: a quad is split into two triangles from its first
-  corner, and a rotation of the same four corners cuts the *other* diagonal. On non-planar Surface Nets
-  quads (most of them) that is a real, different surface — it rendered as rows of diamond-shaped facets
-  across a third of one region before the extra 2 bits were added.
-- an explicit exception list for the handful of quads (~0.001% on this model) the reduction cannot
-  express, so the rebuild is bit-exact rather than approximately right.
+每个节点实际写入的内容（`node/encode_surfaces.mjs <level...>`）：
+- 活动格子列表，以**线性索引的 varint 增量**表示（zigzag、有符号——源顺序必须*保留*，不得重新排序，
+  否则之后每一项基于索引的比较都会失去意义；本项目的一次运行中，为修正表面上的非单调而排序，结果悄悄
+  重排了 1,193 个顶点）
+- 格内偏移，每轴 8 位
+- 颜色，每通道 8 位
+- **每轴 4 位连通性**——是否存在 / 是否反向 / 四边形对角线从哪个角开始切分。只用两位（存在 + 反向）
+  *不够*：四边形是从第一个角切成两个三角形的，同样四个角旋转一下就会切*另一条*对角线。在非平面的
+  Surface Nets 四边形上（大多数都是），那是一个真实存在的不同表面——在加上额外 2 位之前，它在某个
+  区域的三分之一范围内渲染出了一排排菱形小面。
+- 一份显式的例外列表，记录少数几个这种压缩方式无法表达的四边形（本模型上约 0.001%），使重建达到
+  逐位精确，而不是大致正确。
 
-Result on this model: **9.0–9.1 bytes/vertex**, ~20–24% of the binary's size, base64-embedded in a
-generated `.ts` module (`node/emit_surface_module.mjs <level> [dest.ts]`) — base64 because the same
-data as a plain number array is roughly 10× larger as source text, and every browser has `atob` built in.
+本模型上的结果：**每顶点 9.0–9.1 字节**，约为二进制文件大小的 20–24%，以 base64 嵌入到一个生成的
+`.ts` 模块中（`node/emit_surface_module.mjs <level> [dest.ts]`）——用 base64 是因为同样的数据写成普通
+数字数组，作为源码文本大约要大 10 倍，而且每个浏览器都内置 `atob`。
 
-**Verify the round trip against the real decoder, not a second implementation of it** — transpile the
-actual shipping `surfaceCodec.ts` with esbuild and run it inside the check script
-(`node/verify_roundtrip.mjs <level>`), so what is tested is what ships. Compare, per node: vertex count,
-worst-case position error against the *quantisation step* the encoding is actually allowed (not an
-arbitrary round number — a tolerance the same size as the error it is meant to tolerate measures nothing),
-colour delta, and the triangle set by **index**, only after confirming vertex order is preserved (measure
-that too — don't assume it).
+**用真正的解码器验证往返，而不是用它的第二份实现**——用 esbuild 转译实际交付的 `surfaceCodec.ts`，在
+检查脚本中运行它（`node/verify_roundtrip.mjs <level>`），这样被测试的就是被交付的。逐节点比较：顶点数、
+位置的最坏误差（对照编码实际允许的*量化步长*——而不是随便一个整数；容差与它要容忍的误差一样大，就什么
+也测不出来）、颜色差，以及按**索引**比较的三角形集合（但只在确认顶点顺序已保留之后——这一点也要测，
+不要假设）。
 
-Ship **multiple detail levels as separate committed modules** (this project ships three:
-`surfaceData[.ts|Low.ts|Medium.ts]`), selected in code, not fetched — a detail selector is a UI choice
-between modules that are all already in the bundle, never a network request.
+把**多个细节等级作为独立的已提交模块**交付（本项目交付三个：`surfaceData[.ts|Low.ts|Medium.ts]`），
+在代码中选择，而不是获取——细节选择器是在已经全部打包进来的模块之间做 UI 选择，绝不是一次网络请求。
 
-## Stage 4 — Runtime decoder
+## Stage 4 — Runtime decoder（运行时解码器）
 
-A single decode function (`surfaceCodec.ts`) that:
-- walks one shared byte cursor across every node in the stream and **asserts it lands exactly on the
-  declared length of each section**, not just the total stream length at the end — a per-node assertion
-  catches drift at the node where it happened; a total-length check only tells you *something* drifted,
-  after every later node already decoded from the wrong offset.
-- range-checks a neighbour cell coordinate *before* packing it into a linear index — a negative offset
-  does not go out of range, it silently wraps into a different valid cell.
-- recomputes normals from the rebuilt index buffer (never stored).
+一个单一的解码函数（`surfaceCodec.ts`），它：
+- 让一个共享的字节游标遍历流中的每个节点，并**断言它恰好落在每一段声明的长度上**，而不只是在最后检查
+  整个流的总长度——逐节点断言能在发生漂移的那个节点就捕获它；总长度检查只能告诉你*某处*发生了漂移，
+  而那时之后的每个节点都已从错误的偏移解码。
+- 在把邻居格子坐标打包成线性索引*之前*做范围检查——负偏移不会越界，而是悄悄回绕到另一个有效格子。
+- 从重建的索引缓冲重新计算法线（从不存储）。
 
-## Stage 5 — Procedural rig
+## Stage 5 — Procedural rig（程序化绑定）
 
-Build a skeleton and skin weights from the model's own measured proportions, not from a rig baked into the
-GLB (there usually isn't one).
-- **Capsule-radius weighting** per bone, with a **region → bone whitelist** (a glove only takes arm-chain
-  bones, a boot only takes leg-chain bones) and a **trunk-exclusion shield** with smooth attenuation —
-  plain distance-to-bone-segment weighting reads the body inside out (a shoulder joint dominating the
-  torso's own weights) and drags the wrong body part when an adjacent limb moves.
-- Derive the skeleton's spine axis from the **legs**, not the whole model's bounding box — the bbox average
-  includes both arms and can put the spine several centimetres off-centre, silently, with no error to
-  catch it except a measured band-by-band lateral-influence check.
-- 4 bone influences, inverse-linear falloff, **no hard 0→100% steps** at a region boundary — that is what
-  tears an arm off at the shoulder during animation.
-- Gait curves as a **Fourier series**, not `Math.max(0, sin(...))` — the latter is C¹-discontinuous and
-  produces a visible kink at the joint; square the clamped sine, or use a proper series, if you need a
-  one-sided pulse.
-- **Verify direction with forward kinematics before trusting how it looks**: proportion of the cycle spent
-  moving forward vs. backward is a number, and "looks about right" is not.
-- Rigid attachments (buckles, studs, fasteners) bind to the **nearest host *surface vertex's* bone**, not
-  the nearest bone by raw distance — nearest-bone tore studs off a knee pad whose skin was 97% weighted to
-  the hip.
+根据模型自身的实测比例构建骨架和蒙皮权重，而不是用 GLB 中烘焙的绑定（通常根本没有）。
+- 每根骨骼使用**胶囊半径加权**，配合**区域 → 骨骼白名单**（手套只接受手臂链骨骼，靴子只接受腿链
+  骨骼）以及带平滑衰减的**躯干排除护盾**——单纯按到骨骼线段距离加权，会把身体读得里外颠倒（肩关节
+  主导了躯干自身的权重），并在相邻肢体运动时拖动错误的身体部位。
+- 骨架的脊柱轴从**双腿**推导，而不是从整个模型的包围盒推导——包围盒均值包含两只手臂，可能让脊柱偏离
+  中心好几厘米，而且是静默的，除了逐带测量侧向影响的检查之外，没有任何错误能捕捉到它。
+- 4 个骨骼影响、反线性衰减，在区域边界**不得有 0→100% 的硬跳变**——正是这种跳变会在动画中把手臂从
+  肩膀上撕下来。
+- 步态曲线用**傅里叶级数**，不要用 `Math.max(0, sin(...))`——后者是 C¹ 不连续的，会在关节处产生可见
+  的折角；如果需要单侧脉冲，就对钳制后的正弦取平方，或使用合适的级数。
+- **在相信它的视觉效果之前，先用正向运动学验证方向**：一个循环中向前运动与向后运动所占的比例是一个
+  数字，而"看起来差不多"不是。
+- 刚性附件（扣具、铆钉、紧固件）绑定到**最近宿主*表面顶点*的骨骼**，而不是按原始距离最近的骨骼——
+  按最近骨骼绑定时，护膝上的铆钉被撕了下来，因为护膝蒙皮有 97% 的权重在髋部。
 
-## Stage 6 — Facial features (the hardest, least-resolved stage)
+## Stage 6 — Facial features（面部特征，最难、最未解决的阶段）
 
-Everything below is real experience from ~20 iterations on eyes specifically. Read it as a decision tree,
-not a recipe, because the terrain depends entirely on what the source GLB actually put at that node.
+以下全部是专门针对眼睛约 20 次迭代的真实经验。把它当作决策树而不是配方来读，因为地形完全取决于源 GLB
+在该节点实际放了什么。
 
-**First, measure what the source socket actually is**, by ray-casting along the face-normal axis from
-outside in: is it a shallow bowl, a deep cavity, closed, torn? On this model it was a 20–36 mm deep bowl
-with the eye *painted* into the diffuse (flat grey discs) and the lash/eye geometry drawn as thin cards
-inside the head mesh. **A distance field splatted from a thin card has no interior, so it always contours
-into a torn shell — that is not a bug in Stage 2, it is what an SDF does to a sheet, and it cannot be fixed
-downstream.** Confirm before spending time on it: check whether the eye/lash geometry is its own
-primitive/material/connected-component (it will not be, on most consumer GLBs) and whether its triangles
-are statistically distinguishable from skin by shape (on this model they were not — p50 triangle quality
-0.815 at the socket vs. 0.805 on a cheek control patch; a distance field makes uniform triangles everywhere
-it runs, including on a torn shell). If both come back negative, **the socket cannot be repaired from
-outside the SDF build** — the fix is rebuilding that node's field at a finer cell or with the lash
-primitives excluded before splatting, nothing else works, and every attempt below that skips this check
-will eventually be reverted.
+**首先，测量源眼窝实际是什么**：沿面部法线轴从外向内做射线投射——它是浅碗、深腔、封闭的，还是破裂的？
+在本模型上，它是一个 20–36 mm 深的碗，眼睛被*画*在漫反射纹理里（平的灰色圆盘），睫毛/眼睛几何则以
+薄卡片的形式画在头部网格内部。**从薄卡片泼溅出的距离场没有内部，所以它的等值面总是一个破裂的外壳——
+这不是 Stage 2 的 bug，而是 SDF 对薄片必然的结果，无法在下游修复。** 在为此花时间之前先确认：检查
+眼睛/睫毛几何是否是独立的 primitive/材质/连通分量（在大多数消费级 GLB 上都不是），以及它的三角形在
+形状上能否在统计上与皮肤区分开（在本模型上不能——眼窝处 p50 三角形质量 0.815，脸颊对照区为 0.805；
+距离场在它经过的任何地方都会生成均匀的三角形，包括破裂的外壳上）。如果两项检查结果都是否定的，
+**就无法在 SDF 构建之外修复眼窝**——修复方法是以更细的格子重建该节点的距离场，或在泼溅之前排除睫毛
+primitive，除此之外都不管用；下面任何跳过这一检查的尝试最终都会被回退。
 
-Approaches tried, cheapest lesson first:
-1. **A ball in the socket.** Fails structurally: an eye socket on this kind of asset is a broad shallow
-   bowl, not a lid-shaped cavity, so any ball radius either stands proud of the face or shrinks the iris
-   below a legible size. Don't start here.
-2. **Sculpting a lid by pulling socket vertices onto a shell concentric with the ball.** Tore the face into
-   flaps — "near the eye" is most of the eye region on a bowl this size, and a plain proximity sculpt moves
-   far more geometry than a lid actually is.
-3. **A dome that caps the whole bowl, sized to cover the tearing, with the opening painted into its
-   texture.** This is the most promising shape and the one that surfaces every remaining subtlety:
-   - the dome's rim depth has to be a **robust fit** (harmonics through a ring of casts, clamped against
-     a high-percentile anchor) — the raw casts hit torn cards as often as skin, and a plain average sinks
-     the whole dome below the face.
-   - the join between dome and socket has a **sign problem, not a precision problem**: fit error puts the
-     rim behind the real skin about half the time, and *that* half shows as a dark line all the way round
-     the eye. Three rebuilds were spent trying to make the error *zero* (welding to the exact boundary
-     loop, ordering it by angle, reading depth per sector) and each traded the gap for a different visible
-     defect (a starburst, a ring of saw-teeth, stippled cheeks). What actually worked was making the error
-     **one-sided**: lift the rim slightly proud of the fitted depth, so the dome always laps *over* real
-     skin and never sinks under it. Two constants, not a fourth geometry rebuild.
-   - covering the socket by literally cutting a hole in the head and capping it **always leaves a line of
-     sight** between the cap's edge and the hole's edge at a grazing angle, however tight the fit — a cap
-     over a hole in a closed surface is unavoidably a hole. Leaving the head's own geometry intact and
-     only removing triangles that would visibly *poke through* the dome (compared against the dome's own
-     rendered surface, not a second, independently-fitted approximation of it — the latter has a blind
-     spot exactly where a shard is dense enough to define its own "surface") removes this failure mode by
-     construction.
-   - the dome's edge needs to disappear into the face in **three separate channels**, and each is a
-     distinct bug class: **colour** (read the real vertex colour at each rim point directly rather than
-     approximating it as one face-wide average — an averaged patch is right at one point on the face and
-     visibly wrong everywhere else on it); **shading** (blend the rim's normals toward the face's own
-     normals at the same point, or the seam is a lighting discontinuity no matter how well the colour
-     matches); **material** (a cornea's wet clearcoat has to stay off the skin band via a roughness/
-     clearcoat mask, or the blended surround reads as wet plastic).
-   - **describing the same boundary shape twice, in two different parametrisations, is the single most
-     repeated bug in this whole stage.** Painting the iris opening as a hand-fitted ellipse while the lid
-     shape is drawn as cubic Bézier curves guarantees the two disagree somewhere — a bright sliver where
-     the ellipse runs wider, a dark band cutting the iris where it runs narrower. Read the boundary back
-     out of the canvas the shape was actually drawn on (rasterise, sample the alpha) rather than writing a
-     second geometric description of it.
-   - texture UV and the dome's own footprint radius are coupled by default (`u,v` as a function of the
-     same `(radius, angle)` the geometry uses) — **decoupling one without the other stretches or distorts
-     the painted iris.** If you change how far the dome reaches in a given direction, either the texture
-     frame has to reach exactly as far, or the mapping needs its own fixed reference span independent of
-     the geometry's.
-4. **An ellipse that is only the eye, with no surrounding face geometry at all** — the approach actually
-   shipped in this project, on the client's explicit direction after (3) kept needing another blend fix.
-   This sidesteps every edge-blending problem in (3) because **there is no edge to blend** — the face
-   around the eye is simply the face, untouched. The tradeoff is explicit and cannot be avoided by more
-   engineering: with no cover, the source's torn socket geometry is visible around the small eye lens; with
-   a cover big enough to hide it, you are back in (3) and its edge problems. **State this tradeoff to
-   whoever is directing the work rather than re-solving it silently** — it is a real choice, not a bug.
-   - Even the "just an ellipse" version is not immune to earlier lessons: it must be a clean **analytic**
-     cap (e.g. `depth = -set + cap × (1 − t²)`), not one that still samples the measured, torn socket
-     surface — sampling copies the tearing straight into the lens and produces an off-centre iris in an
-     irregular blob.
-   - Iris/pupil size is specified in millimetres and converted through the mesh's own half-spans; when the
-     mesh shrinks, **re-derive the iris size from that conversion**, don't assume it still fits.
+尝试过的方法，代价最低的教训排在前面：
+1. **在眼窝里放一个球。** 结构上就失败：这类资产上的眼窝是宽而浅的碗，而不是眼睑形状的腔体，所以任何
+   球半径要么凸出脸面，要么把虹膜缩到无法辨认的大小。不要从这里开始。
+2. **把眼窝顶点拉到与球同心的外壳上来雕出眼睑。** 把脸撕成了一片片——在这种尺寸的碗上，"靠近眼睛"
+   几乎就是整个眼部区域，单纯的邻近雕刻移动的几何远多于眼睑实际的范围。
+3. **用一个圆顶盖住整个碗，尺寸足以遮住破裂处，并把开口画进它的纹理里。** 这是最有希望的形状，也是
+   暴露出所有剩余细节问题的方案：
+   - 圆顶边缘的深度必须是**鲁棒拟合**（对一圈投射结果做谐波拟合，并以高百分位锚点钳制）——原始投射
+     命中破裂卡片的次数和命中皮肤一样多，简单平均会让整个圆顶沉到脸面以下。
+   - 圆顶与眼窝之间的接合处是**符号问题，而不是精度问题**：拟合误差大约一半时间会把边缘放到真实皮肤
+     后面，而*那一半*就表现为绕眼睛一整圈的暗线。曾花了三次重建试图把误差变成*零*（焊接到精确的边界
+     环、按角度排序、按扇区读取深度），每一次都只是把缝隙换成了另一种可见缺陷（星芒、一圈锯齿、
+     斑点状的脸颊）。真正有效的是让误差变成**单侧的**：把边缘抬得略高于拟合深度，使圆顶总是盖*在*
+     真实皮肤之上，从不沉到其下。两个常数，而不是第四次几何重建。
+   - 通过在头部真的挖一个洞再盖上盖子来覆盖眼窝，**总会在掠射角度下，在盖子边缘与洞的边缘之间留下
+     一条视线**，无论贴合多紧——封闭表面上的洞加盖子，不可避免地仍是一个洞。保持头部自身几何完好，
+     只删除那些会可见地*穿出*圆顶的三角形（与圆顶自身渲染出的表面比较，而不是与另一个独立拟合的近似
+     比较——后者恰好在碎片密集到足以定义自己"表面"的地方存在盲区），就能从构造上消除这种失败模式。
+   - 圆顶边缘需要在**三个独立通道**上融入脸部，每一个都是不同类别的 bug：**颜色**（在每个边缘点直接
+     读取真实顶点颜色，而不是用一个全脸平均值近似——平均出来的色块只在脸上某一点正确，在其他地方都
+     明显不对）；**着色**（把边缘法线在同一点向脸部自身法线混合，否则无论颜色多匹配，接缝都是一处
+     光照不连续）；**材质**（角膜的湿润 clearcoat 必须通过粗糙度/clearcoat 遮罩避开皮肤带，否则混合
+     后的周边看起来像湿塑料）。
+   - **用两种不同的参数化把同一个边界形状描述两遍，是这整个阶段中重复出现最多的 bug。** 虹膜开口画成
+     手工拟合的椭圆，而眼睑形状画成三次贝塞尔曲线，这就保证了两者在某处不一致——椭圆偏宽的地方出现
+     一条亮缝，偏窄的地方出现一条切过虹膜的暗带。应从实际绘制该形状的 canvas 上把边界读回来（光栅化、
+     采样 alpha），而不是再写第二份几何描述。
+   - 纹理 UV 与圆顶自身的覆盖半径默认是耦合的（`u,v` 是几何体所用同一 `(radius, angle)` 的函数）——
+     **只解耦其中一个会拉伸或扭曲画出的虹膜。** 如果你改变圆顶在某方向上的延伸范围，要么纹理坐标系
+     必须延伸得完全一样远，要么映射需要有自己固定的参考跨度，独立于几何体。
+4. **一个只有眼睛的椭圆，周围完全没有脸部几何**——这是本项目实际交付的方案，是在 (3) 反复需要新的
+   混合修复之后，按客户的明确指示采用的。它绕开了 (3) 中所有的边缘混合问题，因为**根本没有需要混合的
+   边缘**——眼睛周围的脸就是脸本身，不做任何改动。其代价是明确的，无法靠更多工程手段避免：没有遮盖时，
+   源数据中破裂的眼窝几何会在小眼睛镜片周围可见；遮盖大到足以藏住它时，你又回到了 (3) 及其边缘问题。
+   **把这个取舍告诉主导这项工作的人，而不是悄悄地重新去解决它**——这是一个真实的选择，不是 bug。
+   - 即使是"只有一个椭圆"的版本，也不能无视前面的教训：它必须是一个干净的**解析式**盖面（例如
+     `depth = -set + cap × (1 − t²)`），而不是仍然去采样那个实测的、破裂的眼窝表面——采样会把破裂
+     直接复制进镜片，并在一块不规则的斑块中产生偏离中心的虹膜。
+   - 虹膜/瞳孔尺寸以毫米指定，并通过网格自身的半跨度换算；网格缩小时，**用该换算重新推导虹膜尺寸**，
+     不要假设它仍然合适。
 
-## Stage 7 — Detail-level strategy
+## Stage 7 — Detail-level strategy（细节等级策略）
 
-Don't ship a triangle budget you haven't measured the cost of. For each candidate level, capture the same
-six camera views and score (see Stage 8) against the *full* level, not just against the baseline — that
-tells you what coarsening actually costs, separately from what reconstruction already costs. On this
-project the jump from full to a 4×-coarser level cost 0.02 IoU and was worth shipping at a quarter of the
-file size and build time; going further started visibly softening the face specifically, so the head node
-was exempted from the global coarsening factor while the body kept it.
+不要交付你没有测量过代价的三角形预算。对每个候选等级，截取同样的六个相机视角，并与*完整*等级比较打分
+（见 Stage 8），而不只是与基线比较——这样才能把粗化本身的代价与重建已有的代价分开。在本项目中，从完整
+等级跳到粗 4 倍的等级只损失了 0.02 IoU，以四分之一的文件大小和构建时间来看值得交付；再往下就开始明显
+柔化面部，所以头部节点被豁免于全局粗化系数，身体则保留该系数。
 
-## Stage 8 — Verification harness
+## Stage 8 — Verification harness（验证框架）
 
-The single highest-leverage habit in this whole project: **when a fix looks done, hide the thing you just
-added and re-render the same shot.** More defects were correctly diagnosed by "render with the new mesh
-hidden and see if the problem is still there" than by any other technique — it is what separated "this is
-geometry I introduced" from "this is damage already in the source," and got the fix effort pointed at the
-right layer more than once after it had been pointed at the wrong one.
+这整个项目中杠杆最高的单一习惯：**当一个修复看起来完成时，把你刚加的东西隐藏起来，重新渲染同一镜头。**
+"隐藏新网格渲染一次，看问题是否还在"正确诊断出的缺陷，比其他任何技术都多——正是它区分了"这是我引入
+的几何"与"这是源数据中本来就有的损伤"，并不止一次在修复工作指向错误层之后，把它重新指向了正确的层。
 
-Metrics that mattered, computed the same way on both sides being compared:
-- **IoU** of the two silhouettes (everything not the declared background colour, with a tolerance wide
-  enough to keep the figure's own near-black rim without picking up compression noise).
-- **colour error**: mean absolute RGB difference inside the *intersection* of the two silhouettes.
-- **surface noise**: mean |Laplacian| of luma inside the silhouette — a roughness reading, not an error;
-  the baseline has its own non-zero value, and the question is whether the reconstruction sits near it,
-  not whether it is small. A noise value *below* the baseline's is evidence of smoothing, not fidelity.
-- Comparing two builds directly (encoded-in-code vs. the intermediate binary it replaced) isolates the
-  *encoding's* error from the *reconstruction's* error — do this before also comparing either one against
-  the original baseline, or a real distortion becomes impossible to attribute to the right stage.
-- If the numpy-based comparator isn't available in the working environment, **write the arithmetic to run
-  inside a headless browser** (`node/compare_views.mjs`) rather than skipping the measurement — a PNG
-  decodes to pixels there with no dependency at all.
-- **A tolerance the same size as the error it's meant to tolerate measures nothing.** A position check
-  that quantised to 10 µm against an encoding allowed 9.8 µm of error reported 99.94% of triangles wrong
-  when the actual defect rate was near zero, in the opposite direction from a separate bug that really was
-  present. Derive the tolerance from the encoding's own stated precision, not a round number.
-- **Counting is not comparing.** A check that only compares triangle *counts* will pass a mesh where every
-  triangle joins the wrong three vertices. Compare the actual index/position sets.
+起作用的指标，在被比较的双方上以相同方式计算：
+- 两个轮廓的 **IoU**（凡是不属于声明背景色的都算，容差要足够宽，既保留人物自身接近纯黑的轮廓边，又
+  不会拾取压缩噪声）。
+- **颜色误差**：两个轮廓*交集*内的 RGB 平均绝对差。
+- **表面噪声**：轮廓内亮度的 |拉普拉斯| 均值——这是粗糙度读数，不是误差；基线自身有一个非零值，问题
+  在于重建是否接近它，而不在于它是否小。噪声值*低于*基线，是平滑化的证据，而不是保真度的证据。
+- 直接比较两个构建（编码进代码的版本 vs. 它所替代的中间二进制）可以把*编码*误差与*重建*误差分开——
+  在再拿其中任何一个与原始基线比较之前先做这一步，否则一个真实的失真将无法归因到正确的阶段。
+- 如果工作环境中没有基于 numpy 的比较器，**把这些算术写成在无头浏览器中运行**（`node/compare_views.mjs`），
+  而不是跳过测量——在那里 PNG 可以在零依赖的情况下解码为像素。
+- **容差与它要容忍的误差一样大，就什么也测不出来。** 一个量化到 10 µm 的位置检查，对照一个允许 9.8 µm
+  误差的编码，报告 99.94% 的三角形错误，而实际缺陷率接近零，方向还与另一个确实存在的 bug 相反。从编码
+  自身声明的精度推导容差，而不是用一个整数。
+- **计数不等于比较。** 只比较三角形*数量*的检查，会放过一个每个三角形都连错了三个顶点的网格。比较实际
+  的索引/位置集合。
 
-## Stage 9 — Build & regression checklist
+## Stage 9 — Build & regression checklist（构建与回归检查清单）
 
-Before calling a pass done:
-- [ ] `npx tsc --noEmit` exits 0
-- [ ] `npm run build` (`tsc --noEmit && vite build`) succeeds; note bundle size and gzip size if the change
-      touched an embedded data module — that number is the actual cost users pay
-- [ ] the demo renders with every asset directory it *shouldn't* need moved out of the way
-      (`public/head`, `public/mesh`, `public/baseline`) — this is the literal proof nothing is fetched
-- [ ] mesh/triangle/region counts read off the live scene match what the encoder reported, within ~1%
-- [ ] `node/compare_views.mjs <newBuild> <previousBuild>` shows the change you intended and nothing else
-- [ ] `work/progress.txt` gets an entry: what changed, what was measured, what negative results were found
-      (a reverted attempt is only worth what it teaches the next person — write it down even when it fails)
+在宣布一个 pass 完成之前：
+- [ ] `npx tsc --noEmit` 以 0 退出
+- [ ] `npm run build`（`tsc --noEmit && vite build`）成功；如果改动涉及嵌入式数据模块，记录 bundle 大小
+      和 gzip 大小——这个数字是用户实际付出的代价
+- [ ] 把所有它*不应该*需要的资产目录（`public/head`、`public/mesh`、`public/baseline`）移开后，demo
+      仍能渲染——这是"什么都不获取"的字面证明
+- [ ] 从运行中场景读出的网格/三角形/区域数量与编码器报告的一致，误差在约 1% 以内
+- [ ] `node/compare_views.mjs <newBuild> <previousBuild>` 显示出你预期的变化，且没有其他变化
+- [ ] 在 `work/progress.txt` 中添加一条记录：改了什么、测了什么、发现了哪些负面结果
+      （一次被回退的尝试的价值，仅在于它能教给下一个人什么——即使失败也要写下来）
 
 ---
 
-## Appendix A — Anti-pattern catalog (grep-able, one line each)
+## 附录 A——反模式目录（可 grep，每条一行）
 
-- **A relative import breaks the moment the importing file moves.** Packaging
-  `verify_roundtrip.mjs` one directory deeper broke its `../work/codec/...` dynamic import --
-  `outfile` and the dynamic `import()` must agree on an ABSOLUTE path (resolved against
-  `process.cwd()`, since the orchestrator always `cd`s to the repo root first), not a path relative to
-  the script's own location. Caught by actually running the packaged copy, not by reading it.
-- **A swapped filename mapping writes valid, wrong data with no error at all.** Packaging this pipeline's
-  own orchestrator, `x2` and `x3` got assigned to the wrong destination file ("Low" vs. "Medium") --
-  every check (tsc, the round-trip verifier, `npm run build`) passed, because the file was still
-  perfectly valid TypeScript carrying a perfectly valid, just mislabelled, level. Only `git diff` on the
-  file the script had just written caught it. The orchestrator now runs that same `git diff` check on
-  every file it writes and prints a warning if a tracked file changed -- add the equivalent check to any
-  script that overwrites a file that might already be finished and committed.
-- **Trusting an HTTP status without checking content.** A dev server serves `index.html` for a missing
-  file with a 200; check the magic bytes / parse result, not just `res.ok`.
-- **Sweeping for a grid phase instead of deriving it from the builder's own rule.** A search-based origin
-  put 29% of vertices in the wrong cell; the builder's formula got 100% right.
-- **A tolerance sized around convenience, not around the error it's meant to catch.** Quantify the actual
-  precision the upstream step promises, then set the check a notch tighter than that — not looser.
-- **Comparing counts instead of contents.** Same triangle count, same vertex count, wrong mesh.
-- **Describing one boundary shape twice in two coordinate systems.** They will disagree somewhere; sample
-  the one that was actually drawn instead of re-deriving the other.
-- **Coupling a UV parametrisation to a geometry parameter you're about to change.** Decide which one is
-  allowed to move before touching either.
-- **Trying to make a fitted error exactly zero.** Three rebuilds chasing zero error on a socket rim; two
-  constants making the error one-sided (always proud, never sunk) fixed the actual complaint.
-- **Cutting a hole and capping it.** Always leaves a sightline at the cap's own edge at some angle; prefer
-  "remove only what pokes through," leaving the surface intact everywhere else.
-- **A single global average standing in for a gradient.** Skin colour, socket depth, subdivision density —
-  whichever one is being averaged, measure it locally instead once the average visibly fails at any point.
-- **Assuming a moved/resized mesh keeps its old proportions.** Anything specified in absolute units
-  (millimetres) through a converted local frame has to be re-checked against the frame every time the
-  frame's size changes.
-- **Declaring victory from the intended camera angle only.** The grazing angle, the angle from below, and
-  the angle the actual reporter used are where a construction seam shows up; render all of them.
-- **Not re-rendering with the new geometry hidden.** The fastest way to learn whether a defect is "mine" or
-  "already in the source" and to stop fixing the wrong layer.
+- **导入文件一移动，相对导入就会断。** 把 `verify_roundtrip.mjs` 打包到深一层的目录后，它的
+  `../work/codec/...` 动态导入就断了——`outfile` 与动态 `import()` 必须在一个**绝对**路径上达成一致
+  （相对 `process.cwd()` 解析，因为编排器总是先 `cd` 到仓库根目录），而不是相对脚本自身位置的路径。
+  是靠实际运行打包后的副本发现的，而不是靠阅读。
+- **文件名映射写反，会在没有任何错误的情况下写出有效但错误的数据。** 打包本流水线自己的编排器时，
+  `x2` 和 `x3` 被分配到了错误的目标文件（"Low" vs. "Medium"）——每项检查（tsc、往返验证器、
+  `npm run build`）都通过了，因为文件仍然是完全有效的 TypeScript，承载着完全有效、只是标签贴错的等级。
+  只有对脚本刚写出的文件做 `git diff` 才发现了它。编排器现在会对它写出的每个文件运行同样的 `git diff`
+  检查，若有被跟踪的文件发生变化就打印警告——任何会覆盖可能已完成并提交的文件的脚本，都应加上等价的
+  检查。
+- **只信 HTTP 状态而不检查内容。** 开发服务器对缺失文件会以 200 返回 `index.html`；要检查魔数字节 /
+  解析结果，而不只是 `res.ok`。
+- **扫描搜索网格相位，而不是从构建器自身的规则推导。** 基于搜索的原点让 29% 的顶点落进了错误的格子；
+  构建器的公式则 100% 正确。
+- **容差按方便设定，而不是按它要捕捉的误差设定。** 量化上游步骤承诺的实际精度，然后把检查设得比它再
+  严一档——而不是更松。
+- **比较数量而不是内容。** 三角形数相同、顶点数相同，网格却是错的。
+- **在两个坐标系中把同一个边界形状描述两遍。** 它们总会在某处不一致；去采样实际被绘制的那一个，而不是
+  重新推导另一个。
+- **把 UV 参数化与一个你即将改动的几何参数耦合在一起。** 在动任何一个之前，先决定允许哪一个变化。
+- **试图让拟合误差精确为零。** 为了眼窝边缘的零误差做了三次重建；用两个常数让误差变成单侧（总是凸出、
+  从不下沉）才修好了真正的问题。
+- **挖洞再加盖。** 在某个角度下，盖子自身的边缘总会留下一条视线；优先"只删除穿出来的部分"，其他地方
+  保持表面完好。
+- **用单一全局平均值代替渐变。** 肤色、眼窝深度、细分密度——无论平均的是哪一个，一旦平均值在任何一点
+  明显失效，就改为局部测量。
+- **假设移动/缩放后的网格保持原有比例。** 任何以绝对单位（毫米）通过换算后的局部坐标系指定的东西，
+  每当该坐标系的大小改变时都必须重新核对。
+- **只从预期的相机角度宣告胜利。** 掠射角、仰视角，以及实际报告问题的人所用的角度，才是构造接缝暴露
+  的地方；全部渲染一遍。
+- **不在隐藏新几何后重新渲染。** 这是判断一个缺陷是"我的"还是"源数据中本来就有的"、并停止修错层的
+  最快方法。
 
-## Appendix B — File map (this project's instance)
+## 附录 B——文件对照表（本项目的实例）
 
-| Stage | Script/module | Produces |
+| Stage | 脚本/模块 | 产出 |
 |---|---|---|
-| 1 | `python/slice_node.py`, `python/measure_density_convergence.py`, `python/build_cross_sections.py`, `src/demos/girl-character/crossSections.ts` | measured ring data, loft geometry |
-| 1 (gated) | `python/bake_atlas_uvs.py` (`CHARACTER_ALLOW_BASELINE_UV=1` only) | baseline-transferred UVs -- authorised one-off deviation, not the default path |
-| 2 | `python/build_head_surface.py`, `python/export_sdf_surfaces.py` | per-node SDF + Surface Nets → `HEDS` binary (dev-only intermediate) |
-| 3 | `node/encode_surfaces.mjs`, `node/emit_surface_module.mjs` | `src/demos/girl-character/surfaceData[.ts\|Low.ts\|Medium.ts]` |
-| 4 | `src/demos/girl-character/surfaceCodec.ts` | runtime decode → `THREE.BufferGeometry` |
-| 5 | `src/demos/girl-character/walkRig.ts`, `hardware.ts`, `measuredAnchors.ts` | skeleton, skin weights, gait, attachments |
-| 6 | `createGirlCharacterModel.ts` (eye functions) | eye lens mesh + texture |
-| 8 | `node/verify_cells.mjs`, `node/verify_roundtrip.mjs`, `node/compare_views.mjs`, `node/capture-character.mjs` | correctness + fidelity evidence |
+| 1 | `python/slice_node.py`、`python/measure_density_convergence.py`、`python/build_cross_sections.py`、`src/demos/girl-character/crossSections.ts` | 实测环数据、放样几何 |
+| 1（受门控） | `python/bake_atlas_uvs.py`（仅限 `CHARACTER_ALLOW_BASELINE_UV=1`） | 从基线迁移的 UV——经授权的一次性偏离，不是默认路径 |
+| 2 | `python/build_head_surface.py`、`python/export_sdf_surfaces.py` | 逐节点 SDF + Surface Nets → `HEDS` 二进制（仅开发用的中间产物） |
+| 3 | `node/encode_surfaces.mjs`、`node/emit_surface_module.mjs` | `src/demos/girl-character/surfaceData[.ts\|Low.ts\|Medium.ts]` |
+| 4 | `src/demos/girl-character/surfaceCodec.ts` | 运行时解码 → `THREE.BufferGeometry` |
+| 5 | `src/demos/girl-character/walkRig.ts`、`hardware.ts`、`measuredAnchors.ts` | 骨架、蒙皮权重、步态、附件 |
+| 6 | `createGirlCharacterModel.ts`（眼睛相关函数） | 眼睛镜片网格 + 纹理 |
+| 8 | `node/verify_cells.mjs`、`node/verify_roundtrip.mjs`、`node/compare_views.mjs`、`node/capture-character.mjs` | 正确性 + 保真度证据 |
 
-## Appendix C — Open item on this character
+## 附录 C——该角色的遗留问题
 
-The eye sockets still show the source's own torn card geometry around the lens (Stage 6, approach 4's
-stated tradeoff). It is not fixable from any of the downstream stages — confirmed by measurement, not
-assumption (single primitive, single material, single connected component; triangle shape statistically
-identical to skin). Closing it requires going back to Stage 2 and either rebuilding node 9 at a finer cell
-or excluding the GLB's lash/eye card primitives before splatting. Budget that as its own pass, not a
-touch-up on top of Stage 6.
+眼窝周围的镜片外仍可见源数据自身破裂的卡片几何（Stage 6 方法 4 所说明的取舍）。任何下游阶段都无法
+修复它——这是经测量而非假设确认的（单一 primitive、单一材质、单一连通分量；三角形形状在统计上与皮肤
+相同）。要解决它，需要回到 Stage 2，要么以更细的格子重建节点 9，要么在泼溅之前排除 GLB 中的睫毛/眼睛
+卡片 primitive。把它作为一个独立的 pass 来做预算，而不是在 Stage 6 之上的小修补。

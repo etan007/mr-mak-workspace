@@ -1,38 +1,40 @@
-# Stage 4.5 · Vision-classifier verification — the anti-3/4 retry loop (V3)
+# 阶段 4.5 · 视觉分类器验证——反 3/4 重试循环（V3）
 
-**Model:** Use the host agent's available image inspection or a configured vision API with verified image-input support. Record the model and method with the verdict. This file supplies the rubric, not a deployed classifier service.
-**Inputs:** the candidate image + the part category (`body-essential | paired | accessory | hair | sheet | multiview-side | multiview-back`)
-**Output:** JSON verdict — `pass | soft_fail | hard_fail` + reason string + per-axis flags.
+**模型：** 使用宿主代理可用的图像检查能力，或已确认支持图像输入的视觉 API。在结论中记录所用模型和方法。本文件提供的是评分标准，不是已部署的分类器服务。
+**输入：** 候选图像 + 部件类别（`body-essential | paired | accessory | hair | sheet | multiview-side | multiview-back`）
+**输出：** JSON 结论——`pass | soft_fail | hard_fail` + reason 字符串 + 各维度标记。
 
-## Why this stage exists
+## 为什么需要这一阶段
 
-Image models can drift toward 3/4 hero angles on accessories and small parts even with anti-3/4 prompts. Inspect the generated image before accepting it and record a structured verdict. Keep retries within the approved generation scope; the rubric does not establish API cost or guaranteed accuracy.
+即便用了反 3/4 提示词，图像模型在配饰和小部件上仍可能偏向 3/4 大片角度。接受生成图之前先检查，并记录结构化结论。重试控制在已认可的生成范围内；这套评分标准不代表 API 成本，也不保证准确率。
 
-## Classifier prompt (strict-front rubric — for Stage 2A and all Stage 4 parts)
+## 分类器提示词（严格正视评分标准——用于阶段 2A 及所有阶段 4 部件）
+
+以下指令发给视觉 LLM。check 名称、JSON 字段名、枚举值和 `{{category}}` 占位符必须保持英文原样。
 
 ```
-You are a strict orthographic-reference verifier for a 3D-modeling pipeline. You receive one rendered image and a category label. Your job is to decide whether the image is STRICT FRONT and usable as an orthographic reference for downstream 3D extraction.
+你是 3D 建模流程中严格的正交参考图验证器。你会收到一张渲染图和一个类别标签。你的任务是判断该图是否为严格正视（STRICT FRONT），能否作为下游 3D 提取的正交参考。
 
 CATEGORY: {{category}}
-EXPECTED ANGLE: strict front (dead-on to camera, no rotation, no tilt, no 3/4)
+EXPECTED ANGLE: strict front（正对镜头，无旋转、无倾斜、无 3/4）
 
-Evaluate the image against these binary checks:
+按以下二元检查项评估图像：
 
-1. body_axis_dead_front — Is the subject's longitudinal axis perpendicular to the camera (no body rotation in the horizontal plane)? Both sides of the subject should read at equal width.
-2. no_three_quarter — Is the subject FREE of any 3/4 rotation between front and side? (3/4 is the most common drift — flag aggressively.)
-3. no_body_twist — Is the subject FREE of contrapposto, hip twist, shoulder twist, head turn relative to chest?
-4. no_hero_angle — Is the camera at neutral eye level with zero perspective drama? No upward hero tilt, no downward god-view, no foreshortening.
-5. no_partial_back — Is NO portion of the subject's back showing? (If you can see any back surface, it's not strict front.)
-6. framing_clean — Is the subject isolated on white background, fully visible, no crop of essential geometry?
+1. body_axis_dead_front — 主体纵轴是否垂直于镜头（水平面内无身体旋转）？主体两侧应呈现等宽。
+2. no_three_quarter — 主体是否完全没有介于正面与侧面之间的 3/4 旋转？（3/4 是最常见的偏移——从严标记。）
+3. no_body_twist — 主体是否没有对立式站姿（contrapposto）、扭胯、扭肩、头部相对胸部转动？
+4. no_hero_angle — 镜头是否处于中性平视、无任何透视戏剧化？无仰拍大片角度、无俯视上帝视角、无透视缩短。
+5. no_partial_back — 主体背部是否完全没有露出？（只要能看到任何背面，就不是严格正视。）
+6. framing_clean — 主体是否在白色背景上隔离、完整可见、关键几何没有被裁切？
 
-Use these decision rules:
+判定规则：
 
-- ALL six checks pass → verdict = "pass"
-- 1–2 minor failures (e.g. slight head tilt, mild foreshortening) but the image is still usable as an orthographic reference → verdict = "soft_fail"
-- ANY of checks 1, 2, 3, or 5 fail clearly → verdict = "hard_fail"
-- Check 4 or 6 failing alone usually means "soft_fail" unless the angle is dramatically off
+- 六项全部通过 → verdict = "pass"
+- 1–2 项轻微不通过（如头部轻微倾斜、轻度透视缩短），但图像仍可作为正交参考 → verdict = "soft_fail"
+- 检查项 1、2、3 或 5 中任一项明确不通过 → verdict = "hard_fail"
+- 仅检查项 4 或 6 不通过时通常判 "soft_fail"，除非角度严重偏离
 
-Reply ONLY with this JSON, no prose, no markdown fence:
+只回复以下 JSON，不要任何说明文字，不要 markdown 代码围栏：
 
 {
   "verdict": "pass" | "soft_fail" | "hard_fail",
@@ -44,42 +46,42 @@ Reply ONLY with this JSON, no prose, no markdown fence:
     "no_partial_back": true | false,
     "framing_clean": true | false
   },
-  "reason": "<one short sentence naming the dominant failure mode, or 'clean strict front' on pass>",
-  "estimated_camera_rotation_degrees": <integer, signed: negative = camera left of axis, positive = camera right of axis, 0 = dead front>
+  "reason": "<一句简短的话，指出主要失败模式；通过时写 'clean strict front'>",
+  "estimated_camera_rotation_degrees": <整数，带符号：负数 = 镜头在轴线左侧，正数 = 镜头在轴线右侧，0 = 正对>
 }
 ```
 
-## Classifier prompt (multi-view side rubric — for Stage 5 side outputs)
+## 分类器提示词（多视图侧视评分标准——用于阶段 5 侧视输出）
 
-Same skeleton, but swap the expected-angle and decision-rule blocks:
-
-```
-EXPECTED ANGLE: strict side / profile (camera at 90° to subject longitudinal axis, viewing left or right side)
-
-Adjusted checks:
-1. profile_dead_on — Is the camera at 90° (or 270°) to the subject? The subject's body axis should be exactly side-on, one shoulder occluding the other or nearly so.
-2. no_three_quarter_between_front_and_side — Is the image FREE of the 3/4-between-front-and-side drift? (The other common drift mode.)
-3. no_three_quarter_between_side_and_back — Is the image FREE of 3/4-between-side-and-back? (Less common but happens.)
-4. body_pose_matches_front — Does the body hold the same A-pose as the Stage 2A sheet (arms angled ~45°, legs shoulder-width)?
-5. framing_clean — Same as front rubric.
-```
-
-## Classifier prompt (multi-view back rubric — for Stage 5 back outputs)
+骨架相同，只替换期望角度和检查项部分：
 
 ```
-EXPECTED ANGLE: strict back (dead away from camera, 180° from front)
+EXPECTED ANGLE: strict side / profile（镜头与主体纵轴成 90°，看向左侧或右侧）
 
-Adjusted checks:
-1. body_axis_dead_back — Subject's back fully faces the camera, both shoulders equal width from behind, head fully turned away.
-2. no_three_quarter_back — Image is FREE of 3/4 between side and back.
-3. no_partial_face — NO portion of the subject's face is visible.
-4. body_pose_matches_front — A-pose held from behind.
-5. framing_clean — Same.
+调整后的检查项：
+1. profile_dead_on — 镜头是否与主体成 90°（或 270°）？主体身体轴线应完全侧对，一侧肩膀遮住（或几乎遮住）另一侧。
+2. no_three_quarter_between_front_and_side — 图像是否没有介于正面与侧面之间的 3/4 偏移？（另一种常见偏移。）
+3. no_three_quarter_between_side_and_back — 图像是否没有介于侧面与背面之间的 3/4？（较少见但会发生。）
+4. body_pose_matches_front — 身体是否保持与阶段 2A 设定图相同的 A-pose（手臂约 45°、两腿与肩同宽）？
+5. framing_clean — 同正视评分标准。
 ```
 
-## Retry strategy — escalated prompt template
+## 分类器提示词（多视图背视评分标准——用于阶段 5 背视输出）
 
-When the classifier returns `hard_fail`, do NOT re-run the original prompt verbatim. Build an escalated prompt that **names the specific failure** and prepends it as a correction. Template:
+```
+EXPECTED ANGLE: strict back（正背对镜头，与正面成 180°）
+
+调整后的检查项：
+1. body_axis_dead_back — 主体背部完全朝向镜头，从背后看双肩等宽，头部完全背向镜头。
+2. no_three_quarter_back — 图像没有介于侧面与背面之间的 3/4。
+3. no_partial_face — 主体面部完全不可见。
+4. body_pose_matches_front — 从背后看仍保持 A-pose。
+5. framing_clean — 同上。
+```
+
+## 重试策略——升级提示词模板
+
+分类器返回 `hard_fail` 时，不要原样重跑原提示词。构建一个**点名具体失败原因**的升级提示词，把它作为纠正前置。以下模板发给图像生成模型，保持英文：
 
 ```
 [CRITICAL CORRECTION] The previous attempt failed strict-front verification: {{classifier.reason}}.
@@ -92,16 +94,16 @@ YOU MUST regenerate with the body axis DEAD FRONT. NO three-quarter angle. NO ro
 Anti-drift reinforcement (mandatory): zero rotation in the horizontal plane. Camera at zero degrees azimuth relative to the subject. Subject's longitudinal axis is parallel to the image plane, NOT angled away from it. If the prior attempt was rotated to camera-right (positive degrees), this attempt must counter-rotate to dead-front. If the prior attempt was rotated to camera-left (negative degrees), same correction.
 ```
 
-## Retry budget
+## 重试预算
 
-- **Initial attempt** uses the original stage prompt with normal anti-3/4 negatives.
-- **Retry 1** uses the escalated prompt above, same model (Nano Banana Pro for image stages).
-- **Retry 2** uses the escalated prompt + falls back to Nano Banana 2.
-- **After retry 2** still `hard_fail` → stop. Show the user the three attempts plus the classifier reasons. Offer: (a) accept best attempt with warning, (b) provide custom instructions and retry once more, (c) skip this part.
+- **首次尝试**使用原阶段提示词及常规反 3/4 负面提示词。
+- **重试 1** 使用上面的升级提示词，同一模型（图像阶段为 Nano Banana Pro）。
+- **重试 2** 使用升级提示词 + 退回 Nano Banana 2。
+- **重试 2 后**仍为 `hard_fail` → 停止。向用户展示三次尝试及分类器理由。提供选项：(a) 带警告接受最佳结果，(b) 提供自定义指令再试一次，(c) 跳过该部件。
 
-A `soft_fail` is accepted automatically but logged as `accepted_with_warning` in the manifest with the classifier reason recorded. The user can review the manifest after the run and ask for a regeneration of any `soft_fail` part.
+`soft_fail` 自动接受，但在 manifest 中记为 `accepted_with_warning` 并记录分类器理由。运行结束后用户可查看 manifest，要求重新生成任何 `soft_fail` 部件。
 
-## Manifest entry per part
+## 每个部件的 manifest 条目
 
 ```json
 {
@@ -118,15 +120,15 @@ A `soft_fail` is accepted automatically but logged as `accepted_with_warning` in
 }
 ```
 
-## Cost note
+## 成本说明
 
-Each verification call is one vision request — small image input, ~200 token JSON output. Budget roughly 1¢–2¢ per check on GPT-4o-mini-vision tier, more on GPT-5 vision. For a typical 10-part run with one verification per part and a ~15% hard-fail rate, expect ~12 vision calls total: cheap compared to a single Nano Banana Pro regeneration.
+每次验证是一次视觉请求——小图输入，约 200 token 的 JSON 输出。在 GPT-4o-mini-vision 档位每次检查大约 1–2 美分，GPT-5 vision 更贵。一次典型的 10 部件运行，每个部件验证一次、硬失败率约 15%，预计共约 12 次视觉调用：比一次 Nano Banana Pro 重新生成便宜得多。
 
-## When to skip the classifier
+## 何时跳过分类器
 
-- The user explicitly says "skip verification, accept first attempt" — log it in the manifest, ship.
-- Stage 6 (360 videos) — verification is harder on video; do a visual sanity pass instead of automated classifier for now.
+- 用户明确说“跳过验证，接受第一次结果”——在 manifest 中记录后交付。
+- 阶段 6（360 视频）——视频验证更难；目前用人工视觉快速检查代替自动分类器。
 
-## Why GPT-4/5 vision and not Claude vision
+## 为什么用 GPT-4/5 vision 而不是 Claude vision
 
-Both work. OpenAI vision was chosen as the default for this version because (a) the pipeline already integrates an OpenAI image call at Stage 2B, so an OPENAI_API_KEY is required regardless, and (b) the strict-rubric JSON output mode is well-trodden territory on GPT-4o / GPT-5. If you prefer Anthropic-only, replace the call with claude-opus-4-7 vision and keep the prompt identical — the rubric is portable.
+两者都可行。本版本默认选 OpenAI vision，原因是：(a) 流程在阶段 2B 已集成 OpenAI 图像调用，无论如何都需要 OPENAI_API_KEY；(b) 严格评分标准的 JSON 输出模式在 GPT-4o / GPT-5 上久经验证。如果只想用 Anthropic，把调用换成 claude-opus-4-7 vision，提示词保持不变——评分标准可移植。

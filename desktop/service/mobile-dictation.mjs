@@ -40,25 +40,25 @@ export class MobileDictation {
     const config = await this.config();
     const keys = { ...this.env, ...parse(await readFile(path.join(this.repo, '.env'), 'utf8').catch(() => '')) };
     const providers = [
-      { id: 'local', label: 'Local Whisper · Free', available: await this.localStatus(config.local), detail: 'Runs on your computer. No API charges.' },
-      { id: 'openai', label: 'OpenAI · Paid', available: !!(keys.OPENAI_API_KEY || keys.OPENAI_KEY), detail: 'Uses your OpenAI API credit.' },
-      { id: 'openrouter', label: 'OpenRouter · Paid', available: !!(keys.OPENROUTER_API_KEY || keys.OPENROUTER_KEY), detail: 'Uses your OpenRouter API credit.' },
-      { id: 'off', label: 'Off', available: true, detail: 'Microphone dictation disabled.' },
+      { id: 'local', label: 'Local Whisper · 免费', available: await this.localStatus(config.local), detail: '在你的电脑上运行，不产生 API 费用。' },
+      { id: 'openai', label: 'OpenAI · 付费', available: !!(keys.OPENAI_API_KEY || keys.OPENAI_KEY), detail: '使用你的 OpenAI API 额度。' },
+      { id: 'openrouter', label: 'OpenRouter · 付费', available: !!(keys.OPENROUTER_API_KEY || keys.OPENROUTER_KEY), detail: '使用你的 OpenRouter API 额度。' },
+      { id: 'off', label: '关闭', available: true, detail: '已禁用麦克风听写。' },
     ];
     return { available: config.provider !== 'off' && !!providers.find(item => item.id === config.provider)?.available, provider: config.provider, providers, maxSeconds: RECORDING_SECONDS, maxBytes: AUDIO_LIMIT };
   }
 
   async transcribe(request, deviceId, authorized = () => true) {
-    if (this.closed || !authorized()) fail('This phone is disconnected.', 401);
+    if (this.closed || !authorized()) fail('此手机已断开连接。', 401);
     const id = request.headers['x-transcription-id'];
-    if (typeof id !== 'string' || !/^[a-f0-9-]{36}$/i.test(id)) fail('A recording ID is required.');
+    if (typeof id !== 'string' || !/^[a-f0-9-]{36}$/i.test(id)) fail('需要录音 ID。');
     const mime = String(request.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
-    if (!formats[mime]) fail('This audio format is not supported. Use your keyboard microphone instead.', 415);
-    if (Number(request.headers['content-length'] || 0) > AUDIO_LIMIT) fail('Recording is too large. Record a shorter message.', 413);
+    if (!formats[mime]) fail('不支持此音频格式。请改用键盘麦克风。', 415);
+    if (Number(request.headers['content-length'] || 0) > AUDIO_LIMIT) fail('录音过大。请录制更短的消息。', 413);
     const chunks = []; let size = 0;
     for await (const chunk of request) {
       size += chunk.length;
-      if (size > AUDIO_LIMIT) fail('Recording is too large. Record a shorter message.', 413);
+      if (size > AUDIO_LIMIT) fail('录音过大。请录制更短的消息。', 413);
       chunks.push(chunk);
     }
     const audio = Buffer.concat(chunks);
@@ -66,49 +66,49 @@ export class MobileDictation {
       : mime === 'audio/mp4' ? audio.toString('ascii', 4, 8) === 'ftyp'
       : mime === 'audio/ogg' ? audio.toString('ascii', 0, 4) === 'OggS'
       : audio.toString('ascii', 0, 4) === 'RIFF' && audio.toString('ascii', 8, 12) === 'WAVE');
-    if (!valid) fail('The recording is empty or damaged. Try recording again.', 415);
-    if (!authorized() || this.closed) fail('This phone is disconnected.', 401);
+    if (!valid) fail('录音为空或已损坏。请重新录制。', 415);
+    if (!authorized() || this.closed) fail('此手机已断开连接。', 401);
     const now = Date.now(), key = `${deviceId}:${id}`;
     for (const [key, job] of this.jobs) if (!job.pending && job.expires < now) this.jobs.delete(key);
     for (const [id, rate] of this.rates) if (rate.at + 60000 < now) this.rates.delete(id);
     const hash = createHash('sha256').update(mime).update(audio).digest('hex');
     const previous = this.jobs.get(key);
     if (previous) {
-      if (previous.hash !== hash) fail('This recording ID belongs to different audio.', 409);
+      if (previous.hash !== hash) fail('此录音 ID属于另一段音频。', 409);
       return previous.promise;
     }
-    if (this.controllers.has(deviceId)) fail('Another recording is being transcribed. Wait a moment and retry.', 429);
-    if (this.controllers.size >= 2) fail('Transcription is busy. Wait a moment and retry.', 429);
+    if (this.controllers.has(deviceId)) fail('另一段录音正在转写。请稍后重试。', 429);
+    if (this.controllers.size >= 2) fail('转写正忙。请稍后重试。', 429);
     const rate = this.rates.get(deviceId) || { at: now, count: 0 };
-    if (rate.count >= 6) fail('Please wait a minute before transcribing another recording.', 429);
+    if (rate.count >= 6) fail('请等一分钟再转写下一段录音。', 429);
     const config = await this.config();
-    if (config.provider === 'local' && !await this.localStatus(config.local)) fail('Local Whisper is not installed. Run the local dictation setup on your computer.', 503);
-    if (config.provider !== 'local' && !config.key) fail('Voice input needs OPENROUTER_API_KEY or OPENAI_API_KEY in the computer workspace .env. Your keyboard microphone still works.', 503);
+    if (config.provider === 'local' && !await this.localStatus(config.local)) fail('未安装 Local Whisper。请在电脑上运行本地听写设置。', 503);
+    if (config.provider !== 'local' && !config.key) fail('语音输入需要在电脑工作区 .env 中配置 OPENROUTER_API_KEY 或 OPENAI_API_KEY。键盘麦克风仍可使用。', 503);
     // Recheck after the asynchronous config read, before reserving a paid request.
-    if (!authorized() || this.closed) fail('This phone is disconnected.', 401);
+    if (!authorized() || this.closed) fail('此手机已断开连接。', 401);
     const completed = this.jobs.get(key);
     if (completed) {
-      if (completed.hash !== hash) fail('This recording ID belongs to different audio.', 409);
+      if (completed.hash !== hash) fail('此录音 ID属于另一段音频。', 409);
       return completed.promise;
     }
     if (this.controllers.has(deviceId)) {
       const existing = this.jobs.get(key);
       if (existing?.hash === hash) return existing.promise;
-      fail('Another recording is being transcribed. Wait a moment and retry.', 429);
+      fail('另一段录音正在转写。请稍后重试。', 429);
     }
-    if (this.controllers.size >= 2) fail('Transcription is busy. Wait a moment and retry.', 429);
+    if (this.controllers.size >= 2) fail('转写正忙。请稍后重试。', 429);
     while (this.jobs.size >= 64) {
       const oldest = [...this.jobs].find(([, job]) => !job.pending);
       if (!oldest) break;
       this.jobs.delete(oldest[0]);
     }
     const currentRate = this.rates.get(deviceId) || rate;
-    if (currentRate.count >= 6) fail('Please wait a minute before transcribing another recording.', 429);
+    if (currentRate.count >= 6) fail('请等一分钟再转写下一段录音。', 429);
     currentRate.count++; this.rates.set(deviceId, currentRate);
     const controller = new AbortController(); this.controllers.set(deviceId, controller);
     const job = { hash, pending: true, expires: now + 10 * 60 * 1000 };
     job.promise = this.call(config, audio, mime, controller.signal).then(result => {
-      if (!authorized() || this.closed) fail('This phone is disconnected.', 401);
+      if (!authorized() || this.closed) fail('此手机已断开连接。', 401);
       return result;
     }).catch(error => { this.jobs.delete(key); throw error; }).finally(() => {
       job.pending = false; this.controllers.delete(deviceId);
@@ -120,8 +120,8 @@ export class MobileDictation {
     if (provider === 'local') {
       const result = await this.localRunner(local, audio, formats[mime], signal);
       const text = typeof result?.text === 'string' ? result.text.trim() : '';
-      if (!text) fail('No speech was recognized. Try recording again.', 422);
-      if (text.length > 60000) fail('The transcript is too long for one message.', 413);
+      if (!text) fail('未识别到语音。请重新录制。', 422);
+      if (text.length > 60000) fail('转写文本过长，无法放入一条消息。', 413);
       return { text };
     }
     const form = new FormData();
@@ -133,15 +133,15 @@ export class MobileDictation {
     try {
       response = await this.fetcher(url, { method: 'POST', headers: { Authorization: `Bearer ${key}` }, body: form, signal: AbortSignal.any([signal, AbortSignal.timeout(65000)]) });
       result = response.ok ? await response.json() : null;
-    } catch { fail('Transcription could not finish. Your recording is kept on this phone; try again.', 502); }
+    } catch { fail('转写未能完成。录音已保留在此手机上；请重试。', 502); }
     if (!response.ok) {
-      if (response.status === 401 || response.status === 403) fail('The transcription API key was rejected. Check it on your computer.', 502);
-      if (response.status === 402 || response.status === 429) fail('The transcription account has reached its credit or usage limit. Retry later.', 429);
-      fail('The transcription provider could not process this recording. Retry or record a shorter message.', 502);
+      if (response.status === 401 || response.status === 403) fail('转写 API 密钥被拒绝。请在电脑上检查。', 502);
+      if (response.status === 402 || response.status === 429) fail('转写账户已达到额度或用量上限。请稍后重试。', 429);
+      fail('转写提供方无法处理此录音。请重试或录制更短的消息。', 502);
     }
     const text = typeof result?.text === 'string' ? result.text.trim() : '';
-    if (!text) fail('No speech was recognized. Try recording again.', 422);
-    if (text.length > 60000) fail('The transcript is too long for one message.', 413);
+    if (!text) fail('未识别到语音。请重新录制。', 422);
+    if (text.length > 60000) fail('转写文本过长，无法放入一条消息。', 413);
     return { text };
   }
   revoke(deviceId) {

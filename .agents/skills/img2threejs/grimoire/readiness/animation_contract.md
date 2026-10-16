@@ -1,78 +1,73 @@
-# Animation contract — 1.5.2
+# 动画契约——1.5.2
 
-Read this when a character rig must **move**, not merely bind. The payload/bind contract lives in
-`procedural_rigging_contract.md`; this file covers what happens after a skeleton exists. The full
-derivation, the measured numbers and the failure log are in
-`docs/pipelines/character-rigging-animation-1.5.2.md` — read that file at the moment you reach
-Stage R, not before.
+当角色绑定必须能**动起来**、而不仅仅是完成绑定时，阅读本文件。payload/绑定契约在
+`procedural_rigging_contract.md` 中；本文件涵盖骨架存在之后的事。完整推导、实测数值和失败日志在
+`docs/pipelines/character-rigging-animation-1.5.2.md` 中——到达 Stage R 时再读那个文件，不要提前。
 
-Every threshold is a fraction of **figure height H**, never an absolute unit. A rig at a different
-scale converts; no module may assume `H == 1.0`.
+每个阈值都是**人物身高 H** 的比例，绝不是绝对单位。不同尺度的绑定需换算；任何模块都不得假设
+`H == 1.0`。
 
-## The one rule
+## 唯一的规则
 
-> Nothing about a rig is believed until it has been evaluated at a sampled time and compared
-> against the value the track says it should have. **A clip that exists is not a clip that plays.**
+> 在某个采样时刻对绑定进行求值、并与轨道所规定的值比对之前，关于绑定的任何事都不可信。
+> **一个存在的动画片段，不等于一个能播放的动画片段。**
 
-Two separate 1.5.1 bugs each produced a plausible scene with **zero motion**: eleven clips held
-actions, the mixer held state, buttons dispatched, nothing moved. Neither was visible in code
-review. Both were found only by measuring.
+1.5.1 中有两个彼此独立的 bug，各自都产出了一个看似合理、但**完全不动**的场景：十一个动画片段
+都有 action，mixer 有状态，按钮也派发了事件，却什么都没动。两者在代码评审中都看不出来，都是
+靠测量才发现的。
 
-## Stage order and the script that owns each
+## 阶段顺序及各阶段负责的脚本
 
-| Stage | What it decides | Script |
+| 阶段 | 决定什么 | 脚本 |
 | --- | --- | --- |
-| R0 | deform vs technical nodes, skeleton index space, landmarks | `stage5_rig/validate_rig_payload.py` |
-| R1 | bind space — identity bind, offset from bounds alone | `stage5_rig/emit_animation_runtime.py` |
-| R2 | skin conditioning — proximity weight blending | `stage5_rig/skin_conditioning.py` |
-| R3 | clip identification — measure, classify, name, loop | `stage5_rig/clip_features.py` |
-| R4 | action design — author to a target band, then prove it | `stage5_rig/action_design.py` |
-| R5 | runtime assembly — tickers, offsets, controller contract | `stage5_rig/emit_animation_runtime.py` |
-| R6 | gates G1–G10 | `stage5_rig/rig_gates.py` |
+| R0 | 形变节点 vs 技术节点、骨架索引空间、关键点 | `stage5_rig/validate_rig_payload.py` |
+| R1 | 绑定空间——单位矩阵绑定、仅依据包围盒计算偏移 | `stage5_rig/emit_animation_runtime.py` |
+| R2 | 蒙皮调理——邻近权重混合 | `stage5_rig/skin_conditioning.py` |
+| R3 | 动画片段识别——测量、分类、命名、循环 | `stage5_rig/clip_features.py` |
+| R4 | 动作设计——按目标区间制作，然后证明它 | `stage5_rig/action_design.py` |
+| R5 | 运行时组装——ticker、偏移、控制器契约 | `stage5_rig/emit_animation_runtime.py` |
+| R6 | 门禁 G1–G10 | `stage5_rig/rig_gates.py` |
 
-The module boundaries and the sampled-clip payload shape are fixed in
-`forge/stage5_rig/CONTRACT_1.5.2.md`.
+模块边界和采样动画片段的 payload 结构固定在 `forge/stage5_rig/CONTRACT_1.5.2.md` 中。
 
-## Hard rules, one line each
+## 硬性规则，每条一行
 
-- A node is a `Bone` **iff it appears in `skin.joints`**. Never infer from names — clips target
-  technical nodes that are not joints, and building those as bones corrupts the index space.
-- Build all nodes, then attach children, then attach roots. Any other order leaves world matrices
-  stale at skeleton time.
-- `mesh.bind(skeleton, new THREE.Matrix4())` — identity, always, in attached bind mode. The
-  armature transform is already inside `skinMatrix`; adding it again double-counts.
-- Display offset comes from the **mesh bounds alone**: `(−centre.x, −min.y, −centre.z)`.
-- `scaleDelta ≠ 0` is a tripwire, not a descriptor. Surface it before anything else proceeds: a
-  rig that scales joints changes what R2 may legally do to skin weights.
-- Loop is decided by **poseReturn**, not by travel: `poseReturn ≤ 0.5°` **and**
-  `‖hip(T) − hip(0)‖ ≤ 0.01H`. The 1.5.1 rule contradicted its own data.
-- Names that describe motion are provable; names that imply intent are not. Intent carries
-  `inferred: true` — that is the honest answer, not a placeholder for a better classifier.
-- R2 trades holes against creases deliberately: **a hole shows the background, a crease shows
-  skin.** A later stage must never "fix" the crease count by disabling the blend.
-- A lazily-built character MUST trigger `refreshTickers()` when its payload resolves, or every
-  clip plays silently in a scene that otherwise renders correctly.
-- Presentation offsets are removed before the rig ticks and re-applied after. Never restore a
-  cached rest pose — it overwrites the pose the animation just produced.
+- 一个节点是 `Bone`，**当且仅当它出现在 `skin.joints` 中**。绝不要根据名称推断——动画片段会
+  指向不是关节的技术节点，把这些节点建成骨骼会破坏索引空间。
+- 先构建所有节点，再挂接子节点，最后挂接根节点。任何其他顺序都会让骨架创建时的世界矩阵过期。
+- `mesh.bind(skeleton, new THREE.Matrix4())`——在 attached 绑定模式下始终使用单位矩阵。骨架
+  （armature）变换已包含在 `skinMatrix` 中；再加一次就会重复计算。
+- 显示偏移**仅**来自网格包围盒：`(−centre.x, −min.y, −centre.z)`。
+- `scaleDelta ≠ 0` 是绊线，不是描述量。在任何后续步骤之前先把它报出来：缩放关节的绑定会改变
+  R2 对蒙皮权重的合法操作范围。
+- 是否循环由 **poseReturn** 决定，而不是位移：`poseReturn ≤ 0.5°` **且**
+  `‖hip(T) − hip(0)‖ ≤ 0.01H`。1.5.1 的规则与它自己的数据相矛盾。
+- 描述运动的名称是可证明的；暗示意图的名称则不是。意图带 `inferred: true`——这才是诚实的答案，
+  而不是等待更好分类器的占位符。
+- R2 有意在孔洞与褶痕之间权衡：**孔洞露出背景，褶痕露出皮肤。** 后续阶段绝不能通过关闭混合来
+  "修复"褶痕数量。
+- 延迟构建的角色**必须**在其 payload 解析完成时触发 `refreshTickers()`，否则每个动画片段都会在
+  一个其余部分都正确渲染的场景中静默播放（毫无动作）。
+- 展示用偏移在绑定 tick 之前移除，之后再重新应用。绝不要恢复缓存的静止姿势——那会覆盖动画刚刚
+  产生的姿势。
 
-## Gates — nothing ships until all pass
+## 门禁——全部通过之前不得交付
 
-`G1` binding reaches node (`maxSampledBindingDelta ≤ 2⁻²³`) · `G2` deformation finite ·
-`G3` bind restore (`≤ 1e-12`) · `G4` weights normalised (`≤ 2e-7`) · `G5` indices in range ·
-`G6` every visible mesh bound · `G7` medial/lateral (`leftAnchor.x > 0 > rightAnchor.x`) ·
-`G8` foot contact (`footSlide ≤ 0.01H`) · `G9` no joint scale · `G10` skin integrity sweep.
+`G1` 绑定作用到节点（`maxSampledBindingDelta ≤ 2⁻²³`）· `G2` 形变结果有限 ·
+`G3` 绑定恢复（`≤ 1e-12`）· `G4` 权重已归一化（`≤ 2e-7`）· `G5` 索引在范围内 ·
+`G6` 每个可见网格都已绑定 · `G7` 内侧/外侧（`leftAnchor.x > 0 > rightAnchor.x`）·
+`G8` 脚部接触（`footSlide ≤ 0.01H`）· `G9` 无关节缩放 · `G10` 蒙皮完整性扫描。
 
-**G1 is the gate that catches silent death** — it is the only check that distinguishes a clip that
-plays from one that exists, loads, holds an action and reports a duration while driving nothing.
+**G1 是捕获"静默死亡"的门禁**——它是唯一能区分"能播放的动画片段"与"存在、能加载、持有 action、
+报告时长，却什么都没驱动的动画片段"的检查。
 
-**G10 needs a harness, and five poses is not coverage.** The sweep that found the real defects was
-11 clips × 4 times × 2 sides × 2 azimuths = **176 frames**. Report holes and creases as two
-numbers; a single combined score hides the R2 trade.
+**G10 需要测试框架，五个姿势不算覆盖。** 真正发现缺陷的那次扫描是
+11 个动画片段 × 4 个时刻 × 2 侧 × 2 个方位角 = **176 帧**。把孔洞和褶痕作为两个数字报告；单一
+综合分会掩盖 R2 的权衡。
 
-A gate whose input is absent reports `unevaluated` with a reason. It is never silently a pass.
+输入缺失的门禁报告 `unevaluated` 并附原因。它绝不会静默地算作通过。
 
-## What this does not solve
+## 本契约不解决的问题
 
-Creases at part overlaps (needs one continuous mesh with a unified weight field — a different
-topology contract), retargeting between skeletons (needs joint correspondence and its own gates),
-and intent (no measurement distinguishes a strike from a stumble).
+部件重叠处的褶痕（需要一个具有统一权重场的连续网格——那是另一种拓扑契约）、骨架之间的重定向
+（需要关节对应关系及其自身的门禁），以及意图（没有任何测量能区分一次打击和一次踉跄）。

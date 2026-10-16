@@ -1,38 +1,28 @@
-# GLB-reference character prompt — polish
+# GLB 参考角色提示词——打磨
 
-The second of three prompts for the GLB-mediated character route. Its whole job is to **localise** a
-mismatch to one band and one named cause before anything is changed.
+GLB 中介角色路线三份提示词中的第二份。它唯一的任务是在改动任何东西之前，把一处不匹配**定位**到一个分带和一个具名原因上。
 
 | | |
 |---|---|
-| **Use it when** | the build **completed** and the result does not look like the GLB |
-| **Do not use it when** | the surfaces were never built — if the emitted header's `nodes` count is below `CHARACTER_NODES`, you are looking at the cross-section loft and nothing here will fix it; re-run [build](GLB_CHARACTER_PROMPT.md). Also not for motion, which is [animation](GLB_CHARACTER_ANIMATION_PROMPT.md) |
-| **Next** | [animation](GLB_CHARACTER_ANIMATION_PROMPT.md), once the shape holds still |
+| **适用场景** | 构建已**完成**，但结果看起来不像 GLB |
+| **不适用场景** | 表面从未构建——如果输出头部的 `nodes` 数量小于 `CHARACTER_NODES`，你看到的是 cross-section loft，这里的任何内容都修不好它；重跑 [build](GLB_CHARACTER_PROMPT.md)。也不用于动作，动作请用 [animation](GLB_CHARACTER_ANIMATION_PROMPT.md) |
+| **下一步** | 形状静止时稳定后，进入 [animation](GLB_CHARACTER_ANIMATION_PROMPT.md) |
 
-## Read this before using it
+## 使用前先读
 
-**This is reference material, not a guarantee.** The failure-mode table below covers the modes this
-pipeline is known to produce. Your subject can present one that is not in it — the prompt tells the
-agent to say so and stop rather than force a match to the nearest row, and that is the correct
-outcome, not a failure of the prompt.
+**这是参考资料，不是保证。** 下面的失败模式表覆盖本流水线已知会产生的模式。你的主体可能呈现表里没有的模式——提示词会让代理说明这一点并停下，而不是强行匹配最接近的一行；这是正确结果，不是提示词的失败。
 
-**Respect the stop rule; this is the prompt most easily abused.** It is a
-one-change-then-re-measure loop with a deliberate termination condition. Running it repeatedly in
-the hope of convergence produces changes nobody can attribute and burns a full re-splat each round.
-Two consecutive changes that fail to improve the targeted measurement means the remaining gap is not
-reachable by config — that is information, and the honest output is which regions still differ and
-by how much.
+**遵守停止规则；这是最容易被滥用的提示词。** 它是一个"改一处、再测量"的循环，带有刻意设计的终止条件。抱着收敛的希望反复运行它，只会产生没人能归因的改动，并且每轮都要耗费一次完整的重新 splat。连续两次改动都没能改善目标测量值，意味着剩下的差距无法靠配置弥合——这本身就是信息，诚实的输出是哪些区域仍有差异、差多少。
 
-## The prompt
+## 提示词
 
-Copy everything inside this block, fill the placeholders, and paste it as a single message.
+复制此块内的全部内容，填好占位符，作为一条消息粘贴。
 
 ````markdown
 
-Polish a GLB-referenced img2threejs character that built successfully but does not match the
-reference.
+打磨一个以 GLB 为参考、已成功构建但与参考不匹配的 img2threejs 角色。
 
-## Inputs
+## 输入
 
 ```
 GLB reference:   <ABSOLUTE_PATH_TO_GLB>
@@ -42,40 +32,32 @@ Config used:     <path to the .env from the init run>
 Complaint:       <in your own words — "the face is a lumpy shell", "the arm is on the wrong side">
 ```
 
-## What "1:1" means in a polish pass
+## 打磨 pass 中"1:1"的含义
 
-Every gap you close must close **towards a measured figure**, never towards taste. Before changing
-anything, write down the reference value and the current value:
+你缩小的每一处差距，都必须**朝着测得的数值**缩小，绝不朝着个人品味。改动任何东西之前，先写下参考值和当前值：
 
-| Parameter | Reference source | Current value read from |
+| 参数 | 参考来源 | 当前值读取自 |
 |---|---|---|
-| Per-band width and depth | `mesh_reference_compare.py` on the GLB | the same run's candidate columns |
-| Band centroid, lateral and depth | same | same — a limb the right size on the wrong side |
-| Figure height and node extents | `probe_glb.py` bounds | the built model's bounds |
-| Base colour per region | `baseColorTexture` x `baseColorFactor`, sRGB decoded to linear | the emitted vertex colours |
-| Roughness, metalness per region | `metallicRoughnessTexture` x its factors | the emitted material record |
-| Vertex and triangle count per node | the round-trip check against the binary | the emitted header |
+| 每个分带的宽度和深度 | 对 GLB 运行 `mesh_reference_compare.py` | 同一次运行的候选列 |
+| 分带质心，侧向和深度 | 同上 | 同上——尺寸正确但在错误一侧的肢体 |
+| 人物高度和节点范围 | `probe_glb.py` 包围盒 | 已构建模型的包围盒 |
+| 每个区域的基础色 | `baseColorTexture` x `baseColorFactor`，sRGB 解码为线性 | 输出的顶点颜色 |
+| 每个区域的 roughness、metalness | `metallicRoughnessTexture` x 其系数 | 输出的材质记录 |
+| 每个节点的顶点数和三角形数 | 对照二进制文件的往返检查 | 输出的头部 |
 
-A change that improves the render but moves a value **away** from the reference is not a fix; it is
-taste overriding measurement, and it will fail the next comparison. Revert it and say why.
+让渲染变好但让数值**偏离**参考的改动不是修复；那是品味压过测量，下一次比较就会失败。撤销它并说明原因。
 
-Two limits are not defects and must not be chased: anything finer than the node's cell size is a
-resolution statement, and texture images, the UV atlas and normal maps are deliberately not copied
-per SKILL.md's contract, so surface detail below the cell is authored and must be labelled authored.
+有两类限制不是缺陷，不得追逐：比节点格子尺寸更细的东西属于分辨率层面的说明；纹理图像、UV atlas 和法线贴图按 SKILL.md 的契约刻意不复制，所以格子以下的表面细节是编写出来的，必须标注为编写所得（authored）。
 
-## Rule for this whole pass
+## 整个 pass 的规则
 
-**One change, then re-measure.** Never two. If two things change and the number improves, you do
-not know which one did it, and the next agent inherits a fact that is not true.
+**改一处，再测量。** 绝不同时改两处。如果改了两处、数字变好了，你不知道是哪一处起的作用，下一个代理会继承一个并不成立的事实。
 
-**Do not chase zero.** Where a residual is unavoidable, make it *one-sided* and say so. Chasing
-zero error on a socket rim cost three rebuilds; two constants that made the error always-proud
-fixed the actual complaint.
+**不要追求零误差。** 残差无法避免时，让它*单边化*并说明。在一个插口边缘追求零误差花了三次重建；两个让误差始终偏凸的常数才解决了真正的问题。
 
-## Step 1 — Confirm the build is the one you are looking at
+## Step 1——确认你看的就是这次构建
 
-Before diagnosing geometry, rule out the boring causes. The init pipeline has two stages that
-skip with a message and still exit 0.
+诊断几何之前，先排除那些无聊的原因。init 流水线有两个阶段会打印一条消息后跳过，并且仍以 0 退出。
 
 ```bash
 python3 forge/next.py --state .img2threejs/state.json
@@ -84,75 +66,61 @@ git diff --stat -- src/demos/<subject-id>/
 grep -A12 "Measured, on the level shipped here" src/demos/<subject-id>/surfaceData.ts
 ```
 
-Read the emitted header's `nodes`, `vertices` and `bytes per vertex`. If `nodes` is smaller than
-`CHARACTER_NODES`, the surface for the region you are complaining about **was never built** — the
-figure you are looking at is the cross-section loft, which is convex per horizontal slice and
-cannot hold a finger gap, a cupped palm or the inside of a sleeve. Stop here and re-run the init
-pipeline with that node included; nothing in this document will fix it.
+读取输出头部的 `nodes`、`vertices` 和 `bytes per vertex`。如果 `nodes` 小于 `CHARACTER_NODES`，你抱怨的那个区域的表面**从未被构建**——你看到的人物是 cross-section loft，它在每个水平切片上都是凸的，容纳不了手指间隙、掌心凹陷或袖子内部。就此停下，把该节点加进去重跑 init 流水线；本文中的任何内容都修不好它。
 
-Also check which tier the page loaded. `x3` uses a bigger cell than `x2`, so `x3` is the *coarser*
-tier and belongs in `surfaceDataLow.ts`. A swapped mapping shows up as a model that looks *worse*
-at a higher quality setting, and `git diff` is the only thing that catches it.
+还要检查页面加载的是哪一档。`x3` 的格子比 `x2` 大，所以 `x3` 是*更粗*的一档，属于 `surfaceDataLow.ts`。映射对调后的表现是：质量设置越高，模型看起来*越差*，而只有 `git diff` 能发现它。
 
-## Step 2 — Measure where it is wrong, band by band
+## Step 2——逐分带测量哪里出错
 
-This is the tool that answers "where", and it takes two GLBs:
+这是回答"在哪里"的工具，它接收两个 GLB：
 
 ```bash
 python3 forge/stage4_review/mesh_reference_compare.py <glb> <candidate.glb> \
   --bands 24 --align landmarks --json
 ```
 
-**The candidate GLB has to be exported, and no script in this repo does it.** Write it once, ~20
-lines, using the pattern in `$IMG2THREEJS_SHOWCASE_ROOT/pipelines/warrior/export_mesh_geometry.mjs`:
-Playwright to the preview URL, `window.__IMG2THREEJS_VIEWER__.scene.getObjectByName('<root-name>')`,
-`updateMatrixWorld(true)`, then three.js's `GLTFExporter`. `mesh_reference_compare.py` composes real
-node matrices specifically so the `matrix` nodes that `GLTFExporter` writes can be read.
+**候选 GLB 必须导出，而本仓库没有脚本做这件事。** 写一次即可，约 20 行，参照 `$IMG2THREEJS_SHOWCASE_ROOT/pipelines/warrior/export_mesh_geometry.mjs` 中的模式：用 Playwright 打开预览 URL，`window.__IMG2THREEJS_VIEWER__.scene.getObjectByName('<root-name>')`，`updateMatrixWorld(true)`，然后用 three.js 的 `GLTFExporter`。`mesh_reference_compare.py` 专门组合真实的节点矩阵，就是为了能读取 `GLTFExporter` 写出的 `matrix` 节点。
 
-Both meshes are normalised **feet-to-height**, not bounding-box top — the top of a bbox is whatever
-pokes up highest, which is exactly what differs between two subjects. Read per band:
+两个网格都按**脚到身高**归一化，而不是按包围盒顶部——包围盒顶部是最高处凸出的任何东西，而这恰恰是两个主体之间不同的地方。逐分带读取：
 
-| Field | What a non-zero value means |
+| 字段 | 非零值的含义 |
 |---|---|
-| `widthDelta`, `depthDelta` | wrong size at that height |
-| `centroidXDelta`, `centroidZDelta` | right size, wrong **place** — a limb on the wrong side passes any width-only check |
-| `lowPct` / `highPct` vs `widthFull` | body vs prop: percentiles report the body, raw extent keeps a genuine prop difference visible |
-| `meanBandError` | rank the bands; fix the worst one only |
-| `note` | read it before trusting the alignment |
+| `widthDelta`、`depthDelta` | 该高度的尺寸错误 |
+| `centroidXDelta`、`centroidZDelta` | 尺寸正确，**位置**错误——在错误一侧的肢体能通过任何只看宽度的检查 |
+| `lowPct` / `highPct` vs `widthFull` | 身体 vs 道具：百分位数报告身体，原始范围让真实的道具差异仍然可见 |
+| `meanBandError` | 给分带排序；只修最差的那个 |
+| `note` | 在信任对齐结果之前先读它 |
 
-## Step 3 — Name the failure mode before touching a config
+## Step 3——碰配置之前先说出失败模式的名字
 
-Match the measured signal to one cause. These are the modes this pipeline actually produces:
+把测得的信号对应到一个原因。以下是本流水线实际会产生的模式：
 
-| Signal | Cause | The one change |
+| 信号 | 原因 | 唯一的那处改动 |
 |---|---|---|
-| Region reads lumpy/blobby, features below ~1 mm absent | cell too coarse for that node | lower **only that node's** cell in `CHARACTER_CELL_SIZES_JSON` |
-| A fold that doubles back is filled in (eyelid, nostril, sleeve interior) | node still on the 2.5D loft | add that node to `CHARACTER_NODES` — no spoke count fixes this |
-| Node inside-out, or exploded | `NORMAL` missing or flipped on that primitive | the SDF field's sign comes entirely from the normal, so a wrong normal *inverts* the surface rather than roughening it |
-| `widthDelta` positive while silhouette IoU **falls** | spoke count above the node's density ceiling | re-run `measure_density_convergence.py`, take `min(convergence, density ceiling)` |
-| Too dark or over-saturated, correct shape | colour space | vertex colours are baked sRGB-decoded to linear; `material.color` must stay white or it tints the bake |
-| `centroid*Delta` non-zero, `widthDelta` ~0 | placement, not shape | fix the transform; do not touch cells or spokes |
-| Right shape, wrong handedness | rotation used where a reflection was needed | negate the lateral axis only, then flip triangle winding back — `validate_chirality` catches this, `medial_lateral_bias` catches a pair wrong the *same* way on both sides |
-| Looks worse at higher quality | swapped tier mapping | `git diff` the three `surfaceData*.ts` |
-| A joint creases or loses volume the moment it bends | not a weight problem — too few edge loops across the joint | `joint_loops.py <meshes.json> --min-loops N`; the fix is upstream in the surface build, no weight tuning reaches it |
+| 区域看起来凹凸不平/成团，约 1 mm 以下的特征缺失 | 该节点的格子太粗 | 在 `CHARACTER_CELL_SIZES_JSON` 中**只**调低该节点的格子 |
+| 回折的褶皱被填平（眼睑、鼻孔、袖子内部） | 节点仍在 2.5D loft 上 | 把该节点加入 `CHARACTER_NODES`——调 spoke 数量修不好 |
+| 节点内外翻转，或炸开 | 该 primitive 上的 `NORMAL` 缺失或翻转 | SDF 场的符号完全来自法线，所以错误的法线会*翻转*表面，而不只是让它变粗糙 |
+| `widthDelta` 为正，而 silhouette IoU **下降** | spoke 数量超过该节点的密度上限 | 重跑 `measure_density_convergence.py`，取 `min(convergence, density ceiling)` |
+| 过暗或过饱和，形状正确 | 颜色空间 | 顶点颜色按 sRGB 解码为线性后烘焙；`material.color` 必须保持白色，否则会给烘焙结果着色 |
+| `centroid*Delta` 非零，`widthDelta` ~0 | 放置问题，不是形状问题 | 修正变换；不要动格子或 spoke |
+| 形状正确，手性错误 | 在需要反射的地方用了旋转 | 只对侧向轴取反，然后把三角形绕序翻回来——`validate_chirality` 能捕获这种情况，`medial_lateral_bias` 捕获两侧以*相同*方式出错的一对 |
+| 质量越高看起来越差 | 档位映射对调 | 对三个 `surfaceData*.ts` 做 `git diff` |
+| 关节一弯就起折痕或失去体积 | 不是权重问题——横跨关节的边环太少 | `joint_loops.py <meshes.json> --min-loops N`；修复点在上游表面构建，权重调节触及不到 |
 
-If the signal matches none of these, say so and stop. A change with no named mechanism is a guess
-even when it improves the number.
+如果信号与以上都不匹配，说明这一点并停下。没有具名机制的改动，即使让数字变好，也只是猜测。
 
-## Step 4 — Change one thing, rebuild that node only
+## Step 4——只改一处，只重建该节点
 
 ```bash
 IMG2THREEJS_SHOWCASE_ROOT=<showcase> \
   integrations/glb_character_pipeline/build-character.sh --config <subject-id>.env --skip-build
 ```
 
-`--skip-build` stops before the tsc/vite pass while you iterate on geometry. Narrow
-`CHARACTER_NODES` to the node under investigation so a pass costs minutes, not an hour — then
-restore the full list before the final run.
+在几何迭代期间，`--skip-build` 会在 tsc/vite pass 之前停下。把 `CHARACTER_NODES` 收窄到正在调查的节点，让一次 pass 只花几分钟而不是一小时——最终运行前再恢复完整列表。
 
-## Step 5 — Prove it improved, against the previous capture
+## Step 5——对照上一次截取，证明有改善
 
-An absolute score cannot tell improvement from regression. Keep the previous capture directory:
+绝对分数无法区分改善与退化。保留上一次的截取目录：
 
 ```bash
 node integrations/glb_character_pipeline/node/capture-character.mjs \
@@ -164,31 +132,23 @@ python3 forge/stage4_review/diagnose_render_multi_angle.py --reference <ref> \
   --orbit 0.png --orbit 40.png --orbit 90.png --json
 ```
 
-Measure **inside** the silhouette. Silhouette IoU reads ~11% of figure cells: a model with its face
-deleted scored 0.8803 — identical to four decimals to the finished face. Re-run Step 2's band
-comparison and confirm the band you targeted improved **and no other band got worse**.
+在轮廓**内部**测量。silhouette IoU 只读取约 11% 的人物格子：删掉脸的模型得分 0.8803——与完成的脸在小数点后四位上完全相同。重跑 Step 2 的分带比较，确认你瞄准的分带有改善，**并且没有其他分带变差**。
 
-Then look at the render at 0°, 40° and a grazing angle. A surface can score 2.49 mm median accuracy
-and still read as a lumpy, hole-riddled shell. If the render and the metric disagree, the render is
-right.
+然后在 0°、40° 和一个掠射角度下查看渲染。一个表面可以拿到 2.49 mm 的中位精度，看起来却仍是凹凸不平、满是破洞的外壳。渲染与指标不一致时，以渲染为准。
 
-## Stop rule
+## 停止规则
 
-Stop and report when either holds:
+满足以下任一条件时，停下并报告：
 
-- the worst band's `meanBandError` is within the reference's own per-band spread, or
-- **two consecutive single changes** failed to improve the targeted measurement.
+- 最差分带的 `meanBandError` 落在参考自身的分带离散范围内，或者
+- **连续两次单处改动**都没能改善目标测量值。
 
-The second is not failure, it is information: it means the remaining gap is not reachable by
-config, and the honest output is which regions still differ and by how much. Report per band: what
-was measured, which mode you named, what you changed, and what the re-measurement said — including
-the changes you reverted.
+第二种不是失败，而是信息：它意味着剩下的差距无法靠配置弥合，诚实的输出是哪些区域仍有差异、差多少。逐分带报告：测得了什么、你说出了哪种模式、改了什么、重新测量的结果——包括你撤销的改动。
 
-"This cannot reach the requested fidelity from this reference" is a valid result.
+"无法从这个参考达到所要求的保真度"是一个有效结果。
 ````
 
 ---
 
-Once the shape holds still, motion is a separate pass with its own failure modes — a rig bound to
-an ungated surface hides surface defects as art problems. Use
-[`GLB_CHARACTER_ANIMATION_PROMPT.md`](GLB_CHARACTER_ANIMATION_PROMPT.md).
+形状静止时稳定之后，动作是一个独立的 pass，有它自己的失败模式——绑定到未过门禁表面的绑定会把表面缺陷伪装成美术问题。请使用
+[`GLB_CHARACTER_ANIMATION_PROMPT.md`](GLB_CHARACTER_ANIMATION_PROMPT.md)。

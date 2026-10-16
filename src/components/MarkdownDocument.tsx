@@ -39,19 +39,19 @@ export default function MarkdownDocument({ file }: { file: Preview }) {
   }, [dirty, draft, draftKey])
   const save = async () => {
     if (busy || !dirty) return
-    setBusy(true); setStatus('Saving…')
+    setBusy(true); setStatus('保存中…')
     try {
       const result = await api<Preview>('/files/markdown', { path: file.path, text: draft, revision })
-      setSaved(result.text || ''); setDraft(result.text || ''); setRevision(result.revision); setStatus('Saved')
+      setSaved(result.text || ''); setDraft(result.text || ''); setRevision(result.revision); setStatus('已保存')
     } catch (error) { setStatus(error instanceof Error ? error.message : String(error)) }
     finally { setBusy(false) }
   }
   return <section className="markdown-document">
-    <div className="document-toolbar"><div className="document-modes" aria-label="Markdown mode"><button aria-pressed={!editing} onClick={() => setEditing(false)}>Preview</button><button aria-pressed={editing} onClick={() => setEditing(true)}>Edit</button></div>
-      <span className="document-status" role="status">{status || (dirty ? 'Unsaved draft' : 'Markdown')}</span>
-      {dirty && <button disabled={busy} onClick={() => { setDraft(saved); setStatus('Draft discarded') }}>Discard</button>}
-      <button className="document-save" disabled={!dirty || busy} onClick={() => void save()}>Save</button>
+    <div className="document-toolbar"><div className="document-modes" aria-label="Markdown 模式"><button aria-pressed={!editing} onClick={() => setEditing(false)}>预览</button><button aria-pressed={editing} onClick={() => setEditing(true)}>编辑</button></div>
+      <span className="document-status" role="status">{status || (dirty ? '草稿未保存' : 'Markdown')}</span>
+      {dirty && <button disabled={busy} onClick={() => { setDraft(saved); setStatus('已放弃草稿') }}>放弃</button>}
+      <button className="document-save" disabled={!dirty || busy} onClick={() => void save()}>保存</button>
     </div>
-    {editing ? <textarea className="markdown-editor" aria-label={`Edit ${file.name}`} spellCheck={false} value={draft} onChange={event => { setDraft(event.target.value); setStatus('') }} onKeyDown={event => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { event.preventDefault(); void save() } }} /> : <div className="markdown-reader"><MarkdownView text={draft} baseUrl={file.url} /></div>}
+    {editing ? <textarea className="markdown-editor" aria-label={`编辑 ${file.name}`} spellCheck={false} value={draft} onChange={event => { setDraft(event.target.value); setStatus('') }} onKeyDown={event => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') { event.preventDefault(); void save() } }} /> : <div className="markdown-reader"><MarkdownView text={draft} baseUrl={file.url} /></div>}
   </section>
 }

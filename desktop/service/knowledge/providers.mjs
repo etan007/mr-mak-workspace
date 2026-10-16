@@ -6,15 +6,15 @@ const textFiles = new Set(['.md', '.markdown', '.txt']);
 const titleOf = (file, text) => text.match(/^#\s+(.+)$/m)?.[1]?.trim() || path.basename(file, path.extname(file));
 
 export class LocalKnowledgeProvider {
-  constructor(library) { this.id = 'local-repository'; this.label = 'This Workspace repository'; this.library = library; }
+  constructor(library) { this.id = 'local-repository'; this.label = '当前工作区仓库'; this.library = library; }
   async searchText(query) { return this.library.search(query); }
   async retrieve(file, offset) { return this.library.read(file, offset); }
   async skills(query) { return this.library.skills(query); }
-  async search(query) { return [{ providerId: this.id, ref: query, title: 'Repository context matches', excerpt: await this.searchText(query) }]; }
+  async search(query) { return [{ providerId: this.id, ref: query, title: '仓库上下文匹配结果', excerpt: await this.searchText(query) }]; }
 }
 
 export class MarkdownKnowledgeProvider {
-  constructor(root, { id = 'markdown', label = 'Markdown knowledge source' } = {}) {
+  constructor(root, { id = 'markdown', label = 'Markdown 知识来源' } = {}) {
     this.id = id; this.label = label; this.root = root;
   }
   async rootPath() { return realpath(this.root); }
@@ -29,7 +29,7 @@ export class MarkdownKnowledgeProvider {
     return result;
   }
   async search(query) {
-    if (typeof query !== 'string' || !query.trim() || query.length > 200) throw new Error('Use a short knowledge search phrase.');
+    if (typeof query !== 'string' || !query.trim() || query.length > 200) throw new Error('请使用简短的知识搜索短语。');
     const root = await this.rootPath();
     const needle = query.toLowerCase(); const hits = [];
     for (const file of await this.files()) {
@@ -44,9 +44,9 @@ export class MarkdownKnowledgeProvider {
     return hits.slice(0, 100);
   }
   async retrieve(ref, offset = 0) {
-    if (typeof ref !== 'string' || !ref || path.isAbsolute(ref)) throw new Error('Knowledge references must be relative to their provider.');
-    const root = await this.rootPath(); const file = path.resolve(root, ref); if (!within(root, file)) throw new Error('Knowledge reference leaves its provider root.');
-    const actual = await realpath(file); if (!within(root, actual) || !textFiles.has(path.extname(actual).toLowerCase())) throw new Error('Only Markdown knowledge documents can be read.');
+    if (typeof ref !== 'string' || !ref || path.isAbsolute(ref)) throw new Error('知识引用必须是相对其提供方的路径。');
+    const root = await this.rootPath(); const file = path.resolve(root, ref); if (!within(root, file)) throw new Error('知识引用超出了提供方根目录。');
+    const actual = await realpath(file); if (!within(root, actual) || !textFiles.has(path.extname(actual).toLowerCase())) throw new Error('只能读取 Markdown 知识文档。');
     const text = await readFile(actual, 'utf8'); const start = Math.max(0, Number(offset) || 0);
     return { providerId: this.id, ref: path.relative(root, actual).split(path.sep).join('/'), title: titleOf(actual, text), text: text.slice(start, start + 24000), nextOffset: start + 24000 < text.length ? start + 24000 : null, source: actual };
   }
@@ -66,7 +66,7 @@ export class KnowledgeManager {
     return (await Promise.all(providers.map(provider => provider.search(query)))).flat();
   }
   async retrieve(providerId, ref, offset) {
-    const provider = this.provider(providerId); if (!provider?.retrieve) throw new Error(`Knowledge provider is unavailable: ${providerId}`);
+    const provider = this.provider(providerId); if (!provider?.retrieve) throw new Error(`知识提供方不可用：${providerId}`);
     return provider.retrieve(ref, offset);
   }
   list() { return this.providers.map(({ id, label }) => ({ id, label })); }

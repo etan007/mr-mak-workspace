@@ -1,36 +1,32 @@
 ---
 name: 3d-production-routing
-description: Choose a workflow for 3D concepts, meshes, materials, animation, game VFX, UI, levels, audio and native visual review.
+description: 为 3D 概念、模型、材质、动画、游戏特效（VFX）、UI、关卡、音频和原生视觉审查选择合适的工作流。
 ---
 
-# Route 3D production
+# 3D 制作分流
 
-Start with the intended deliverable: image reference, editable geometry,
-textured mesh, material maps, rigged character or engine-ready animation.
-Inspect the supplied assets and the target engine before selecting a route.
+从预期交付物出发：图像参考、可编辑几何体、带贴图模型、材质贴图、已绑定角色或可直接用于
+引擎的动画。选择路线之前，先检查提供的素材和目标引擎。
 
-| Need | Skill |
+| 需求 | 技能 |
 | --- | --- |
-| Explore silhouettes or edit an accepted image | `image-reference-workflow` |
-| Front sheet, parts and modeling references | `character-sheet-pipeline` |
-| Generate images, meshes, material maps or video through fal.ai | `fal-ai-generation` |
-| Work through an existing Higgsfield account | `higgsfield-workflow` |
-| Editable procedural geometry in Three.js | `img2threejs` |
-| Validate and deliver a PBR material | `materials-to-game` |
-| Analyze motion timing | `motion-reference-workflow` or `video-watch` |
-| Rig, skin, animate and export in Blender | `blender-game-animation` |
-| Integrate clips and locomotion transitions in an engine | `game-animation-integration` |
-| Plan and implement event-driven visual effects | `game-vfx-workflow` |
-| Develop a HUD or menu from concept through live game state | `game-ui-workflow` |
-| Design and validate a playable level | `game-level-design` |
-| Select and integrate game sounds | `game-audio-workflow` |
-| Verify the result in the actual game | `gameplay-visual-review` |
+| 探索轮廓或编辑已接受的图像 | `image-reference-workflow` |
+| 正面设定图、部件和建模参考 | `character-sheet-pipeline` |
+| 通过 fal.ai 生成图像、模型、材质贴图或视频 | `fal-ai-generation` |
+| 通过已有的 Higgsfield 账号工作 | `higgsfield-workflow` |
+| Three.js 中的可编辑程序化几何体 | `img2threejs` |
+| 验证并交付 PBR 材质 | `materials-to-game` |
+| 分析运动时序 | `motion-reference-workflow` 或 `video-watch` |
+| 在 Blender 中绑定、蒙皮、制作动画并导出 | `blender-game-animation` |
+| 在引擎中集成动画片段和移动过渡 | `game-animation-integration` |
+| 规划并实现事件驱动的视觉特效 | `game-vfx-workflow` |
+| 从概念到实时游戏状态开发 HUD 或菜单 | `game-ui-workflow` |
+| 设计并验证可玩关卡 | `game-level-design` |
+| 挑选并集成游戏音效 | `game-audio-workflow` |
+| 在实际游戏中验证结果 | `gameplay-visual-review` |
 
-Read the selected skill before execution. Its presence does not mean its MCP,
-CLI, account or editor is connected. Inspect live capabilities and exact model
-schemas; keep provider choices and accepted references from the current task.
+执行前先阅读选定的技能。技能存在并不代表其 MCP、CLI、账号或编辑器已连接。检查实际可用
+能力和确切的模型 schema；沿用当前任务中的服务商选择和已接受的参考。
 
-For a game asset, separate concept acceptance from mesh acceptance. Verify
-topology, scale, materials, rig, root motion and engine import as applicable.
-A successful API request or attractive render is not an engine handoff.
-Record the chosen route and acceptance criteria in the current project card.
+对于游戏素材，把概念验收与模型验收分开。视情况验证拓扑、比例、材质、绑定、根运动和引擎
+导入。API 请求成功或渲染好看都不等于完成引擎交接。在当前项目卡片中记录所选路线和验收标准。

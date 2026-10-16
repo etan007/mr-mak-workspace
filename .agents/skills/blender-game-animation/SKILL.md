@@ -1,77 +1,61 @@
 ---
 name: blender-game-animation
-description: Rig and animate supplied characters in Blender, revise motion from references, and deliver editable sources plus a verified game export.
+description: 在 Blender 中为提供的角色做绑定和动画，依据参考修改动作，交付可编辑源文件及经过验证的游戏导出。
 ---
 
-# Blender game animation
+# Blender 游戏动画
 
-Build an editable animation project from the supplied mesh and references.
-Inspect existing work before changing it. Establish anatomy, skeleton needs,
-forward axis, units, frame rate, clips, loop/root-motion behavior and gameplay
-events from the task. Do not regenerate a supplied model as an incidental step.
-When continuing another artist's file, inventory the rigs, Actions, slots,
-constraints, reference media and export settings before editing. Keep a source
-copy and distinguish approved clips from experiments.
+基于提供的网格和参考，构建可编辑的动画工程。修改前先检查已有成果。从任务中明确
+解剖结构、骨架需求、前向轴、单位、帧率、动画片段、循环 / 根运动行为和玩法事件。
+不要把重新生成已提供的模型当作顺带步骤。接手其他美术的文件时，编辑前先清点绑定、
+Action、slot、约束、参考媒体和导出设置。保留一份源文件副本，区分已批准的动画片段
+与试验版本。
 
-## Rig and skin
+## 绑定与蒙皮
 
-Place joints from anatomy and give them stable rolls and bend directions. Keep
-global placement separate from local body motion. Use editable contact controls
-where they help. Automatic weights are a starting point: inspect disconnected
-islands, opposite-side influence, shoulders/hips and rigid items. Normalize after
-pruning and respect the destination engine's influence limit. Test joint extremes
-before authoring the whole action library. An IK collapse can be a target/reach
-problem rather than a weight problem.
+依据解剖结构放置关节，并设定稳定的 roll 和弯曲方向。全局位移与身体局部运动分开。
+在有帮助的地方使用可编辑的接触控制器。自动权重只是起点：检查断开的孤岛、对侧影响、
+肩部 / 髋部和刚性部件。裁剪后再归一化，并遵守目标引擎的影响骨骼数上限。制作完整
+动作库之前先测试关节极限。IK 塌陷可能是目标 / 够及距离问题，而非权重问题。
 
-## Motion and revisions
+## 动作与修改
 
-Block support changes, contact, impact and recovery before secondary motion.
-Assess floor contact using deformed sole geometry. Compare the same event in
-the source video and Blender, and inspect angles absent from the reference.
-Single-camera depth reconstruction is inferred motion, not measured mocap.
+先摆出支撑切换、接触、冲击和恢复，再做次级运动。用变形后的鞋底几何判断地面接触。
+在源视频和 Blender 中对比同一事件，并检查参考中没有的角度。单机位深度重建是推断
+出的运动，不是实测动捕。
 
-Preserve approved actions while creating revisions. When a frame looks broken,
-check nearby frames, interpolation, constraints and playback range before adding
-more animation. Stabilize foot support, then add body compression, head response,
-follow-through and tail motion where appropriate. Check loops through their seam.
-Readability from the game camera and responsive recovery matter more than a
-long decorative anticipation. Preserve approved gameplay event times.
+修改时保留已批准的 Action。某帧看起来坏掉时，先检查相邻帧、插值、约束和播放范围，
+再考虑追加动画。先稳定脚部支撑，再酌情加入身体压缩、头部响应、跟随动作和尾部运动。
+循环要检查首尾接缝。从游戏镜头看的可读性和响应迅速的恢复，比冗长的装饰性预备动作
+更重要。保留已批准的玩法事件时间。
 
-## Timing and ordinary playback
+## 时间与常规播放
 
-Use `duration = (last_frame - first_frame) / fps`. Store duration and contact
-times in seconds as well as frames. Changing fps alone changes speed; resample
-in time when converting a clip. Keep a source action when making a compact game
-variant. Each action needs explicit range and fps metadata. Check scene range,
-preview range and NLA settings separately. Test action switching and ordinary
-Play after saving and reopening; review scenes do not replace this check.
-Bind the intended Action and its compatible slot explicitly. If several rigs
-share a scene, playback range ownership must include the rig, Action, slot and
-clip metadata, not just an Action name. Returning from an effect rig to a
-character must restore the character's range. Suspend automatic range changes
-while the user is posing. Save a readable textured viewport and verify it after
-reopening; a render alone does not establish a usable authoring file.
+使用 `duration = (last_frame - first_frame) / fps`。时长和接触时间同时以秒和帧记录。
+只改 fps 会改变速度；转换动画片段时应按时间重采样。制作精简的游戏版本时保留源
+Action。每个 Action 都需要明确的范围和 fps 元数据。分别检查场景范围、预览范围和
+NLA 设置。保存并重新打开后测试 Action 切换和常规 Play；审查场景不能替代这项检查。
+显式绑定目标 Action 及其兼容的 slot。若多个绑定共处一个场景，播放范围的归属必须包含
+绑定、Action、slot 和动画片段元数据，而不只是 Action 名称。从特效绑定切回角色时，
+必须恢复角色的范围。用户摆姿势时暂停自动范围调整。保存一个可读的带贴图视口，并在
+重新打开后验证；单张渲染图不能证明创作文件可用。
 
-## Bake and hand off
+## 烘焙与交接
 
-Bake evaluated motion onto a separate runtime skeleton, preserving the control
-rig. Export intended mesh, runtime bones and clips; exclude helper bones,
-unrelated scenes and muted library actions. Record textures, clip names, durations,
-loop flags, root motion and events in the manifest.
+将求值后的运动烘焙到独立的运行时骨架上，保留控制绑定。导出目标网格、运行时骨骼和
+动画片段；排除辅助骨骼、无关场景和已静音的库 Action。在 manifest 中记录贴图、动画
+片段名称、时长、循环标记、根运动和事件。
 
-Reimport from a copied directory into a clean scene. Verify bone count, skin,
-textures, duration and sampled poses in a common coordinate system. Account for
-UV/normal seam duplicates when comparing geometry. A raw vertex-index comparison
-can be misleading after a valid export. Check permanent mesh edits across every
-affected action, not just a single pose.
-Read [export and integration checks](references/engine-handoff.md) for separate
-model/clip files, bind-basis failures and turn-to-locomotion handoff.
+从复制出的目录重新导入到干净场景。在统一坐标系下验证骨骼数、蒙皮、贴图、时长和
+采样姿势。比较几何时要考虑 UV / 法线接缝造成的顶点复制。合法导出后，直接按顶点
+索引比较可能产生误导。永久性网格修改要在所有受影响的 Action 上检查，而不只是单个
+姿势。
+阅读[导出与集成检查](references/engine-handoff.md)，了解模型 / 动画片段分文件、
+绑定基准失败和转身到移动的交接。
 
-Deliver editable source, runtime export, source references, review evidence and
-a short engine guide. Distinguish source approval, export verification and actual
-engine integration. A valid FBX does not wire a gameplay event or Animator.
+交付可编辑源文件、运行时导出、源参考、审查证据和一份简短的引擎指南。区分源文件批准、
+导出验证和实际引擎集成。合法的 FBX 不会自动接好玩法事件或 Animator。
 
-Example: one supplied robot with Idle and Walk. Verify all foot contacts, loop
-seam, normal action playback and a clean reimport. Dependencies: Blender, the
-supplied mesh/references, and target-engine access for an integration check.
-This module is a production workflow, not a universal one-click rigging script.
+示例：提供一个带 Idle 和 Walk 的机器人。验证所有脚部接触、循环接缝、常规 Action
+播放和干净的重新导入。依赖：Blender、提供的网格 / 参考，以及用于集成检查的目标引擎
+访问。本模块是生产工作流，不是通用的一键绑定脚本。

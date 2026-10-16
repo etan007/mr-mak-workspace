@@ -1,183 +1,170 @@
-# Changelog
+# 更新日志
 
 ## 0.5.1 - 2026-10-14
 
-- Add Antigravity CLI chats with Google sign-in, reasoning effort, per-chat native history recovery and MCP inventory. Install `agy` separately, then choose it in New chat. Model access remains controlled by Google.
-- Harden release jobs: build with read-only tokens and no saved Git credentials, separate dependency checks from tag publication, pin Actions to full commit hashes and disable npm caches in release workflows. Dependabot tracks the pinned Actions.
-- Update the optional img2threejs vision environment to Transformers 5.10.0. Pin Hugging Face model revisions and verify MediaPipe downloads with SHA-256, including cached files.
-- Validate conversation IDs and voice coordinator chat options on the server. Read malformed HTML reports without repeated backtracking.
-- Launch native Windows CLI executables directly, avoiding the encoded PowerShell wrapper that triggered the reported Norton block. Command scripts still use the full PowerShell path.
-- Improve macOS support: native app/DMG packaging, Finder and Dock behavior, Command-key shortcuts, drag and drop, microphone permission and a bundled Node runtime. A login-shell timeout keeps launch responsive. CI archives retain executable permissions.
-- Start Windows agent chats through the full PowerShell path, even when its folder is missing from PATH.
-- Support CLI selection copy through OSC 52 after a foreground selection or Copy gesture. Background output and clipboard read requests are rejected.
-- Add `Setup.ps1 -Mode Update` for source builds. Run it in an external PowerShell window; it waits for you to quit, preserves custom installation folders and restarts the same repository.
-- Improve mobile navigation and reconnect after sleep. Keep independent chat, report tab and scroll positions, including after reload. A message can reference the current report without attaching its contents.
-- Preview and download shared conversation images and videos through paired, scoped access. Images support zoom and pan. Recent activity starts collapsed.
-- Add optional local Whisper dictation on desktop and mobile, with one provider setting and recoverable recordings. Desktop dictation inserts text without pressing Enter. Updates preserve existing providers, models and appearance choices.
-- Add optional local Read aloud with Michael and Emma voices. Cross-platform Python setup uses pinned model files and SHA-256 checks. No models are downloaded at app startup, and no cloud fallback is automatic.
+- 新增 Antigravity CLI 对话：支持 Google 登录、推理强度、按对话恢复原生历史和 MCP 清单。需另行安装 `agy`，然后在“新建对话”中选择。模型访问权限仍由 Google 控制。
+- 加固发布任务：使用只读 token 构建且不保存 Git 凭据；依赖检查与标签发布分离；Actions 固定到完整 commit hash；发布工作流禁用 npm 缓存。Dependabot 跟踪已固定的 Actions。
+- 可选的 img2threejs 视觉环境升级到 Transformers 5.10.0。固定 Hugging Face 模型版本，并用 SHA-256 校验 MediaPipe 下载（含已缓存文件）。
+- 服务端校验对话 ID 和语音协调器的对话选项。读取格式错误的 HTML 报告时不再反复回溯。
+- 直接启动 Windows 原生 CLI 可执行文件，不再使用曾被 Norton 拦截的编码 PowerShell 包装。命令脚本仍使用完整 PowerShell 路径。
+- 改进 macOS 支持：原生 app/DMG 打包、Finder 与 Dock 行为、Command 键快捷键、拖放、麦克风权限和内置 Node 运行时。登录 shell 超时机制保证启动响应及时。CI 归档保留可执行权限。
+- Windows 代理对话通过完整 PowerShell 路径启动，即使其所在文件夹不在 PATH 中。
+- 在前台选择或执行复制手势后，支持通过 OSC 52 复制 CLI 选区。后台输出和剪贴板读取请求会被拒绝。
+- 为源码构建新增 `Setup.ps1 -Mode Update`。需在外部 PowerShell 窗口中运行；它会等待你退出应用，保留自定义安装文件夹，并重启同一仓库。
+- 改进手机端导航和休眠后重连。对话、报告标签页和滚动位置相互独立，重新加载后仍保留。消息可引用当前报告而不附带其内容。
+- 通过已配对、限定范围的访问预览和下载共享对话中的图片与视频。图片支持缩放和平移。最近活动默认折叠。
+- 新增可选的本地 Whisper 语音听写，支持桌面端和手机端，只需一项提供方设置，录音可恢复。桌面听写插入文本时不会按 Enter。更新会保留现有的提供方、模型和外观选择。
+- 新增可选的本地朗读，提供 Michael 和 Emma 两种声音。跨平台 Python 安装使用固定的模型文件并做 SHA-256 校验。应用启动时不下载任何模型，也不会自动回退到云端。
 
-- Click a card's status dot in the desktop Workspace to set Active, Done or Archived, change its category, or pin it. Changes save immediately; archived cards keep their files and can be restored through search or Show archive.
-- Retry card saves when Windows briefly locks the registry, preserving the latest metadata and cleaning up unsuccessful temporary writes.
-- Add left/right terminal arrows on phones for CLI menus such as reasoning effort. Keep all keys visible with touch-sized buttons that wrap on narrow screens.
-- Close an agent chat from the phone after confirmation. Its desktop tab closes too; the saved conversation stays in History and the phone retains its unsent draft.
+- 在桌面工作区点击卡片的状态圆点，可设为进行中、已完成或已归档，修改分类或置顶。更改立即保存；已归档卡片保留其文件，可通过搜索或“显示归档”恢复。
+- Windows 短暂锁定注册表时自动重试卡片保存，保留最新元数据并清理失败的临时写入。
+- 手机端新增左右终端方向键，用于推理强度等 CLI 菜单。所有按键保持可见，按钮尺寸适合触控，窄屏时自动换行。
+- 可在手机上确认后关闭代理对话。其桌面标签页也会关闭；已保存的对话保留在历史中，手机端保留未发送的草稿。
 
-Thanks to @pbau3r-sfdy, @serhat1akman and @redDwarf03 for the contributions and reports. Outstanding security work remains tracked separately; this release does not close the full security review.
+感谢 @pbau3r-sfdy、@serhat1akman 和 @redDwarf03 的贡献与反馈。尚未完成的安全工作单独跟踪；本次发布并未完成全部安全审查。
 
 ## 0.5.0 - 2026-10-09
 
-- Resolve Windows short paths and linked repository roots before checking mobile report boundaries; external folders remain blocked.
-- Keep mobile chat cards within the screen when previews contain long links or file paths; prevent sideways drift of the chat list.
-- Dictate mobile messages with a microphone button, review the transcript before sending, and recover or download recordings after a failed transcription. Optional OpenRouter/OpenAI transcription uses keys on the computer.
-- Allow QR scanners to open the mobile connection page, while keeping cross-site API requests, embedded pages and sockets blocked.
-- Prepare Linux AppImages with a readable/executable launcher, verify final package permissions and run the bundled Node as a different user before upload. Pin Ubuntu 22.04 for a stable glibc baseline and remove the redundant Linux suffix from AppImage filenames.
-- Connect a phone from Chats with a private Tailscale route, a short-lived QR code and desktop approval. View and revoke paired devices in the same panel.
-- Read Codex and Claude conversations, use a live terminal view for supported agents, and send messages or images from a mobile web app. Desktop and phone selections stay independent.
-- Keep drafts per chat and recover deliveries with persisted message receipts. Opening a phone never changes desktop terminal dimensions.
-- Read Workspace HTML and Markdown reports through isolated previews with image enlargement and downloads. Add mobile checks to the shared Claude and Codex authoring skill.
-- Update patched source-map-js and smol-toml dependencies.
-- Update the MCP SDK to 1.32.1, which includes the OAuth credential issuer fix.
+- 检查手机端报告边界前，先解析 Windows 短路径和链接的仓库根目录；外部文件夹仍被阻止。
+- 预览中含长链接或文件路径时，手机端对话卡片仍保持在屏幕内；防止对话列表横向漂移。
+- 手机端可用麦克风按钮听写消息，发送前可检查转写文本，转写失败后可恢复或下载录音。可选的 OpenRouter/OpenAI 转写使用电脑上的密钥。
+- 允许二维码扫描器打开手机连接页面，同时继续阻止跨站 API 请求、嵌入页面和 socket。
+- 准备 Linux AppImage 时使用可读/可执行的启动器，校验最终包权限，并在上传前以其他用户身份运行内置 Node。固定 Ubuntu 22.04 以获得稳定的 glibc 基线，并去掉 AppImage 文件名中多余的 Linux 后缀。
+- 在对话窗口通过私有 Tailscale 路由、短时有效的二维码和桌面端确认来连接手机。可在同一面板查看和撤销已配对设备。
+- 在手机 Web 应用中阅读 Codex 和 Claude 对话，对支持的代理使用实时终端视图，并发送消息或图片。桌面端和手机端的选择互不影响。
+- 按对话保存草稿，并通过持久化的消息回执恢复投递。打开手机端不会改变桌面终端尺寸。
+- 通过隔离预览阅读工作区的 HTML 和 Markdown 报告，支持图片放大和下载。在 Claude 与 Codex 共用的创作技能中加入手机端检查。
+- 更新已修补的 source-map-js 和 smol-toml 依赖。
+- MCP SDK 升级到 1.32.1，其中包含 OAuth 凭据签发方修复。
 
 ## 0.4.19 - 2026-10-05
 
-- Talk to Mak now accepts pasted screenshots and attached images. Preview or
-  remove them before sending; failed requests keep the draft and attachments.
-  Codex receives the images as image inputs, and copies stay in your inbox.
-- Shift+Enter adds a new line in Talk to Mak. Enter sends the message, and
-  text composition with an input method does not submit it accidentally.
-- Microphone and message errors can be dismissed. Closing an error does not
-  request microphone access again.
-- Coordinator-created chats respect the permission level selected in the UI.
-  Project MCP connection checks also respect the agent's saved approval state.
-- Added optional offline asset delivery manifests from
-  [zedarvates](https://github.com/zedarvates) in
-  [PR #11](https://github.com/witnesstodark/mr-mak-workspace/pull/11).
-  Build a file manifest or verify a delivery's sizes and hashes without an
-  account or network request. See the [manifest guide](scripts/asset-delivery/README.md).
+- Talk to Mak 现在支持粘贴截图和附加图片。发送前可预览或移除；请求失败时
+  保留草稿和附件。Codex 以图片输入形式接收这些图片，副本保存在你的 inbox 中。
+- 在 Talk to Mak 中按 Shift+Enter 换行，Enter 发送消息；使用输入法组字时
+  不会误发送。
+- 麦克风和消息错误可以关闭。关闭错误不会再次请求麦克风权限。
+- 协调器创建的对话遵循 UI 中选择的权限级别。项目 MCP 连接检查也遵循代理
+  已保存的审批状态。
+- 新增可选的离线资产交付清单，由
+  [zedarvates](https://github.com/zedarvates) 在
+  [PR #11](https://github.com/witnesstodark/mr-mak-workspace/pull/11) 中贡献。
+  无需账号或网络请求即可生成文件清单，或校验交付文件的大小和哈希。参见
+  [清单指南](scripts/asset-delivery/README.md)。
 
-**Update:** finish active tasks, quit Mr. Mak, then install the new package.
-For a source build, follow the [update guide](docs/updating.md). The optional
-manifest tool comes from the repository update. This release addresses #13,
-#14 and #15; the taskbar-icon report (#16) and the wider security review (#5)
-remain open.
+**更新：** 完成进行中的任务，退出 Mr. Mak，然后安装新包。
+源码构建请按[更新指南](docs/updating.md)操作。可选的清单工具随仓库更新提供。
+本次发布处理了 #13、#14 和 #15；任务栏图标问题（#16）和更大范围的安全审查（#5）
+仍未关闭。
 
 ## 0.4.18 - 2026-10-04
 
-- Added Linux desktop packaging and release build automation, contributed by
-  [rluders](https://github.com/rluders) in [PR #8](https://github.com/witnesstodark/mr-mak-workspace/pull/8).
-- Added a project-adapter foundation with generic and Godot project detection,
-  metadata, relevant files and optional editor/run commands when Godot is installed.
-- Added optional Markdown knowledge sources with resolved-path boundary checks,
-  plus integration-provider foundations. No external account is connected by default.
-- Preserved Windows startup with canonical paths and OpenCode version detection,
-  command discovery and session recovery during the platform refactor.
-- Release assets now use a dedicated staging folder and explicit repository
-  selection. The browser check retains card-loading coverage without HMR.
+- 新增 Linux 桌面打包和发布构建自动化，由
+  [rluders](https://github.com/rluders) 在 [PR #8](https://github.com/witnesstodark/mr-mak-workspace/pull/8) 中贡献。
+- 新增项目适配器基础，支持通用项目和 Godot 项目检测、元数据、相关文件，
+  并在已安装 Godot 时提供可选的编辑器/运行命令。
+- 新增可选的 Markdown 知识来源，带解析后路径的边界检查，
+  以及集成提供方基础。默认不连接任何外部账号。
+- 平台重构期间保留 Windows 启动行为：规范路径、OpenCode 版本检测、
+  命令发现和会话恢复。
+- 发布资产现在使用专用暂存文件夹并显式选择仓库。浏览器检查在没有 HMR
+  的情况下仍覆盖卡片加载。
 
-**Update:** quit Mr. Mak after active tasks finish and install the new Windows
-package. Existing projects, chat history and settings remain in place. For
-Preview or a source build, merge the update and follow [the update guide](docs/updating.md).
-Linux packaging is covered by CI; macOS build automation is included but has
-not been interactively validated. This release includes the 0.4.17 reading themes.
+**更新：** 等进行中的任务完成后退出 Mr. Mak，然后安装新的 Windows 包。
+现有项目、对话历史和设置都会保留。Preview 或源码构建请合并更新并按
+[更新指南](docs/updating.md)操作。Linux 打包已由 CI 覆盖；macOS 构建自动化已包含，
+但尚未经过交互式验证。本次发布包含 0.4.17 的阅读主题。
 
 ## 0.4.17 - 2026-10-02
 
-- Added Dark, Light and System in Settings > Appearance. Light uses dark text
-  on white across Workspace navigation, Files, Markdown and standard reports.
-  Browser Preview also has a Settings button with the same theme choices.
-- Theme changes apply immediately, persist after restart and preserve a report's
-  scroll position and edits. System follows the device theme. Terminal palettes,
-  images and custom game designs keep their own colors.
+- 在“设置 > 外观”中新增深色、浅色和跟随系统。浅色主题在工作区导航、文件、
+  Markdown 和标准报告中使用白底深色文字。浏览器 Preview 也有一个提供相同
+  主题选项的设置按钮。
+- 主题更改立即生效，重启后保留，且保持报告的滚动位置和编辑内容。跟随系统
+  会随设备主题切换。终端配色、图片和自定义游戏设计保留各自的颜色。
 
-- Fixed browser preview failing to open every card after the normal setup
-  created `public/workspace`. Shared report CSS now goes through the app's
-  stylesheet pipeline instead of being requested as a JavaScript module.
-- Fixed image dialogs closing immediately in development mode and kept them
-  outside Markdown paragraphs, so enlarged images remain usable.
-- Removed the Vite `__dirname` warning and clarified that Rust is needed only
-  when compiling the native desktop app, not for browser preview.
-- Browser checks now run the same workspace-link setup as `npm run dev`, and
-  verify card navigation, shared dialog styling and recovery after a failed load.
+- 修复正常安装创建 `public/workspace` 后，浏览器预览无法打开任何卡片的问题。
+  共享的报告 CSS 现在走应用的样式表管线，而不是作为 JavaScript 模块请求。
+- 修复开发模式下图片对话框立即关闭的问题，并将其放在 Markdown 段落之外，
+  使放大后的图片保持可用。
+- 移除 Vite 的 `__dirname` 警告，并说明只有编译原生桌面应用时才需要 Rust，
+  浏览器预览不需要。
+- 浏览器检查现在运行与 `npm run dev` 相同的工作区链接设置，并校验卡片导航、
+  共享对话框样式和加载失败后的恢复。
 
-**Update:** finish active tasks, quit Mr. Mak and install the Windows update.
-For browser preview, merge the latest source, stop your Preview server, then
-run `Setup.ps1 -Mode Preview` again and reload the browser. Dark remains the
-default. Issue #1 stays open for confirmation from the reporter.
+**更新：** 完成进行中的任务，退出 Mr. Mak 并安装 Windows 更新。
+浏览器预览请合并最新源码，停止 Preview 服务器，然后重新运行
+`Setup.ps1 -Mode Preview` 并刷新浏览器。默认仍为深色主题。Issue #1 保持打开，
+等待报告者确认。
 
 ## 0.4.16 - 2026-10-01
 
-- Added OpenCode to New chat, History and the default-agent setting. It runs the
-  installed native CLI with its own providers, account login and model settings.
-- OpenCode conversations keep their native session IDs for close/reopen and app
-  restart. Native activity drives the working glow and unread completion marker.
-  OpenCode 1.x and 2.x have separate observers; v2 terminals use private servers.
-- OpenCode uses the existing tab colors, pinning, file drops, clipboard images,
-  copy controls and fullscreen terminal scrolling. Voice can open OpenCode chats.
-- Clarified subscription setup in README, Help and the setup guide. Claude Code
-  and Codex can use eligible existing subscriptions without an API key. Optional
-  voice uses a separately billed OpenAI API connection. OpenCode's selected
-  providers determine its own authentication and billing.
-- Setup now accepts OpenCode as the primary CLI. Permission auto-approval remains
-  off by default; OpenCode's explicit deny rules remain in effect when enabled.
+- 在新建对话、历史和默认代理设置中加入 OpenCode。它运行已安装的原生 CLI，
+  使用其自己的提供方、账号登录和模型设置。
+- OpenCode 对话保留原生会话 ID，用于关闭/重新打开和应用重启。原生活动驱动
+  工作中光晕和未读完成标记。OpenCode 1.x 和 2.x 使用不同的观察器；v2 终端使用
+  私有服务器。
+- OpenCode 使用现有的标签页颜色、置顶、文件拖放、剪贴板图片、复制控件和
+  全屏终端滚动。语音可以打开 OpenCode 对话。
+- 在 README、帮助和安装指南中说明订阅设置。Claude Code 和 Codex 可使用符合条件
+  的现有订阅，无需 API key。可选的语音功能使用单独计费的 OpenAI API 连接。
+  OpenCode 所选的提供方决定其认证和计费方式。
+- 安装程序现在接受 OpenCode 作为主 CLI。权限自动批准默认关闭；启用后
+  OpenCode 的显式拒绝规则仍然有效。
 
-**Update:** finish active tasks, quit Mr. Mak and install the Windows update.
-Install and configure OpenCode separately if you want to use it. Existing chats
-and project content are preserved. The 0.4.14 skills pack is unchanged.
+**更新：** 完成进行中的任务，退出 Mr. Mak 并安装 Windows 更新。
+如需使用 OpenCode，请另行安装和配置。现有对话和项目内容均会保留。
+0.4.14 的技能包没有变化。
 
 ## 0.4.15 - 2026-09-30
 
-- Fixed browser preview crashing on Markdown cards with links or images. Local
-  document paths now resolve against the browser origin. A report error also
-  leaves Workspace navigation available, with a reload option.
-- Root `npm ci` now installs the local service dependencies too, so tests and
-  source-based service startup work without an extra install command.
-- Removed window authentication credentials from runtime diagnostics. Startup
-  passes them directly to the desktop shell without saving them in the project.
-- Updated the service's `fast-uri` dependency to 3.1.8, addressing
-  [GHSA-hrr3-gc8f-f4qj](https://github.com/advisories/GHSA-hrr3-gc8f-f4qj).
-- Added browser preview regression checks and a private security reporting guide.
+- 修复浏览器预览打开含链接或图片的 Markdown 卡片时崩溃的问题。本地文档路径
+  现在相对浏览器 origin 解析。报告出错时工作区导航仍可用，并提供重新加载选项。
+- 根目录 `npm ci` 现在也会安装本地服务依赖，因此测试和基于源码的服务启动
+  无需额外安装命令。
+- 从运行时诊断中移除窗口认证凭据。启动时直接将其传给桌面外壳，不保存到项目中。
+- 服务的 `fast-uri` 依赖升级到 3.1.8，修复
+  [GHSA-hrr3-gc8f-f4qj](https://github.com/advisories/GHSA-hrr3-gc8f-f4qj)。
+- 新增浏览器预览回归检查和私密安全报告指南。
 
-**Update:** finish active tasks, quit Mr. Mak, then install the Windows update.
-For browser preview, merge the source update, run `npm ci`, then restart Vite.
-The skills pack from 0.4.14 is unchanged. The separate report in issue #5 remains
-open while we await its private reproduction details; this release does not
-claim to resolve that report.
+**更新：** 完成进行中的任务，退出 Mr. Mak，然后安装 Windows 更新。
+浏览器预览请合并源码更新，运行 `npm ci`，然后重启 Vite。
+0.4.14 的技能包没有变化。issue #5 中的单独报告在等待私下提供复现细节期间
+保持打开；本次发布不声称已解决该报告。
 
 ## 0.4.14 - 2026-09-30
 
-- Added six reusable agent workflows: game VFX, game UI, animation integration,
-  level design, game audio and native visual review. Both Codex and Claude get
-  complete project-local skills with the same resources.
-- Improved Blender animation, motion references, feature handoffs and production
-  routing. Added a separate skills ZIP with the supporting files and licences.
-- Fixed Codex History recovery across local midnight and UTC date boundaries.
-  Conversations with large metadata or a delayed first prompt can be discovered.
-  Recovery checks the original conversation's identity rather than guessing from
-  a shared project folder.
+- 新增六个可复用的代理工作流：游戏特效（VFX）、游戏 UI、动画集成、关卡设计、
+  游戏音频和原生画面审查。Codex 和 Claude 都获得资源相同的完整项目本地技能。
+- 改进 Blender 动画、动作参考、功能交接和制作路由。新增单独的技能 ZIP，
+  包含配套文件和许可证。
+- 修复 Codex 历史在本地午夜和 UTC 日期边界上的恢复问题。元数据较大或首条
+  提示延迟的对话也能被发现。恢复时校验原始对话的身份，而不是根据共享的项目
+  文件夹猜测。
 
-This release aligns the public and desktop version numbers at 0.4.14; it follows
-public 0.1.2. Previous public releases remain available.
+本次发布将公开版与桌面版版本号统一为 0.4.14；它接续公开版 0.1.2。
+之前的公开发布版本仍可获取。
 
-**Update:** quit the app after active tasks finish, then install the Windows
-update and open your existing repository. New skills are repository content;
-merge them separately or use the skills ZIP. See [the update guide](docs/updating.md).
+**更新：** 等进行中的任务完成后退出应用，然后安装 Windows 更新并打开现有仓库。
+新技能属于仓库内容；请单独合并，或使用技能 ZIP。参见[更新指南](docs/updating.md)。
 
 ## 0.1.2 - 2026-09-23
 
-- Fixed mouse-wheel scrolling in fullscreen Claude Code chats after opening a tab or returning to it. Scrolling also survives reconnects.
-- Terminal snapshots and saved screens now preserve the mouse protocol requested by the CLI. Codex and classic Claude keep their existing scrollback behavior.
+- 修复全屏 Claude Code 对话中打开或返回标签页后鼠标滚轮无法滚动的问题。重连后滚动也保持正常。
+- 终端快照和保存的屏幕现在保留 CLI 请求的鼠标协议。Codex 和经典 Claude 保持原有的回滚行为。
 
-**Update:** finish active tasks, quit Mr. Mak Workspace from its tray menu, then run the new Windows installer. Open your existing repository; project files, settings and chat history stay in place.
+**更新：** 完成进行中的任务，从托盘菜单退出 Mr. Mak Workspace，然后运行新的 Windows 安装程序。打开现有仓库；项目文件、设置和对话历史都会保留。
 
 ## 0.1.1 - 2026-09-22
 
-- Web links in agent chats and Workspace cards now open in your default browser. Wrapped terminal links and named citations work too.
-- The bottom terminal row stays visible above the connection bar, including the model and reasoning effort.
-- New Codex and Claude chats default to `xhigh`. Existing saved effort choices are kept; task-specific voice requests can still select an appropriate effort.
+- 代理对话和工作区卡片中的网页链接现在会在默认浏览器中打开。换行的终端链接和命名引用也可用。
+- 终端最底行保持在连接栏上方可见，包括模型和推理强度。
+- 新的 Codex 和 Claude 对话默认使用 `xhigh`。已保存的推理强度选择保持不变；针对具体任务的语音请求仍可选择合适的推理强度。
 
-**Update:** finish active tasks, quit Mr. Mak Workspace from its tray menu, then run the new Windows installer. Open it with your existing repository. Your project files, settings and chat history stay in place.
+**更新：** 完成进行中的任务，从托盘菜单退出 Mr. Mak Workspace，然后运行新的 Windows 安装程序。用现有仓库打开它。项目文件、设置和对话历史都会保留。
 
-The installer updates the application. It does not replace the sample cards or your repository content. If you build from source, bring in this release's application changes and rebuild; keep your own Workspace files and context.
+安装程序只更新应用本身，不会替换示例卡片或你的仓库内容。如果从源码构建，请引入本次发布的应用改动并重新构建；保留你自己的工作区文件和上下文。
 
 ## 0.1.0
 
-First public release with two connected desktop windows, CLI chats, four sample projects and fourteen shared skills.
+首个公开发布版本：包含两个相互连接的桌面窗口、CLI 对话、四个示例项目和十四个共享技能。

@@ -1,62 +1,50 @@
 ---
 name: game-ui-workflow
-description: Design and implement game HUDs, menus, icons and portrait systems from visual proposals through reusable engine assets and input checks. Use when a game interface needs a coherent visual and behavior contract.
+description: 从视觉方案出发，设计并实现游戏 HUD、菜单、图标和头像系统，落地为可复用的引擎资源并做输入检查。用于游戏界面需要统一的视觉与行为约定时。
 ---
 
-# Game UI workflow
+# 游戏 UI 工作流
 
-Inspect the current game camera, input rules, UI framework and representative
-screens. Reuse the project's selected visual language and framework. Establish
-the information and actions the player needs before generating decorative art.
+检查当前游戏镜头、输入规则、UI 框架和有代表性的界面。沿用项目选定的视觉语言和框架。
+生成装饰性美术之前，先明确玩家需要的信息和操作。
 
-## Design against real gameplay
+## 基于真实玩法设计
 
-Use a native game capture as the context for a proposal. Keep it intact when
-comparing HUD alternatives, so changing the background cannot disguise contrast
-or obstruction. Define shared surface, type, spacing and selection tokens;
-preserve semantic colours for ownership, health, danger and accepted choices.
+以原生游戏截图作为方案的背景。比较 HUD 备选方案时保持截图不变，避免更换背景掩盖
+对比度或遮挡问题。定义共享的表面、字体、间距和选中态 token；保留表示归属、生命值、
+危险和已接受选项的语义颜色。
 
-Separate visual art from live data. Decide which values come from runtime state,
-which actions dispatch existing commands and what remains unimplemented. Show
-unavailable data honestly instead of inventing a currency, timer or gameplay rule.
-Include hover, selected, disabled, empty and overflow states when relevant.
+视觉美术与实时数据分开。确定哪些值来自运行时状态，哪些操作派发现有指令，哪些尚未
+实现。如实显示不可用的数据，不要臆造货币、计时器或玩法规则。在相关时包含悬停、
+选中、禁用、空和溢出状态。
 
-Review the actual interface scale and aspect ratios. Corner anchors, minimum
-sizes, long labels and compact rosters should remain usable at a narrow viewport.
-Test the intended selection/grouping rules; unit type and team may be independent
-keys. A combined health display and a range of differing stats are different data.
+审查实际界面缩放和宽高比。角落锚点、最小尺寸、长标签和紧凑的单位列表在窄视口下
+仍应可用。测试预期的选择 / 编组规则；单位类型和队伍可能是独立的键。合并的生命值
+显示与一组不同的属性范围是不同的数据。
 
-## Prepare reusable assets
+## 准备可复用资源
 
-Keep approved art and source masters, with stable asset IDs and a manifest of
-source paths/hashes. Export icons at their intended display scale. Check alpha
-edges on light/dark backgrounds, shared optical weight and silhouette readability.
-For stretchable panels, identify border regions explicitly; verify corners at
-several sizes before choosing nine-slicing or another rendering approach.
+保留已批准的美术和源母版，使用稳定的资源 ID，并用 manifest 记录源路径 / 哈希。
+按预期显示尺寸导出图标。在浅色 / 深色背景上检查 alpha 边缘、统一的视觉重量和剪影
+可读性。对可拉伸面板，明确标出边框区域；在选择九宫格或其他渲染方式之前，在多个
+尺寸下验证角部。
 
-Static and animated portraits need the same crop and a reliable still fallback.
-Budget concurrent video decoders/render targets, share identical playback when
-appropriate and release hidden views. Portrait art should be data-driven rather
-than adding a new UI branch for each character. Preserve GUIDs and existing
-bindings when updating imported assets.
+静态和动态头像需要相同的裁切和可靠的静态回退。为并发视频解码器 / 渲染目标设预算，
+适当时共享相同的播放，并释放隐藏的视图。头像美术应数据驱动，而不是为每个角色新增
+一个 UI 分支。更新已导入资源时保留 GUID 和现有绑定。
 
-## Integrate and prove interaction
+## 集成并证明交互
 
-Use the engine's existing UI tools or an available editor bridge. State the
-required framework/package instead of assuming a particular MCP is installed.
-Keep layout and world-input exclusion in agreement: a click over a panel must
-not also command the world. Verify hover/click, drag, keyboard focus, selection,
-minimap behaviour and pause/return paths that the changed screen owns.
+使用引擎现有的 UI 工具或可用的编辑器桥接。说明所需的框架 / 包，不要假设已安装某个
+特定 MCP。布局与世界输入屏蔽保持一致：点击面板时不得同时向世界发出指令。验证改动
+界面所负责的悬停 / 点击、拖拽、键盘焦点、选择、小地图行为以及暂停 / 返回路径。
 
-Read current values and cooldowns from their authoritative systems. Avoid
-duplicating combat/production timers in presentation code. Reuse views, bound
-expensive updates and avoid per-frame texture readback for a minimap.
+从权威系统读取当前数值和冷却。避免在表现层代码中重复实现战斗 / 生产计时器。复用
+视图，限制昂贵更新的频率，避免小地图每帧回读纹理。
 
-Save the real assets and check them in a fresh engine session. Deliver the theme,
-asset mapping, native captures, tested interactions and open decisions. A browser
-mockup approval is a design decision, not a claim of engine integration.
+保存真实资源，并在全新的引擎会话中检查。交付主题、资源映射、原生截图、已测试的交互
+和未决事项。浏览器样稿获批只是设计决策，不代表已完成引擎集成。
 
-Example request: "Give the existing HUD a compact unit panel and six matching
-command icons." Success includes consistent icons, real selection data, working
-commands, overflow behaviour and no click-through. Dependencies: the current UI
-sources, game captures and target-engine access for implementation.
+示例请求：“给现有 HUD 加一个紧凑的单位面板和六个风格统一的指令图标。”成功标准包括
+图标风格一致、真实的选择数据、可用的指令、溢出行为且不会点击穿透。依赖：当前 UI
+源文件、游戏截图以及用于实现的目标引擎访问。

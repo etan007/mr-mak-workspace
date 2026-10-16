@@ -1,63 +1,63 @@
-# Likeness Maximization (Projection-First Pipeline)
+# 相似度最大化（投影优先管线）
 
-Use this reference when the goal is maximum resemblance to a specific person or character in a single reference image, not a generic stylized character. This is the default high-likeness path for the `character` domain; `character/reconstruction.md` covers the fallback stylized/freehand path when the input is weak or the user accepts approximation.
+当目标是与单张参考图中某个特定人物或角色达到最大相似度、而不是做一个通用风格化角色时，使用本参考。这是 `character` 领域默认的高相似度路径；输入质量较弱或用户接受近似效果时，走 `character/reconstruction.md` 描述的风格化/徒手兜底路径。
 
-Read section 5.8-5.10 of `docs/UPGRADE_PLAN.md` for the full spec this reference implements.
+本参考所实现的完整规格见 `docs/UPGRADE_PLAN.md` 第 5.8-5.10 节。
 
-## Why Freehand Sculpting Cannot Reach High Likeness
+## 为什么徒手雕刻达不到高相似度
 
-Hand-authored primitives (capsules, spheres, blend shapes tuned by eye) can approximate proportions but cannot reproduce the exact geometry and surface information encoded in a photo. The two levers that actually move likeness are: (1) getting the mesh's shape and camera to align precisely with the photo, and (2) putting the photo's own pixels onto that mesh as texture. Everything else is secondary.
+手写的基本体（胶囊体、球体、凭肉眼调的 blend shape）可以逼近比例，但无法复现照片中编码的精确几何与表面信息。真正能提升相似度的两个杠杆是：(1) 让网格的形状和相机与照片精确对齐；(2) 把照片本身的像素作为纹理贴到该网格上。其他一切都是次要的。
 
-## Pipeline
+## 管线
 
-### (a) Fit a parametric template to landmarks
+### (a) 将参数化模板拟合到关键点
 
-Ship a lightweight, code-generated parametric humanoid/face template — a head-unit-parameterized body plus a morphable face, conceptually mirroring SMPL-X (body + hands + face, jaw/eye joints, linear blend skinning with corrective blendshapes) and FLAME (face-from-scans). This stays procedural: the template is code-generated and parameter-driven, never a downloaded art asset.
+提供一个轻量、由代码生成的参数化人形/面部模板——以头身单位参数化的身体加一个可形变的面部，概念上对应 SMPL-X（身体 + 手 + 面部、下颌/眼睛关节、带校正 blendshape 的线性混合蒙皮）和 FLAME（基于扫描的面部）。它保持程序化：模板由代码生成、由参数驱动，绝不是下载的美术资源。
 
-Fit template parameters (shape, pose, expression) by minimizing reprojection error between template landmarks and the observed 2D landmarks from `stage1_intake/extract_landmarks.py` — the SMPLify-X idea. Do not hand-place vertices; solve for parameters that make the template's projected landmarks match the image landmarks.
+通过最小化模板关键点与 `stage1_intake/extract_landmarks.py` 观测到的 2D 关键点之间的重投影误差，来拟合模板参数（形状、姿势、表情）——即 SMPLify-X 的思路。不要手动摆放顶点；求解参数，使模板投影后的关键点与图像关键点吻合。
 
-### (b) Camera match
+### (b) 相机匹配
 
-Estimate and store focal length, FOV, and orientation for the reference photo (`forge/stage1_intake/solve_camera_pose.py`, emits a `referenceCamera` spec block). The render camera must match this so:
+估计并存储参考照片的焦距、FOV 和朝向（`forge/stage1_intake/solve_camera_pose.py`，输出一个 `referenceCamera` spec 块）。渲染相机必须与之匹配，以便：
 
-- the review screenshot can be pixel-overlaid against the source photo
-- the texture projection in step (d) lands correctly
+- 评审截图可以与源照片做像素级叠加
+- 步骤 (d) 中的纹理投影能准确落位
 
-Without a matched camera, projected texture will misalign the moment the model is viewed from any angle other than the accidental one it was authored at.
+没有匹配的相机，只要模型从创作时那个偶然角度以外的任何角度观看，投影纹理就会错位。
 
-### (c) De-light before treating the photo as albedo
+### (c) 先去光照，再把照片当作 albedo
 
-A raw photo bakes in shadows, highlights, and ambient occlusion from whatever light was present when it was taken. Using it directly as albedo means the projected texture fights the new scene's lights. Run a de-lighting pass (`forge/stage1_intake/delight_albedo.py`) — high-pass/overlay neutralization at minimum, an AI delighter equivalent if available — to recover a neutral base color, then derive roughness/normal/AO independently. Treat "album must be free of baked lighting" as a hard requirement, not a nice-to-have.
+原始照片烘焙了拍摄时现场光照造成的阴影、高光和环境光遮蔽。直接用作 albedo 意味着投影纹理会与新场景的光照相冲突。运行一遍去光照（`forge/stage1_intake/delight_albedo.py`）——最低限度是高通/叠加中和，如有可用的 AI 去光照工具则用其等效方案——以恢复中性的基础色，然后独立推导 roughness/normal/AO。把"albedo 必须不含烘焙光照"视为硬性要求，而不是锦上添花。
 
-### (d) Project and bake
+### (d) 投影与烘焙
 
-Solve projective/camera-projection texturing from the matched camera (Three.js `ShaderMaterial`, or the `three-projected-material` approach) to map the de-lit reference onto the fitted mesh, then bake the result into the mesh's UVs (`forge/stage3_build/bake_projected_texture.py`, stdlib PNG) for the visible (front) side.
+基于匹配的相机求解投影/相机投影贴图（Three.js `ShaderMaterial`，或 `three-projected-material` 的做法），把去光照后的参考图映射到拟合好的网格上，然后针对可见（正面）一侧把结果烘焙进网格的 UV（`forge/stage3_build/bake_projected_texture.py`，标准库 PNG）。
 
-### (e) Infer unseen regions, flag confidence
+### (e) 推断不可见区域，标注置信度
 
-Back/sides are not observed. Options, in order of preference:
+背面/侧面没有被观测到。可选方案按优先级排序：
 
-1. request an additional view (`request-input`: front/side/back) — always try this first for a real person
-2. mirror the front texture across the body's symmetry plane where anatomically valid (works reasonably for faces, poorly for asymmetric hair/clothing)
-3. palette-continue from the nearest observed edge as a last resort
+1. 请求额外视图（`request-input`：front/side/back）——对真人始终先尝试这一项
+2. 在解剖学上成立时，沿身体对称面镜像正面纹理（对面部效果尚可，对不对称的头发/服装效果差）
+3. 万不得已时，从最近的已观测边缘延续调色板
 
-Every inferred region gets its own confidence score and a note of which strategy produced it. Never silently present an inferred back as if it were observed.
+每个推断区域都要有各自的置信度分数，并注明由哪种策略产生。绝不能把推断出的背面不加说明地当作观测结果呈现。
 
-### (f) Rig for deformation
+### (f) 为形变做绑定
 
-Emit a `SkinnedMesh` with a joint skeleton for the body plus morph targets/blend shapes for facial expression, exportable as glTF. Keep topology predictable (retopologized, evenly quaded around the face) so blendshapes deform cleanly. Expose skeleton and morph channels through `root.userData.sculptRuntime`.
+输出一个 `SkinnedMesh`，带有身体的关节骨架，以及用于面部表情的 morph target/blend shape，可导出为 glTF。保持拓扑可预测（已重拓扑，面部周围四边面均匀），使 blendshape 形变干净。通过 `root.userData.sculptRuntime` 暴露骨架和 morph 通道。
 
-## Part-Specific Notes (stylized-to-realistic dial)
+## 分部件说明（风格化到写实的调节）
 
-Same recipes as `character/reconstruction.md`, dialed toward realism: skin keeps the warm-base/soft-roughness/rim-light approximation (true SSS is out of scope); hair still prefers stylized clumps over strand geometry — a single image cannot supply real hair microstructure, so do not oversell hair likeness; eyes get the glossy-sphere-plus-iris-decal treatment with a correct catchlight, which reads as more "alive" than raw geometric accuracy.
+配方与 `character/reconstruction.md` 相同，只是向写实方向调节：皮肤保持暖色基底/柔和粗糙度/边缘光的近似（真正的 SSS 不在范围内）；头发仍优先使用风格化发簇而非发丝几何——单张图像无法提供真实的头发微观结构，所以不要夸大头发的相似度；眼睛采用光泽球体加虹膜贴花的处理，并带正确的眼神光，这比单纯的几何精度更显"有生气"。
 
-## Honesty Note
+## 诚实性说明
 
-State plainly, every time this pipeline runs: a single image cannot yield a guaranteed 100 percent likeness. Back/sides, occluded geometry, and true skin/hair microstructure are not observable from one photo. This pipeline maximizes likeness through parametric fit + photo projection + de-lighting + camera match, reports per-region confidence, and requests additional views whenever the subject is a real person and fidelity matters. Never claim "100 percent match" as an output — report confidence per region instead.
+每次运行此管线时都要明确说明：单张图像无法保证 100% 的相似度。背面/侧面、被遮挡的几何，以及真实的皮肤/头发微观结构，都无法从一张照片中观测到。本管线通过参数化拟合 + 照片投影 + 去光照 + 相机匹配来最大化相似度，报告各区域置信度，并在对象是真人且保真度重要时请求额外视图。绝不能把"100% 匹配"作为输出结论——改为按区域报告置信度。
 
-An optional, explicitly-flagged `generativeAssist` mode (importing an external image-to-3D base mesh, e.g. TRELLIS/Tripo/Hunyuan3D/Rodin) sets the realistic ceiling higher (~80-95 percent front-face shape accuracy per current generators) but is non-procedural and never the silent default — see UPGRADE_PLAN.md section 5.9.
+一个可选的、需显式标记的 `generativeAssist` 模式（导入外部图生 3D 的基础网格，例如 TRELLIS/Tripo/Hunyuan3D/Rodin）能把写实上限抬得更高（按当前生成器水平，正脸形状准确度约 80-95%），但它是非程序化的，绝不会作为静默默认——见 UPGRADE_PLAN.md 第 5.9 节。
 
-## Sources
+## 来源
 
 - [Expressive Body Capture: SMPL-X / SMPLify-X (arXiv 1904.05866)](https://arxiv.org/pdf/1904.05866)
 - [SMPLify-X overview (EmergentMind)](https://www.emergentmind.com/topics/smplify-x)

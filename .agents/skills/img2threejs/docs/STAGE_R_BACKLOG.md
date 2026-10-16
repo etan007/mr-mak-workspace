@@ -1,418 +1,316 @@
-# Stage R backlog — what is missing, in the order it should be closed
+# Stage R 待办——缺什么，按应关闭的顺序排列
 
-> **Checklist authority note (extract-animated-character, 2026-09-03):** the `animated-character`
-> profile is served by the installed **plugin-character** (`img2 add img2threejs/plugin-character`);
-> its `domain.json` owns the rig-step order and invokes the plugin's `tools/` ports. The
-> `forge/stage5_rig/...` commands below remain runnable as the base LIBRARY the emitters use, but
-> the checklist runs the plugin's copies -- when the two disagree, the plugin is the authority.
+> **检查清单权威说明（extract-animated-character，2026-09-03）：** `animated-character`
+> profile 由已安装的 **plugin-character**（`img2 add img2threejs/plugin-character`）提供；
+> 其 `domain.json` 掌管绑定步骤顺序，并调用插件的 `tools/` 移植版本。下文的
+> `forge/stage5_rig/...` 命令仍可作为输出器所用的基础库运行，但检查清单运行的是插件中的副本——二者不一致时，以插件为准。
 
-Distilled from building the 1.5.2 rigging and animation pipeline. Every claim here was verified by
-running something, not by reading; where a claim could not be verified it says so.
+提炼自构建 1.5.2 绑定与动画流水线的过程。这里的每条结论都是通过实际运行验证的，而不是靠阅读；无法验证的结论会明确说明。
 
-Companion documents: `STAGE_R_TEST_PLAN.md` (how to test), `GLB_ANIMATED_CHARACTER_PROMPT.md` (how to
-run), `pipelines/character-rigging-animation-1.5.2.md` (why each rule exists).
+配套文档：`STAGE_R_TEST_PLAN.md`（如何测试）、`GLB_ANIMATED_CHARACTER_PROMPT.md`（如何运行）、`pipelines/character-rigging-animation-1.5.2.md`（每条规则为何存在）。
 
 ---
 
-## Part 1 — The principles this work produced
+## 第 1 部分——这项工作得出的原则
 
-These govern everything below. Each one cost real time to learn.
+这些原则统辖下文的一切。每一条都是花了真实时间才学到的。
 
-### A gate nothing invokes reports a clean verdict forever
+### 没有任何东西调用的门禁会永远报告干净的结论
 
-Every `forge/stage5_rig/` module was callable and nothing in the workflow ever told anyone to call
-one. `next.py` walks the checklist, so a gate absent from the checklist never runs — and a build
-completes green having checked nothing.
+每个 `forge/stage5_rig/` 模块都可调用，但工作流里从来没有任何地方叫人去调用它们。`next.py` 按检查清单逐项推进，所以不在清单上的门禁永远不会运行——构建会在什么都没检查的情况下以绿色完成。
 
-**This was then reproduced while fixing it.** Nine rig steps were added to the checklist and
-`next_entry()` was never taught to dispatch scope `"rig"`; the steps sat pending forever while the
-build reported `complete`. Sixteen tests passed because they asserted the *contents* of the list.
+**随后在修复它的过程中又重现了一次。** 九个绑定步骤被加进了检查清单，但从未教会 `next_entry()` 分派 scope `"rig"`；这些步骤永远处于 pending，而构建报告 `complete`。十六个测试都通过了，因为它们断言的是列表的*内容*。
 
-> **Presence in a list is not reachability. Assert the behaviour, not the data structure.**
-> Mutation-check it: break the dispatch on purpose and confirm a test goes red.
+> **出现在列表里不等于可达。断言行为，而不是数据结构。**
+> 对它做变异检查：故意破坏分派，确认有测试变红。
 
-### `unevaluated` is not `pass`
+### `unevaluated` 不是 `pass`
 
-A check whose input is absent must say so and must make the report not-ok. Four gates are in that
-state today, which is why `rig_gates.py` cannot return green yet. That is the system being honest,
-and the moment it is softened to "assume pass when unmeasured" the whole suite becomes decorative.
+缺少输入的检查必须说明这一点，并且必须让报告变为非 ok。目前有四个门禁处于这种状态，这就是 `rig_gates.py` 还不能返回绿色的原因。这是系统在保持诚实；一旦把它软化为"未测量时假定通过"，整套检查就成了摆设。
 
-### Two symptoms, two causes — decide which one you are looking at
+### 两种症状，两种成因——先判断你看到的是哪一种
 
-| What you see | Mechanism |
+| 你看到的 | 机制 |
 |---|---|
-| Nothing moves; scene renders fine | Binding never reaches the node, or inverse binds cancel the wrong pose |
-| Parts fly apart; figure shredded | Geometry rewritten during rigging, or joint indices addressing a different skeleton |
+| 什么都不动；场景渲染正常 | 绑定没有作用到节点，或者 inverse bind 抵消了错误的姿态 |
+| 部件四散飞开；人物被撕碎 | 绑定过程中几何被改写，或关节索引寻址到了另一个骨架 |
 
-The 1.5.1 build had **both**, and each produced a plausible-looking scene.
+1.5.1 构建**两者都有**，而且每一种都产生了看似合理的场景。
 
-### State the frame, always
+### 始终说明坐标系
 
-Mesh parity must read the **raw local buffers**. The existing exporter emits world space — correct
-for self-intersection, wrong here in both directions: posing changes `matrixWorld` without touching
-a byte (false positive), and a buffer edit cancelled by a compensating transform reads as unchanged
-(false negative).
+mesh parity 必须读取**原始局部 buffer**。现有导出器输出世界空间——对自相交检测是对的，在这里则两个方向都错：摆姿态会改变 `matrixWorld` 而不触碰任何字节（假阳性），被补偿变换抵消掉的 buffer 修改会读作未改变（假阴性）。
 
-The same class of error was found in the spec itself: §R4's `handRange`/`footRange` bands are
-unsatisfiable in world space for a travelling gait, because the limbs go where the body goes. They
-are hip-relative; the global features stay world-space.
+同一类错误在 spec 本身中也被发现：对于有位移的步态，§R4 的 `handRange`/`footRange` 区间在世界空间中无法满足，因为肢体会随身体移动。它们是相对髋部的；全局特征仍保持世界空间。
 
-### Measure before recommending
+### 先测量，再建议
 
-A guard was added against a double world-bake and then recommended for retention on the grounds that
-"there is no evidence sharing is legitimate" — without going to look. Investigation afterwards found
-**61 meshes, 61 distinct geometry variables, zero sharing, impossible by construction**. The
-recommendation was right by accident and the reasoning was wrong.
+曾加入一道防止重复世界空间烘焙的保护，然后以"没有证据表明共享是合理的"为由建议保留它——却没有去查看。事后调查发现 **61 个网格、61 个不同的几何变量、零共享，在构造上就不可能共享**。建议碰巧是对的，推理却是错的。
 
-> **"I found no evidence against it" is not evidence for it. Go and measure.**
+> **"我没找到反对它的证据"并不是支持它的证据。去测量。**
 
-### Claims are not measurements — including other people's
+### 声称不等于测量——别人的声称也一样
 
-`kimodo`'s reported metrics all **exclude** its post-processing stage "to ensure a fair comparison
-between methods", so the correction module's benefit is asserted and never measured. Read other
-projects' numbers for what they actually measured.
+`kimodo` 报告的所有指标都**排除了**其后处理阶段，"以确保方法之间的公平比较"，所以修正模块的收益只是被声称，从未被测量。阅读其他项目的数字时，要看它们实际测量的是什么。
 
 ---
 
-## Part 2 — The backlog
+## 第 2 部分——待办
 
-Priority reflects what unblocks the next honest answer, not what is cheapest.
+优先级反映的是什么能解锁下一个诚实的答案，而不是什么最便宜。
 
-### V — Verification (highest value: nothing below is grounded until these are done)
+### V——验证（价值最高：这些完成之前，下面的一切都没有根基）
 
-Everything built so far is machinery to catch a bug **nobody has seen**. The three mesh-damage
-mechanisms were inferred by reading code. Building more gates before observing the failure repeats
-that mistake at higher cost.
+目前构建的一切都是用来捕获一个**没人亲眼见过**的 bug 的机制。三种网格损坏机制都是通过读代码推断出来的。在观察到失败之前就构建更多门禁，只是以更高的代价重复同一个错误。
 
 ---
 
-**V-1 · Reproduce the mesh damage on a real character**
+**V-1 · 在真实角色上重现网格损坏**
 
-*Why* — "fixed" is currently unfalsifiable. No render has ever been produced by this work.
+*原因*——"已修复"目前无法证伪。这项工作从未产出过任何渲染。
 
-*Done when* — a dated recording exists of a real demo (`warrior`, `girl-character` or
-`low-poly-humanoid`) showing the failure at three angles (0°, 40°, grazing), plus a frozen
-`baseline-broken.json` manifest of its geometry, and the symptom is classified as *corpse* or
-*shredded* per the table above.
+*完成标准*——存在一份带日期的记录，展示一个真实 demo（`warrior`、`girl-character` 或 `low-poly-humanoid`）在三个角度（0°、40°、掠射角）下的失败，外加一份冻结的其几何的 `baseline-broken.json` manifest，并按上表把症状归类为 *corpse* 或 *shredded*。
 
-*Cost* — ~1h. Blocked by nothing. CloakBrowser is installed and all three demos carry a rig.
+*成本*——约 1 小时。没有阻塞项。CloakBrowser 已安装，三个 demo 都带有绑定。
 
 ---
 
-**V-2 · Run one character end to end through `animated-character`**
+**V-2 · 让一个角色端到端跑完 `animated-character`**
 
-*Why* — the decisive test of the whole pipeline. Three outcomes, all valuable: the gate catches it
-(machinery works), the gate misses it (names the missing gate — the most valuable result), or nothing
-breaks (the bug is elsewhere; stop guessing).
+*原因*——整条流水线的决定性测试。三种结果都有价值：门禁捕获了它（机制有效）；门禁漏掉了它（指出缺失的门禁——最有价值的结果）；或者什么都没坏（bug 在别处；别再猜了）。
 
-*Done when* — the run reaches `rig-gates` with a `mesh_parity verify` verdict recorded, and Phase 4
-of the test plan is answered in writing.
+*完成标准*——运行到达 `rig-gates`，记录下 `mesh_parity verify` 结论，并以书面形式回答测试计划的 Phase 4。
 
-*Cost* — ~half a day. Depends on V-1 for a baseline. `rig-payload-validate` will need skipping with
-`--reason` until **P-2** lands; that is expected, not a blocker.
+*成本*——约半天。依赖 V-1 提供基线。在 **P-2** 落地之前，`rig-payload-validate` 需要用 `--reason` 跳过；这是预期内的，不是阻塞项。
 
 ---
 
-### P — Producers (four gates can never pass without them)
+### P——生产者（没有它们，有四个门禁永远无法通过）
 
-**P-1 · CLI for `emit_animation_runtime.py` → unblocks G1**
+**P-1 · 为 `emit_animation_runtime.py` 提供 CLI → 解锁 G1**
 
-*Why* — G1 is the only check that distinguishes a clip that plays from one that exists, loads, holds
-an action, reports a duration and drives nothing. The `runGateR1()` harness that produces
-`bindingSamples` is **already written inside the emitter**; nothing exposes it to a shell. Cheapest
-possible path to the most important gate.
+*原因*——G1 是唯一能区分"会播放的动画片段"和"存在、能加载、持有 action、报告时长却什么都不驱动的动画片段"的检查。产出 `bindingSamples` 的 `runGateR1()` harness **已经写在输出器内部**；只是没有东西把它暴露给 shell。这是通往最重要门禁的最便宜路径。
 
-*Done when* — `python3 forge/stage5_rig/emit_animation_runtime.py <clips.json> --out runtime.ts`
-works, the emitted harness runs in a browser and writes a `bindingSamples` block that `rig_gates.py`
-accepts, and G1 reports `pass` or `fail` — never `unevaluated` — on a real rig.
+*完成标准*——`python3 forge/stage5_rig/emit_animation_runtime.py <clips.json> --out runtime.ts` 可用，输出的 harness 能在浏览器中运行并写出 `rig_gates.py` 接受的 `bindingSamples` 块，且 G1 在真实绑定上报告 `pass` 或 `fail`——绝不是 `unevaluated`。
 
-*Cost* — small. 6 of 8 stage5 modules already have a `__main__`; this follows the same idiom.
+*成本*——小。8 个 stage5 模块中已有 6 个带 `__main__`；照同样的写法即可。
 
 ---
 
-**P-2 · Converter producing `rig-payload.json`**
+**P-2 · 产出 `rig-payload.json` 的转换器**
 
-*Why* — the `rig-payload-validate` step calls `validate_rig_payload.py --payload rig-payload.json`
-and **nothing writes that file**. `new_sculpt_spec.py:derive_character_rig` produces a differently
-shaped `spec["rig"]`. Verified: the filename appears only in `workflow_state.py`.
+*原因*——`rig-payload-validate` 步骤调用 `validate_rig_payload.py --payload rig-payload.json`，而**没有任何东西写出这个文件**。`new_sculpt_spec.py:derive_character_rig` 产出的 `spec["rig"]` 结构不同。已验证：该文件名只出现在 `workflow_state.py` 中。
 
-*Done when* — a converter turns a sculpt spec's `rig` block into the payload schema the validator
-reads, the Stage R step runs without `--reason`, and a round-trip test proves the two schemas agree
-field for field.
+*完成标准*——一个转换器把 sculpt spec 的 `rig` 块转成校验器读取的载荷 schema，Stage R 步骤无需 `--reason` 即可运行，并有往返测试证明两个 schema 逐字段一致。
 
-*Cost* — small-to-medium. Needs both schemas read side by side; the mismatch may be substantive
-rather than cosmetic.
+*成本*——小到中。需要把两个 schema 并排阅读；不匹配可能是实质性的，而不只是表面上的。
 
 ---
 
-**P-3 · Producers for G3 (`bindRestore`) and G6 (`meshVisibility`)**
+**P-3 · G3（`bindRestore`）和 G6（`meshVisibility`）的生产者**
 
-*Why* — verified: **zero files** produce either key outside the gate and its tests. G3 catches pose
-bleed between clips; G6 catches a part left behind in bind pose.
+*原因*——已验证：除门禁本身及其测试外，**零个文件**产出这两个 key。G3 捕获动画片段之间的姿态渗漏；G6 捕获停留在绑定姿态的部件。
 
-*Done when* — both keys are emitted by a browser harness in the shape `rig_gates.py` parses, and
-both gates report a real verdict on a real rig.
+*完成标准*——两个 key 都由浏览器 harness 以 `rig_gates.py` 解析的结构输出，且两个门禁在真实绑定上都报告真实结论。
 
-*Cost* — medium. Same harness shape as `export_mesh_buffers.mjs`; reuse its CloakBrowser scaffolding.
+*成本*——中。与 `export_mesh_buffers.mjs` 的 harness 结构相同；复用它的 CloakBrowser 脚手架。
 
 ---
 
-**P-4 · G10 skin-integrity sweep harness**
+**P-4 · G10 蒙皮完整性扫描 harness**
 
-*Why* — the visual gate, and the most expensive. Five poses is not coverage: the sweep that found the
-real defects was 11 clips × 4 times × 2 sides × 2 azimuths = **176 frames**. Must report holes and
-creases as **two** numbers, because Stage R2 trades one against the other and a combined score hides
-it. Also needs a **measured blend-off baseline** — an absent baseline leaves G10 `unevaluated` rather
-than borrowing someone else's threshold.
+*原因*——视觉门禁，也是最昂贵的一个。五个姿态不算覆盖：发现真实缺陷的扫描是 11 个动画片段 × 4 个时间点 × 2 侧 × 2 个方位角 = **176 帧**。必须把破洞和褶皱报告为**两个**数字，因为 Stage R2 在二者之间此消彼长，合并分数会掩盖这一点。还需要一条**测得的关闭混合的基线**——缺少基线时 G10 保持 `unevaluated`，而不是借用别人的阈值。
 
-*Done when* — the sweep runs, both numbers are reported, and a control run with blending disabled
-supplies the baseline.
+*完成标准*——扫描能运行，两个数字都有报告，并由一次关闭混合的对照运行提供基线。
 
-*Cost* — large. Do last, and only if V-2 shows tearing that the cheaper gates miss.
+*成本*——大。放到最后做，而且只有在 V-2 显示出更便宜的门禁漏掉的撕裂时才做。
 
 ---
 
-### H — Hardening and plumbing
+### H——加固与管道
 
-**H-1 · Decide `runtime/` tracking**
+**H-1 · 决定是否跟踪 `runtime/`**
 
-*Why* — `runtime/` is gitignored with **zero files tracked**, so `export_mesh_buffers.mjs` (the
-producer for G4/G5/G11) does not ship. This is pre-existing, not new: `export_mesh_geometry.mjs`,
-which `SKILL.md` instructs agents to run, is equally absent from the repository.
+*原因*——`runtime/` 被 gitignore，**跟踪的文件为零**，所以 `export_mesh_buffers.mjs`（G4/G5/G11 的生产者）没有随仓库发布。这是早已存在的问题，并非新问题：`SKILL.md` 指示代理运行的 `export_mesh_geometry.mjs` 同样不在仓库中。
 
-*Done when* — either `runtime/scripts/` is un-ignored and both scripts are tracked, or the docs stop
-referencing scripts a clean checkout does not contain. **A user decision, not an implementation one.**
+*完成标准*——要么取消对 `runtime/scripts/` 的忽略并跟踪两个脚本，要么文档不再引用干净 checkout 中不存在的脚本。**这是用户的决定，不是实现层面的决定。**
 
-*Cost* — trivial once decided.
+*成本*——决定之后微不足道。
 
 ---
 
-**H-2 · Give Stage R its own correction budget**
+**H-2 · 给 Stage R 独立的修正预算**
 
-*Why* — verified: loop caps are global (`maxPerPass`, `maxTotal`; `perPass` keyed by build pass).
-Corrections spent in the pass loop can hard-stop a run before any rig step executes, and Stage R
-inherits a budget that may already be exhausted.
+*原因*——已验证：循环上限是全局的（`maxPerPass`、`maxTotal`；`perPass` 以构建 pass 为键）。在 pass 循环中花掉的修正次数，可能在任何绑定步骤执行之前就让运行硬停止，而 Stage R 继承的预算可能已经耗尽。
 
-*Done when* — Stage R carries its own allowance, and a test proves a run that exhausted the pass
-budget can still reach `rig-gates`.
+*完成标准*——Stage R 拥有自己的额度，并有测试证明耗尽了 pass 预算的运行仍能到达 `rig-gates`。
 
-*Cost* — small.
+*成本*——小。
 
 ---
 
-**H-3 · `mesh-repair` and `rig-bind` produce verifiable artifacts**
+**H-3 · `mesh-repair` 和 `rig-bind` 产出可验证的产物**
 
-*Why* — both are prose steps with no script. `rig-bind` is the step that actually creates the
-skeleton; its only downstream check is `mesh-parity-verify`, which proves the buffers were untouched
-— **not that the bind is correct**.
+*原因*——两者都是没有脚本的散文式步骤。`rig-bind` 是实际创建骨架的步骤；它唯一的下游检查是 `mesh-parity-verify`，而那只证明 buffer 未被触碰——**并不证明绑定正确**。
 
-*Done when* — each emits an artifact a gate can read: for `mesh-repair`, what was repaired and the
-before/after measurement; for `rig-bind`, enough to confirm identity bind, bounds-derived display
-offset, and `updateMatrixWorld` ordering.
+*完成标准*——每一步都输出门禁可读取的产物：`mesh-repair` 输出修复了什么以及修复前后的测量；`rig-bind` 输出足以确认单位矩阵绑定、由包围盒推导的显示偏移以及 `updateMatrixWorld` 调用顺序的信息。
 
-*Cost* — medium.
+*成本*——中。
 
 ---
 
-**H-4 · Put the orphaned gates on the checklist**
+**H-4 · 把孤立的门禁放进检查清单**
 
-*Why* — verified: `turntable_gate`, `self_intersection`, `attachment_anchor`, `interior_difference`,
-`scalp_exposure`, `divine_eye`, `vlm_gate` and `correction_loop` are all mandated by `SKILL.md` and
-**none has a checklist step id**, so `next.py` never asks for them. Same defect class as Stage R
-before it was wired.
+*原因*——已验证：`turntable_gate`、`self_intersection`、`attachment_anchor`、`interior_difference`、`scalp_exposure`、`divine_eye`、`vlm_gate` 和 `correction_loop` 都是 `SKILL.md` 强制要求的，但**没有一个有检查清单步骤 id**，所以 `next.py` 从不要求运行它们。与 Stage R 接入之前是同一类缺陷。
 
-*Done when* — each has a step id in the appropriate scope, and a dispatch test (not a contents test)
-proves `next_entry()` reaches it.
+*完成标准*——每一个都在合适的 scope 中有步骤 id，并有分派测试（而不是内容测试）证明 `next_entry()` 能到达它。
 
-*Cost* — medium. Do it in one pass and reuse `test_rig_workflow_steps.py`'s dispatch-test shape.
+*成本*——中。一次性做完，复用 `test_rig_workflow_steps.py` 的分派测试结构。
 
 ---
 
-**H-5 · `ARCHITECTURE.md` covers all of `stage5_rig/`**
+**H-5 · `ARCHITECTURE.md` 覆盖全部 `stage5_rig/`**
 
-*Why* — verified: it lists **4 of 12** files. Anyone reading it to build a driver misses the entire
-1.5.2 stack.
+*原因*——已验证：它只列出了 12 个文件中的 **4 个**。任何读它来构建驱动程序的人都会漏掉整个 1.5.2 技术栈。
 
-*Cost* — trivial.
-
----
-
-**H-6 · Second subject for the `single-subject` thresholds**
-
-*Why* — the blend radius `R = 0.006H` and every §2 classifier boundary come from **one rig**. The
-walk/run gap (0.400 → 0.799 H/s) and run/dash gap (0.799 → 2.250) are both wide, but wide on one
-subject only.
-
-*Done when* — the gaps are confirmed to survive on a second rig, or the thresholds are re-derived.
-Until then they stay documented as starting values, never constants.
-
-*Cost* — medium, and gated on having a second rigged asset.
+*成本*——微不足道。
 
 ---
 
-**H-7 · Rebase the GLB fast lane onto 1.5.2**
+**H-6 · 为 `single-subject` 阈值找第二个主体**
 
-*Why* — verified: the fastlane worktree is `version: 1.5.1` and its `stage5_rig/` holds only the four
-pre-1.5.2 files. The two branches are **mutually exclusive**; `--profile glb` and
-`--profile animated-character` cannot currently be combined.
+*原因*——混合半径 `R = 0.006H` 和 §2 的每个分类边界都来自**同一个绑定**。walk/run 间隔（0.400 → 0.799 H/s）和 run/dash 间隔（0.799 → 2.250）都很宽，但只是在一个主体上很宽。
 
-*Done when* — one branch offers both profiles and the combined suite is green.
+*完成标准*——确认这些间隔在第二个绑定上依然成立，或者重新推导阈值。在此之前，它们一律记录为起始值，绝不作为常数。
 
-*Cost* — medium. **Do not start before V-2** — merging two branches before knowing whether one of
-them is correct doubles the surface to debug.
+*成本*——中，且取决于是否有第二个已绑定的资产。
 
 ---
 
-### K — From `kimodo` (NVIDIA Toronto AI Lab)
+**H-7 · 把 GLB 快速通道 rebase 到 1.5.2**
 
-Researched because it was suggested as a rigging reference. **It is not** — it is a kinematic motion
-diffusion model over a hardcoded skeleton that never touches a mesh: no skeleton derivation, no
-skinning weights, one trained model per skeleton. It is orthogonal to both of our hard problems.
+*原因*——已验证：fastlane worktree 是 `version: 1.5.1`，其 `stage5_rig/` 只有 1.5.2 之前的四个文件。两个分支**互斥**；`--profile glb` 和 `--profile animated-character` 目前无法组合使用。
 
-Three ideas are worth taking, all implementable in stdlib with no checkpoint, no PyTorch and no
-NVIDIA Open Model License dependency.
+*完成标准*——一个分支同时提供两个 profile，且合并后的测试套件全绿。
 
----
-
-**K-1 · `retarget_tag` — semantic role tags instead of position matching**
-
-*Why* — kimodo stamps each joint with an anatomical role (`LeftHand`, `RightFoot`, …) and **asserts
-exactly one joint matches each tag**, failing otherwise. Our `correspondence()` currently matches by
-measured position, which is better than names but still fuzzy. Because our generator **authors** the
-skeleton, it can stamp the tag at emit time — correspondence becomes a join, not an inference. The
-exactly-one assertion is a free structural gate.
-
-*Done when* — emitted skeletons carry `retargetTag`, `correspondence()` prefers a tag join and falls
-back to position, and the exactly-one assertion is a gate.
-
-*Cost* — small. **But do it after V-2** — correspondence has not yet been shown to be a cause of any
-observed damage.
+*成本*——中。**不要在 V-2 之前开始**——在不知道其中一个分支是否正确之前就合并两个分支，会让需要调试的面翻倍。
 
 ---
 
-**K-2 · Foot contact as an emitted channel**
+### K——来自 `kimodo`（NVIDIA Toronto AI Lab）
 
-*Why* — kimodo ships `foot_contacts [T,4]` alongside the motion rather than re-deriving it
-downstream. A parallel contact track on our clips makes foot-lock trivial in JS and makes the
-contact claim checkable instead of implicit.
+之所以调研它，是因为有人建议把它作为绑定参考。**它不是**——它是一个基于硬编码骨架的运动学动作扩散模型，从不接触网格：没有骨架推导，没有蒙皮权重，每个骨架一个训练好的模型。它与我们的两个难题都不相干。
 
-*Cost* — small.
+有三个想法值得借鉴，都能用标准库实现，不需要 checkpoint、不需要 PyTorch，也不依赖 NVIDIA Open Model License。
 
 ---
 
-**K-3 · Two-detector contact-consistency gate**
+**K-1 · `retarget_tag`——用语义角色标签代替位置匹配**
 
-*Why* — compare **declared** contacts against an **independent geometric detector**. Catches
-"animation looks fine but the contact metadata lies" — a class our current `footSlide` gate cannot
-see. Computable from joint positions alone: pure stdlib, no new dependency.
+*原因*——kimodo 给每个关节打上解剖学角色标签（`LeftHand`、`RightFoot`……），并**断言每个标签恰好匹配一个关节**，否则失败。我们的 `correspondence()` 目前按测得位置匹配，比按名称好，但仍然模糊。由于我们的生成器**编写**骨架，它可以在输出时打上标签——对应关系就变成一次 join，而不是一次推断。"恰好一个"断言是一道免费的结构门禁。
 
-*Liftable constants, quoted from kimodo*: `contact_threshold = 0.5`, `vel_thresh = 0.15 m/s` and
-`height_thresh = 0.10 m` for the consistency detector; `vel_thresh = 0.2 m/s` and
-`height_thresh = 0.05 m` for foot-skate; `above_ground_offset = 0.007`; `root_margin = 0.04`.
-These are **their** measurements on **their** skeletons — treat as starting values and re-derive,
-exactly as with our own `single-subject` numbers.
+*完成标准*——输出的骨架带有 `retargetTag`，`correspondence()` 优先按标签 join、退而按位置匹配，且"恰好一个"断言成为一道门禁。
 
-*Cost* — small-to-medium.
+*成本*——小。**但要在 V-2 之后做**——目前还没有证据表明对应关系是任何已观察到的损坏的成因。
 
 ---
 
-**Explicitly not adopted from kimodo:** the checkpoint (282M params, ~17GB VRAM, PyTorch +
-LLM2Vec, weights under NVIDIA Open Model License — the Apache 2.0 covers **code only**); the
-MotionCorrection C++ library (needs a C++17 toolchain, undocumented algorithm, **benefit never
-measured**); one-model-per-skeleton (incompatible with a per-image skeleton); BVH as interchange
-(SOMA-only, reintroduces an opaque asset plus a metres→cm scale trap).
+**K-2 · 把脚部接触作为输出通道**
+
+*原因*——kimodo 把 `foot_contacts [T,4]` 与动作一起交付，而不是在下游重新推导。在我们的动画片段上增加一条并行的接触轨道，可以让 JS 中的脚部锁定变得轻而易举，并让接触声明变得可检查而不是隐式的。
+
+*成本*——小。
 
 ---
 
-### S — Seam continuity under animation
+**K-3 · 双检测器接触一致性门禁**
 
-The requirement that meshes stay **continuous while animating** is currently listed under *what this
-pipeline does not solve*, and the gate that would measure it has no producer. These three close that.
+*原因*——把**声明的**接触与一个**独立的几何检测器**进行比较。能捕获"动画看起来没问题但接触元数据在撒谎"——这是我们当前的 `footSlide` 门禁看不到的一类问题。仅凭关节位置即可计算：纯标准库，无新依赖。
 
-Full design: `PLAN_1.6_ANIMATION_STAGE.md` §3.
+*可直接搬用的常数，引自 kimodo*：一致性检测器用 `contact_threshold = 0.5`、`vel_thresh = 0.15 m/s` 和 `height_thresh = 0.10 m`；foot-skate 用 `vel_thresh = 0.2 m/s` 和 `height_thresh = 0.05 m`；`above_ground_offset = 0.007`；`root_margin = 0.04`。这些是**他们**在**他们的**骨架上的测量——当作起始值并重新推导，与我们自己的 `single-subject` 数字一样对待。
 
----
-
-**S-1 · Shared-boundary welding with a unified weight zone**
-
-*Why* — proximity blending is a **mitigation, not a fix**, and says so: holes fell 974 px/30 blobs →
-287 px/15 blobs while creases rose 16% (31,316 → 36,470 px). Its own residual note states the
-complete fix is *"one continuous mesh with a unified weight field, which changes the part structure
-and breaks per-part UI"* — and per-part UI is a shipping gate.
-
-The third path was already **declared** in the showcase IR and never built:
-`topologyBridge: "shared-boundary"` + `deformationBridge: "shared-weight-zone"`. `validateContinuity()`
-only checks the constraint objects are well-formed; it never touches geometry. A declaration with
-nothing implementing or verifying it — the same defect class as a gate nothing invokes.
-
-*Done when* — vertices on a welded seam share **one bit-identical binding**, so no pose can separate
-them; parts remain separately addressable so explode/click still passes `check_part_coverage.py`; and
-the 176-frame sweep reports **zero background pixels** through every welded seam.
-
-*Cost* — large. Touches topology. **Do not start before V-1** measures the real gap first.
+*成本*——小到中。
 
 ---
 
-**S-2 · G10 producer — promoted from P-4**
-
-*Why* — without it S-1 is unverifiable, and the current hole/crease numbers are inherited from an
-earlier build rather than measured on today's code. Originally ranked last on cost; the continuity
-requirement makes it essential rather than a luxury.
-
-*Done when* — as P-4, plus a re-measured baseline for the current pipeline.
+**明确不从 kimodo 采纳的：** checkpoint（282M 参数，约 17GB 显存，PyTorch + LLM2Vec，权重采用 NVIDIA Open Model License——Apache 2.0 **只覆盖代码**）；MotionCorrection C++ 库（需要 C++17 工具链，算法无文档，**收益从未被测量**）；每个骨架一个模型（与逐图生成的骨架不兼容）；以 BVH 作为交换格式（仅限 SOMA，重新引入不透明资产，外加米→厘米的尺度陷阱）。
 
 ---
 
-**S-3 · A `rig` group in the correction loop**
+### S——动画中的接缝连续性
 
-*Why* — verified: `correction_loop.py` mentions `rig`, `skin` and `weight` **zero times**. Its groups
-are camera → silhouette → face → clothing → accessory → materials → lighting. Visual feedback can
-therefore never drive a rig or weighting fix, only a material or lighting one.
+"网格在**动画过程中保持连续**"这一要求目前被列在*本流水线未解决的问题*之下，而能测量它的门禁没有生产者。以下三项来补上这一点。
 
-*Done when* — a `rig` correction group exists, and a defect visible only under animation routes to it.
-
-*Cost* — medium.
+完整设计：`PLAN_1.6_ANIMATION_STAGE.md` §3。
 
 ---
 
-## Part 3 — Suggested order
+**S-1 · 共享边界焊接，配合统一权重区**
+
+*原因*——邻近混合是一种**缓解，而不是修复**，它自己也这么说：破洞从 974 px/30 个斑块降到 287 px/15 个斑块，而褶皱上升了 16%（31,316 → 36,470 px）。它自己的残差说明写道，完整修复是 *"one continuous mesh with a unified weight field, which changes the part structure and breaks per-part UI"*（一个带统一权重场的连续网格，这会改变部件结构并破坏逐部件 UI）——而逐部件 UI 是一道发布门禁。
+
+第三条路早已在 showcase IR 中**声明**，却从未构建：`topologyBridge: "shared-boundary"` + `deformationBridge: "shared-weight-zone"`。`validateContinuity()` 只检查约束对象格式是否正确；它从不接触几何。一个没有任何实现或验证的声明——与没有任何东西调用的门禁是同一类缺陷。
+
+*完成标准*——焊接接缝上的顶点共享**一个逐位相同的绑定**，因此任何姿态都无法把它们分开；部件仍可单独寻址，因此爆炸视图/点击仍能通过 `check_part_coverage.py`；且 176 帧扫描报告每条焊接接缝处**零背景像素**。
+
+*成本*——大。涉及拓扑。**不要在 V-1 之前开始**——先测出真实的缝隙。
+
+---
+
+**S-2 · G10 生产者——由 P-4 提升而来**
+
+*原因*——没有它，S-1 无法验证；而当前的破洞/褶皱数字是从更早的构建继承来的，并非在今天的代码上测得。它最初因成本排在最后；连续性要求使它从奢侈品变成了必需品。
+
+*完成标准*——同 P-4，外加针对当前流水线重新测得的基线。
+
+---
+
+**S-3 · 修正循环中的 `rig` 分组**
+
+*原因*——已验证：`correction_loop.py` 中提到 `rig`、`skin` 和 `weight` 的次数为**零**。它的分组是 camera → silhouette → face → clothing → accessory → materials → lighting。因此视觉反馈永远无法驱动绑定或权重修复，只能驱动材质或光照修复。
+
+*完成标准*——存在 `rig` 修正分组，且只在动画中可见的缺陷会被路由到它。
+
+*成本*——中。
+
+---
+
+## 第 3 部分——建议顺序
 
 ```
-V-1  reproduce the damage          ← start here; everything else is speculation until this
-V-2  run one character end to end
+V-1  重现损坏                       ← 从这里开始；在此之前其他一切都是猜测
+V-2  让一个角色端到端跑完
       │
-      ├── the run names what actually matters, then:
+      ├── 这次运行会指出真正要紧的是什么，然后：
       │
-P-1  G1 producer                   ← cheapest gate with the highest value
-P-2  rig-payload converter         ← removes the one hard stop in Stage R
-H-1  runtime/ decision             ← trivial, user's call, unblocks shipping the producer
-H-2  Stage R correction budget
+P-1  G1 生产者                     ← 价值最高、最便宜的门禁
+P-2  rig-payload 转换器            ← 消除 Stage R 中唯一的硬停止
+H-1  runtime/ 决定                 ← 微不足道，由用户决定，解锁生产者的发布
+H-2  Stage R 修正预算
 H-5  ARCHITECTURE.md
       │
-S-2  G10 producer                  ← was P-4; the continuity requirement makes it essential
-K-1  retarget_tag                  ← the standardisation Stage 6 clips are authored against
+S-2  G10 生产者                    ← 原 P-4；连续性要求使其成为必需
+K-1  retarget_tag                  ← Stage 6 动画片段据以编写的标准化
       │
-S-1  shared-boundary welding       ← the seam fix; needs S-2 to be verifiable at all
+S-1  共享边界焊接                  ← 接缝修复；需要 S-2 才能被验证
       │
-P-3  G3 + G6 producers
-S-3  rig group in the correction loop
-H-3  mesh-repair / rig-bind artifacts
-H-4  orphaned gates onto the checklist
-K-2  contact channel
-K-3  contact-consistency gate
-H-6  second subject
-H-7  fastlane rebase               ← last: do not merge branches before one is known correct
+P-3  G3 + G6 生产者
+S-3  修正循环中的 rig 分组
+H-3  mesh-repair / rig-bind 产物
+H-4  把孤立门禁放进检查清单
+K-2  接触通道
+K-3  接触一致性门禁
+H-6  第二个主体
+H-7  fastlane rebase               ← 最后做：在确认其中一个分支正确之前不要合并分支
 ```
 
-`P-4` is superseded by `S-2`, which is the same harness at a higher priority.
+`P-4` 已被 `S-2` 取代，后者是同一个 harness，优先级更高。
 
-## Standing rules for every task above
+## 上述每项任务的常设规则
 
-1. **Write the falsifying test first.** A test that asserts the data structure instead of the
-   behaviour will pass while the feature is dead.
-2. **Mutation-check the test.** Break the thing on purpose; if nothing goes red, the test is
-   decorative.
-3. **A new gate ships with its producer**, or it ships reporting `unevaluated` and says so.
-4. **State the frame and the units.** Local or world; absolute or a fraction of figure height H.
-5. **Mark every threshold that came from one subject** `single-subject`, including borrowed ones.
-6. **Never claim "done" when it is "improved."** Name what still does not match.
+1. **先写能证伪的测试。** 断言数据结构而非行为的测试，会在功能已死时依然通过。
+2. **对测试做变异检查。** 故意把东西弄坏；如果没有东西变红，这个测试就是摆设。
+3. **新门禁要与其生产者一同发布**，否则就以报告 `unevaluated` 的状态发布并说明这一点。
+4. **说明坐标系和单位。** 局部还是世界；绝对值还是人物身高 H 的比例。
+5. **把每个来自单一主体的阈值标记为** `single-subject`，借用的也一样。
+6. **"有改善"时绝不宣称"完成"。** 指出哪些地方仍不匹配。

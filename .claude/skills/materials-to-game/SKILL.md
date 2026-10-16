@@ -1,36 +1,28 @@
 ---
 name: materials-to-game
-description: Create or apply material maps and bake a textured high-poly mesh onto a game mesh, with channel, UV and export checks.
+description: 创建或应用材质贴图，并将带贴图的高模烘焙到游戏模型上，附带通道、UV 和导出检查。
 ---
 
-# Materials and game bake-down
+# 材质与游戏烘焙
 
-Identify the requested operation: generate material maps, retexture an existing
-mesh, or optimize a textured high-poly for a game. These are different tasks.
-Keep supplied geometry when only a material change was requested.
+先确定所请求的操作：生成材质贴图、为已有模型重新贴图，还是为游戏优化带贴图的高模。
+这是不同的任务。只要求改材质时，保留提供的几何体。
 
-For fal material generation, discover the current Patina/material endpoint and
-read its schema using the [fal module](../fal-ai-generation/SKILL.md). The chosen
-material should be evaluated on the intended surface, not only as a preview tile.
-For mesh retexturing, inspect the chosen service's geometry/UV inputs separately.
+使用 fal 生成材质时，通过 [fal 模块](../fal-ai-generation/SKILL.md) 查找当前的
+Patina/材质端点并读取其 schema。选定的材质应在目标表面上评估，而不只看预览贴块。
+为模型重新贴图时，单独检查所选服务的几何/UV 输入。
 
-For a high-to-low workflow:
+高模到低模的流程：
 
-1. Preserve the textured high-poly source. Choose the target budget from the
-   asset's role, silhouette, camera distance and engine constraints.
-2. Decimate or retopologize into a separate low-poly. Inspect thin parts, hard
-   edges and the silhouette. A fixed face count is not suitable for every asset.
-3. Unwrap the low-poly, check texel density, seams, overlap and padding.
-4. Bake the required detail from source to target. Verify cage/ray distance,
-   transforms and selected-to-active direction before trusting the bake.
-5. Identify base color, normal, roughness, metalness and any packed channels.
-   Color maps and data maps need appropriate color-space settings. Check normal
-   orientation in the target renderer; keep packed-channel conventions explicit.
-6. Export the low-poly with its maps. Reimport from another directory and check
-   material links, scale, silhouette and texture resolution.
+1. 保留带贴图的高模源文件。根据素材的用途、轮廓、相机距离和引擎限制选择目标预算。
+2. 减面或重拓扑出单独的低模。检查细小部件、硬边和轮廓。固定面数并不适合所有素材。
+3. 展开低模 UV，检查纹素密度、接缝、重叠和边距（padding）。
+4. 把所需细节从源模型烘焙到目标模型。信任烘焙结果之前，确认 cage/射线距离、变换以及
+   selected-to-active 方向。
+5. 识别基础色、法线、粗糙度、金属度以及任何打包通道。颜色贴图和数据贴图需要相应的
+   色彩空间设置。在目标渲染器中检查法线朝向；明确写出打包通道约定。
+6. 连同贴图导出低模。从另一目录重新导入，检查材质链接、比例、轮廓和贴图分辨率。
 
-Example: a textured brass prop reduced for a distant game camera. Acceptance
-requires the same readable silhouette and a clean material at the gameplay
-distance; a smaller file alone is not sufficient. Preserve the source mesh.
-Dependencies: Blender or the chosen bake tool, supplied geometry/materials,
-and a provider account only for a requested remote generation.
+示例：为远距离游戏相机精简的带贴图黄铜道具。验收要求在游戏距离下轮廓同样可辨、材质
+干净；仅文件变小并不够。保留源模型。依赖：Blender 或所选烘焙工具、提供的几何体/材质，
+以及仅在请求远程生成时需要的服务商账号。

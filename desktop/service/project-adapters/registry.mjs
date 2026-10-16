@@ -14,12 +14,12 @@ export class ProjectAdapterRegistry {
   adapter(id) { return this.adapters.find(item => item.id === id) || null; }
   async describe(match) {
     const adapter = this.adapter(match.adapterId);
-    if (!adapter) throw new Error(`Unknown project adapter: ${match.adapterId}`);
+    if (!adapter) throw new Error(`未知的项目适配器：${match.adapterId}`);
     return adapter.describe(match);
   }
   async capabilities(match) {
     const adapter = this.adapter(match.adapterId);
-    if (!adapter) throw new Error(`Unknown project adapter: ${match.adapterId}`);
+    if (!adapter) throw new Error(`未知的项目适配器：${match.adapterId}`);
     const project = await this.describe(match);
     const result = { adapterId: adapter.id, label: adapter.label, project };
     for (const name of ['files', 'commands', 'artifacts', 'context']) {

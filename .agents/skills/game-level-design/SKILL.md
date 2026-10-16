@@ -1,54 +1,42 @@
 ---
 name: game-level-design
-description: Turn a game-level brief or existing scene snapshot into a reviewable spatial plan, then apply approved changes with coordinate, navigation and scene checks. Use for layouts, encounter placement and terrain plans.
+description: 将游戏关卡需求或现有场景快照转为可审查的空间方案，再应用已批准的修改，并做坐标、导航和场景检查。用于布局、遭遇战摆放和地形方案。
 ---
 
-# Game level design
+# 游戏关卡设计
 
-Establish the play goal, scale, camera, movement/navigation limits and existing
-visual setup. Inspect the scene and documented mechanics before proposing
-placements. Reuse approved lighting/material settings when making another level;
-a new layout does not imply permission to redesign the game's presentation.
+明确玩法目标、尺度、镜头、移动 / 导航限制和现有视觉设置。提出摆放方案前先检查场景
+和有文档记录的机制。制作新关卡时复用已批准的光照 / 材质设置；新布局并不意味着获准
+重新设计游戏的表现风格。
 
-## Keep source and proposal separate
+## 源与方案分开
 
-For an existing level, capture a read-only source snapshot with scene identity,
-units, origin, axis convention, terrain/navigation data and object IDs. Record
-source hashes or revisions. For a new level, label the baseline as a proposal;
-do not describe a generated map as an engine export.
+对现有关卡，采集只读的源快照，包含场景标识、单位、原点、坐标轴约定、地形 / 导航
+数据和对象 ID。记录源哈希或版本。对新关卡，把基线标注为方案；不要把生成的地图说成
+引擎导出。
 
-Store edits separately: layer overrides, marker additions/moves/removals and
-design notes. Keep alternate layouts independent. Regeneration must not silently
-replace a user's edited draft. On a changed source, preserve a recovery copy and
-resolve conflicts rather than treating the draft as disposable.
+修改单独存放：图层覆盖、标记的新增 / 移动 / 删除以及设计备注。备选布局彼此独立。
+重新生成不得悄悄替换用户编辑过的草稿。源发生变化时，保留恢复副本并解决冲突，不要
+把草稿当作可丢弃的。
 
-## Make the plan useful for decisions
+## 让方案便于决策
 
-Show terrain, passage, obstacles, cover and objectives as distinct layers.
-Define brush/cell sizes in world units. Visual ground colour is not necessarily
-a navigation blocker; tree cover, water and a road may have different rules.
-Preserve stable marker IDs and distinguish counts, capacity and starting occupants.
-Unchosen prefabs or mechanics remain explicit design intent.
+把地形、通道、障碍、掩体和目标显示为不同图层。以世界单位定义笔刷 / 格子大小。地面
+的视觉颜色未必是导航阻挡；树木覆盖、水域和道路可能有不同规则。保留稳定的标记 ID，
+并区分数量、容量和初始占用者。未选定的 prefab 或机制保持为明确的设计意图。
 
-Check main/alternate routes, chokepoint width, clearances, encounter order and
-travel distances against actual character sizes and speeds. A 2D simulation can
-compare strategies only within its documented assumptions. Its result does not
-prove native navigation, combat behaviour or final balance.
+用实际角色尺寸和速度检查主 / 备选路线、瓶颈宽度、间隙、遭遇顺序和移动距离。2D
+模拟只能在其记录的假设范围内比较策略，其结果不能证明原生导航、战斗行为或最终平衡。
 
-## Apply only the approved plan
+## 只应用已批准的方案
 
-Export a manifest mapping coordinates, source revision and markers to engine
-assets. Reject stale/conflicting revisions before applying. Confirm the target
-scene and which objects are generated; do not overwrite an unrelated authored
-scene or manual edits as a side effect of a rebuild.
+导出 manifest，把坐标、源版本和标记映射到引擎资源。应用前拒绝过时 / 冲突的版本。
+确认目标场景以及哪些对象是生成的；不要在重建时顺带覆盖无关的手工场景或手动修改。
 
-Verify saved terrain dimensions, height/axis conversion, prefab references,
-colliders, navigable paths, spawn locations and camera bounds in the engine.
-Traverse representative routes and test the changed encounter flow. Preserve
-unrelated gameplay values and assets. Deliver the editable plan, applied scene,
-export manifest, native captures and unresolved choices.
+在引擎中验证保存后的地形尺寸、高度 / 坐标轴转换、prefab 引用、碰撞体、可通行路径、
+出生点和镜头边界。走一遍有代表性的路线，测试改动后的遭遇流程。保留无关的玩法数值
+和资源。交付可编辑方案、已应用的场景、导出 manifest、原生截图和未决选项。
 
-Example request: "Plan a small valley with two routes to the objective, then
-apply the chosen version." Success includes a reviewable layout, measured route
-clearance and a verified native path through the saved scene. Dependencies:
-project design rules; an editor bridge/CLI or engine access for scene work.
+示例请求：“规划一个有两条路线通往目标的小山谷，然后应用选定版本。”成功标准包括
+可审查的布局、实测的路线间隙，以及在保存后场景中验证过的原生路径。依赖：项目设计
+规则；用于场景工作的编辑器桥接 / CLI 或引擎访问。

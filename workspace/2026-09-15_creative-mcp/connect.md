@@ -1,17 +1,14 @@
-# Connect a tool to this project
+# 将工具连接到本项目
 
-Read the tool's official README first. An MCP connection can be local or hosted;
-it may require a running editor, installed runtime or provider login.
+先阅读该工具的官方 README。MCP 连接可以是本地的，也可以是托管的；
+它可能需要正在运行的编辑器、已安装的运行时或服务商登录。
 
-For Claude, project connections live in `.mcp.json`. For Codex, use the project's
-`.codex/config.toml` and the CLI's current project-trust rules. The included files
-start empty. Global connections may still appear because the client already has
-them configured on your computer.
+Claude 的项目连接位于 `.mcp.json`。Codex 使用项目的 `.codex/config.toml`，
+并遵循 CLI 当前的项目信任规则。随附的文件初始为空。全局连接仍可能出现，
+因为客户端已在你的电脑上配置了它们。
 
-Do not paste a real token into tracked configuration. Use the client's supported
-environment or login mechanism. For the included fal helper, put `FAL_KEY` in
-the ignored `.env` file and follow its setup reference.
+不要把真实令牌粘贴到受版本跟踪的配置中。请使用客户端支持的环境变量或登录机制。
+对于随附的 fal 辅助工具，把 `FAL_KEY` 写入已被忽略的 `.env` 文件，并按其配置参考操作。
 
-The MCP panel distinguishes configured connections from a successful check.
-Verify a small read-only action before assuming the agent can work in your
-editor. Add a useful setup lesson to `knowledge/` after the connection works.
+MCP 面板会区分“已配置的连接”和“检查成功的连接”。在认定代理能在你的编辑器中
+工作之前，先验证一个小的只读操作。连接可用后，把有用的配置经验补充到 `knowledge/`。

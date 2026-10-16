@@ -22,15 +22,15 @@ export default function TerminalPane({ id, agent, fontSize, appearance, onAttach
   async function pasteImages(files: File[]) {
     if (!files.length || uploading.current) return
     clearTimeout(statusTimer.current)
-    uploading.current = true; setDragging(false); onAttachmentStatus(id, 'Saving image to inbox…')
+    uploading.current = true; setDragging(false); onAttachmentStatus(id, '正在将图片保存到 inbox…')
     try {
-      if (files.length > 12) throw new Error('Attach up to 12 images at a time.')
+      if (files.length > 12) throw new Error('一次最多附加 12 张图片。')
       const paths: string[] = []
       for (const file of files) paths.push((await uploadImage(file)).path)
       await api(`/sessions/${id}/attach`, { paths })
-      onAttachmentStatus(id, `${paths.length === 1 ? 'Image' : `${paths.length} images`} saved in inbox · path inserted`)
+      onAttachmentStatus(id, `${paths.length === 1 ? '图片' : `${paths.length} 张图片`}已保存到 inbox · 已插入路径`)
       terminalRef.current?.focus()
-    } catch (error) { onAttachmentStatus(id, 'Image was not attached'); reportError(error) }
+    } catch (error) { onAttachmentStatus(id, '图片未能附加'); reportError(error) }
     finally { uploading.current = false; clearTimeout(statusTimer.current); statusTimer.current = window.setTimeout(() => onAttachmentStatus(id, ''), 1600) }
   }
   async function attachPaths(paths: string[]) {
@@ -39,9 +39,9 @@ export default function TerminalPane({ id, agent, fontSize, appearance, onAttach
     uploading.current = true; setDragging(false)
     try {
       await api(`/sessions/${id}/attach`, { paths })
-      onAttachmentStatus(id, `${paths.length === 1 ? 'Path' : `${paths.length} paths`} inserted`)
+      onAttachmentStatus(id, `已插入${paths.length === 1 ? '路径' : ` ${paths.length} 个路径`}`)
       terminalRef.current?.focus()
-    } catch (error) { onAttachmentStatus(id, 'Paths were not inserted'); reportError(error) }
+    } catch (error) { onAttachmentStatus(id, '路径未能插入'); reportError(error) }
     finally { uploading.current = false; clearTimeout(statusTimer.current); statusTimer.current = window.setTimeout(() => onAttachmentStatus(id, ''), 1600) }
   }
   const pasteImagesRef = useRef(pasteImages), attachPathsRef = useRef(attachPaths)
@@ -210,8 +210,8 @@ export default function TerminalPane({ id, agent, fontSize, appearance, onAttach
     window.addEventListener('mrmak-dictation-inserted', focus)
     return () => window.removeEventListener('mrmak-dictation-inserted', focus)
   }, [id])
-  return <div ref={area} className={`terminal-area ${appearance === 'focus' ? 'terminal-focus' : ''}`} onDragOver={event => { event.preventDefault(); event.dataTransfer.dropEffect = 'none' }} onDrop={event => { event.preventDefault(); event.stopPropagation(); setDragging(false); reportError(`Drop original files or folders from ${fileManager} into Mr. Mak Desktop. Paste clipboard images with ${modLabel}V.`) }}>
-    <div ref={host} className="terminal-host" aria-label="Interactive agent terminal" />
-    {dragging && <div className="terminal-drop"><Icon name="attach" size={30} /><strong>Drop to insert paths</strong><span>Files, folders and images</span></div>}
+  return <div ref={area} className={`terminal-area ${appearance === 'focus' ? 'terminal-focus' : ''}`} onDragOver={event => { event.preventDefault(); event.dataTransfer.dropEffect = 'none' }} onDrop={event => { event.preventDefault(); event.stopPropagation(); setDragging(false); reportError(`请从${fileManager}将原始文件或文件夹拖入 Mr. Mak 桌面版。剪贴板中的图片请用 ${modLabel}V 粘贴。`) }}>
+    <div ref={host} className="terminal-host" aria-label="交互式代理终端" />
+    {dragging && <div className="terminal-drop"><Icon name="attach" size={30} /><strong>松开以插入路径</strong><span>文件、文件夹和图片</span></div>}
   </div>
 }

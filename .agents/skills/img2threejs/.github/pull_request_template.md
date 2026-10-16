@@ -1,28 +1,28 @@
 <!--
-Thanks for contributing to img2threejs. Keep the pull request focused and remove instructional comments that do not apply before submitting.
+感谢为 img2threejs 做贡献。请保持 pull request 聚焦，并在提交前删除不适用的说明性注释。
 -->
 
-## Summary
+## 概要
 
-<!-- What behavior or documentation changes? Why is it needed? Link related issues with "Refs #123" where applicable. Do not use closing keywords: maintainers close issues manually after final verification. -->
+<!-- 改变了哪些行为或文档？为什么需要？适用时用 "Refs #123" 关联相关 issue。不要使用关闭关键字：维护者会在最终验证后手动关闭 issue。 -->
 
-## Changes
+## 变更
 
-<!-- List the key changes. -->
+<!-- 列出关键变更。 -->
 
 -
 
-## Validation
+## 验证
 
-<!-- Record the checks you ran and their results. Include render/comparison-sheet evidence for changes that affect reconstruction quality. -->
+<!-- 记录你运行的检查及其结果。对影响重建质量的变更，附上渲染/对比图证据。 -->
 
 - [ ] `python3 forge/tests/test_pipeline.py`
-- [ ] Relevant targeted validation or test:
-- [ ] Render or comparison-sheet review, if applicable:
+- [ ] 相关的针对性验证或测试：
+- [ ] 渲染或对比图评审（如适用）：
 
-## Contributor checklist
+## 贡献者检查清单
 
-- [ ] This PR keeps the code-only procedural reconstruction contract; it does not silently download meshes or art packs.
-- [ ] Existing object specs remain valid, or this PR documents the intentional compatibility change.
-- [ ] I added or updated tests for new gates, schema fields, or templates where applicable.
-- [ ] I updated documentation and roadmap status where applicable.
+- [ ] 本 PR 维持纯代码程序化重建约定；不会静默下载网格或美术资源包。
+- [ ] 现有物体 spec 仍然有效，或本 PR 记录了有意为之的兼容性变更。
+- [ ] 适用时，我为新的门禁、schema 字段或模板新增或更新了测试。
+- [ ] 适用时，我更新了文档和路线图状态。

@@ -17,7 +17,7 @@ test('Markdown saves preserve Unicode, keep a recovery copy, and reject stale or
   assert.notEqual(preview.revision, changed.revision);
   const backups = await readdir(path.join(repo, '.mrmak/markdown-backups'));
   assert.equal(await readFile(path.join(repo, '.mrmak/markdown-backups', backups.find(name => name.endsWith('.md'))), 'utf8'), preview.text);
-  await assert.rejects(files.saveMarkdown({ path: file, text: 'stale', revision: preview.revision }), /changed on disk/);
+  await assert.rejects(files.saveMarkdown({ path: file, text: 'stale', revision: preview.revision }), /在磁盘上被修改/);
   assert.equal(await readFile(file, 'utf8'), changed.text);
   const racing = await Promise.allSettled(['first', 'second'].map(text => files.saveMarkdown({ path: file, text, revision: changed.revision })));
   assert.equal(racing.filter(value => value.status === 'fulfilled').length, 1);
@@ -31,18 +31,18 @@ test('Main folders expose local Claude and Codex skills alongside knowledge and 
   const repo = await mkdtemp(path.resolve('.cache/skill-folders-'));
   for (const folder of ['.claude/skills', '.agents/skills', 'knowledge', 'processes', 'context', 'inbox', 'projects', 'workspace', 'node_modules']) await mkdir(path.join(repo, folder), { recursive: true });
   const result = await new Files(repo).list();
-  assert.deepEqual(result.entries.map(item => item.name).sort(), ['Claude skills', 'Codex skills', 'context', 'inbox', 'knowledge', 'processes', 'projects', 'workspace']);
+  assert.deepEqual(result.entries.map(item => item.name).sort(), ['Claude 技能', 'Codex 技能', 'context', 'inbox', 'knowledge', 'processes', 'projects', 'workspace']);
   assert.ok(result.entries.every(entry => entry.directory && path.isAbsolute(entry.path)));
 });
 
 test('Windows preference is confirmed by native host, synchronizes tray changes and reports failure', async () => {
   let request;
   const bridge = new NativeSettings(value => { request = value; }, () => {});
-  assert.throws(() => bridge.set(true), /not available/);
+  assert.throws(() => bridge.set(true), /不可用/);
   bridge.receive({ type: 'native-settings', available: true, winKey: true });
   const success = bridge.set(false);
   assert.equal(bridge.value.winKey, true);
-  assert.throws(() => bridge.set(true), /in progress/);
+  assert.throws(() => bridge.set(true), /进行中/);
   bridge.receive({ ...request, available: true, winKey: false });
   assert.deepEqual(await success, { available: true, winKey: false });
   bridge.receive({ type: 'native-settings', available: true, winKey: true });

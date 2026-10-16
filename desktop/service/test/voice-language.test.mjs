@@ -5,17 +5,17 @@ import path from 'node:path';
 import { voiceSession, defaultVoiceStyle } from '../voice-profile.mjs';
 import { QuickActions } from '../quick-actions.mjs';
 
-test('voice session keeps the English default even with a custom delivery style', () => {
+test('voice session keeps the Simplified Chinese default even with a custom delivery style', () => {
   for (const settings of [{}, { voiceStyle: 'Warm, calm and brisk.' }]) {
     const session = voiceSession(settings);
-    assert.match(session.instructions, /Language: Speak English by default/);
+    assert.match(session.instructions, /Language: Speak Simplified Chinese by default/);
     assert.match(session.instructions, /only when the user explicitly asks/);
     assert.doesNotMatch(session.instructions, /russian|[\u0400-\u04ff]/iu);
   }
-  assert.match(defaultVoiceStyle, /Speak English by default/);
+  assert.match(defaultVoiceStyle, /Speak Simplified Chinese by default/);
 });
 
-test('quick command confirmations and empty results are English without a model', async () => {
+test('quick command confirmations and empty results are localized without a model', async () => {
   await mkdir(path.resolve('.cache'), { recursive: true });
   const stateDir = await mkdtemp(path.resolve('.cache/english-actions-'));
   const card = { id: 'review', title: 'Animation Review' };
@@ -38,7 +38,7 @@ test('quick command confirmations and empty results are English without a model'
     assert.ok(result.result.length > 5);
   }
   chats = [];
-  assert.equal((await actions.ask({ id: 'empty', text: 'list chats' })).result, 'There are no open chats.');
+  assert.equal((await actions.ask({ id: 'empty', text: 'list chats' })).result, '没有已打开的对话。');
   assert.ok(calls.some(call => call.name === 'open_chat' && call.args.effort === 'xhigh'));
   assert.ok(calls.some(call => call.name === 'open_chat' && call.args.agent === 'opencode' && call.args.name === 'Scene Review'));
 });

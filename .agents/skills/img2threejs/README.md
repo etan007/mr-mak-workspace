@@ -4,9 +4,9 @@
 
 # img2threejs
 
-**Rebuild the object in a reference image as a code-only, procedural Three.js model.**
+**把参考图中的物体重建为纯代码、程序化的 Three.js 模型。**
 
-Quality-gated, animation-ready, and deliberately token-efficient — reconstruction-by-code, not photogrammetry, mesh extraction, or downloaded art packs.
+经过质量门禁、可直接用于动画，并刻意节省 token——用代码重建，而不是摄影测量、网格提取或下载美术资源包。
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](CHANGELOG.md)
@@ -22,8 +22,8 @@ Quality-gated, animation-ready, and deliberately token-efficient — reconstruct
 <table align="center">
   <tr>
     <td align="center"></td>
-    <td align="center"><sub><b>DAILY</b></sub></td>
-    <td align="center"><sub><b>WEEKLY</b></sub></td>
+    <td align="center"><sub><b>每日</b></sub></td>
+    <td align="center"><sub><b>每周</b></sub></td>
   </tr>
   <tr>
     <td align="right"><sub><b>Python</b></sub></td>
@@ -31,7 +31,7 @@ Quality-gated, animation-ready, and deliberately token-efficient — reconstruct
     <td><a href="https://trendshift.io/repositories/83608?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-83608" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/83608/weekly?language=Python" alt="img2threejs%2Fimg2threejs | Trendshift" width="250" height="55"/></a></td>
   </tr>
   <tr>
-    <td align="right"><sub><b>All languages</b></sub></td>
+    <td align="right"><sub><b>所有语言</b></sub></td>
     <td><a href="https://trendshift.io/repositories/83608?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-83608" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/83608/daily" alt="img2threejs%2Fimg2threejs | Trendshift" width="250" height="55"/></a></td>
     <td><a href="https://trendshift.io/repositories/83608?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-83608" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/83608/weekly" alt="img2threejs%2Fimg2threejs | Trendshift" width="250" height="55"/></a></td>
   </tr>
@@ -39,94 +39,92 @@ Quality-gated, animation-ready, and deliberately token-efficient — reconstruct
 
 </div>
 
-*Reference images reconstructed in code as animation-ready Three.js models, running live in the browser.*
+*参考图在代码中被重建为可直接用于动画的 Three.js 模型，在浏览器中实时运行。*
 
-### [→ Open the Live Demo Gallery](https://img2threejs.io/)
+### [→ 打开在线演示画廊](https://img2threejs.io/)
 
-Every model in the gallery is generated code, running in your browser. No mesh files, no downloads.
+画廊中的每个模型都是生成的代码，在你的浏览器中运行。没有网格文件，无需下载。
 
 ---
 
-## Live demos
+## 在线演示
 
-Reconstructions built entirely from primitives, procedural shaders, and generated geometry. Open any model to orbit it, inspect its reference, and read the generated source.
+完全由基元、程序化着色器和生成的几何构建的重建。打开任意模型即可环绕查看、检查其参考图并阅读生成的源码。
 
-| Demo | Subject | Built with | View | Source |
+| 演示 | 对象 | 构建版本 | 查看 | 源码 |
 | --- | --- | --- | --- | --- |
-| Dual-Sword Warrior — TypeScript procedural surfaces ⚠︎ | character | `v1.5.1` | [Live](https://img2threejs.io/#/demo/girl-character) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/girl-character/createGirlCharacterModel.ts) |
-| Low-Poly Humanoid — Rigged Character ⚠︎ | character | `v1.5.0` | [Live](https://img2threejs.io/#/demo/low-poly-humanoid) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/low-poly-humanoid/createLowPolyHumanoidModel.ts) |
-| ★ Talon Knife \| Doppler Ruby (Factory New) | object | `v1.4.4` | [Live](https://img2threejs.io/#/demo/talon-doppler-ruby) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/talon-doppler-ruby/createTalonDopplerRubyModel.ts) |
-| AWP \| Medusa (Minimal Wear) · V2 rebuild | object | `V2` | [Live](https://img2threejs.io/#/demo/awp-medusa-v2) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/awp-medusa-v2/createAwpMedusaModelV2.ts) |
-| Pikachu 10K Star Celebration ⚠︎ | character | `v1.5-beta` | [Live](https://img2threejs.io/#/demo/electric-mouse-mascot) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/electric-mouse-mascot/createElectricMouseMascotModel.ts) |
-| Glock-18 \| Ghost Protocol (Well-Worn) | object | `v1.4.1` | [Live](https://img2threejs.io/#/demo/glock-ghost-protocol) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/glock-ghost-protocol/createGlockGhostProtocolModel.ts) |
-| Classic Knife \| Fade (Minimal Wear) | object | `v1.3` | [Live](https://img2threejs.io/#/demo/classic-fade) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/classic-fade/createClassicFadeModel.ts) |
-| BMX Endurance Bike | object | `v1.3` | [Live](https://img2threejs.io/#/demo/bmx-endurance) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/bmx-endurance/createBmxEnduranceBikeModel.ts) |
-| M9 Bayonet \| Doppler Phase 2 | object | `v1.3` | [Live](https://img2threejs.io/#/demo/m9-doppler) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/m9-doppler/createM9DopplerModel.ts) |
-| Sony WF-1000XM3 Earbuds + Case | object | `v1.2` | [Live](https://img2threejs.io/#/demo/sony-wf1000xm3) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/sony-wf1000xm3/createSonyWf1000xm3Model.ts) |
-| ISSACA 12 Gauge Shotgun | object | `v1.2` | [Live](https://img2threejs.io/#/demo/issaca-shotgun) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/issaca-shotgun/createIssacaShotgunModel.ts) |
-| Gerber Paracord Knife | object | `v1.2` | [Live](https://img2threejs.io/#/demo/gerber-knife) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/gerber-knife/createGerberKnifeModel.ts) |
-| Doraemon House (isometric diorama) | object | `v1.2` | [Live](https://img2threejs.io/#/demo/doraemon-house) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/doraemon-house/createDoraemonHouseModel.ts) |
-| War-Hauler "SECTOR 07" | object | `v1.2` | [Live](https://img2threejs.io/#/demo/warhauler) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/warhauler/createWarHaulerModel.ts) |
-| Crowned Loot Chest ⚠︎ | object | `v1.2` | [Live](https://img2threejs.io/#/demo/crown-chest) | [code](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/crown-chest/createCrownChestModel.ts) |
+| Dual-Sword Warrior — TypeScript procedural surfaces ⚠︎ | character | `v1.5.1` | [在线](https://img2threejs.io/#/demo/girl-character) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/girl-character/createGirlCharacterModel.ts) |
+| Low-Poly Humanoid — Rigged Character ⚠︎ | character | `v1.5.0` | [在线](https://img2threejs.io/#/demo/low-poly-humanoid) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/low-poly-humanoid/createLowPolyHumanoidModel.ts) |
+| ★ Talon Knife \| Doppler Ruby (Factory New) | object | `v1.4.4` | [在线](https://img2threejs.io/#/demo/talon-doppler-ruby) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/talon-doppler-ruby/createTalonDopplerRubyModel.ts) |
+| AWP \| Medusa (Minimal Wear) · V2 rebuild | object | `V2` | [在线](https://img2threejs.io/#/demo/awp-medusa-v2) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/awp-medusa-v2/createAwpMedusaModelV2.ts) |
+| Pikachu 10K Star Celebration ⚠︎ | character | `v1.5-beta` | [在线](https://img2threejs.io/#/demo/electric-mouse-mascot) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/electric-mouse-mascot/createElectricMouseMascotModel.ts) |
+| Glock-18 \| Ghost Protocol (Well-Worn) | object | `v1.4.1` | [在线](https://img2threejs.io/#/demo/glock-ghost-protocol) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/glock-ghost-protocol/createGlockGhostProtocolModel.ts) |
+| Classic Knife \| Fade (Minimal Wear) | object | `v1.3` | [在线](https://img2threejs.io/#/demo/classic-fade) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/classic-fade/createClassicFadeModel.ts) |
+| BMX Endurance Bike | object | `v1.3` | [在线](https://img2threejs.io/#/demo/bmx-endurance) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/bmx-endurance/createBmxEnduranceBikeModel.ts) |
+| M9 Bayonet \| Doppler Phase 2 | object | `v1.3` | [在线](https://img2threejs.io/#/demo/m9-doppler) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/m9-doppler/createM9DopplerModel.ts) |
+| Sony WF-1000XM3 Earbuds + Case | object | `v1.2` | [在线](https://img2threejs.io/#/demo/sony-wf1000xm3) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/sony-wf1000xm3/createSonyWf1000xm3Model.ts) |
+| ISSACA 12 Gauge Shotgun | object | `v1.2` | [在线](https://img2threejs.io/#/demo/issaca-shotgun) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/issaca-shotgun/createIssacaShotgunModel.ts) |
+| Gerber Paracord Knife | object | `v1.2` | [在线](https://img2threejs.io/#/demo/gerber-knife) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/gerber-knife/createGerberKnifeModel.ts) |
+| Doraemon House (isometric diorama) | object | `v1.2` | [在线](https://img2threejs.io/#/demo/doraemon-house) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/doraemon-house/createDoraemonHouseModel.ts) |
+| War-Hauler "SECTOR 07" | object | `v1.2` | [在线](https://img2threejs.io/#/demo/warhauler) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/warhauler/createWarHaulerModel.ts) |
+| Crowned Loot Chest ⚠︎ | object | `v1.2` | [在线](https://img2threejs.io/#/demo/crown-chest) | [代码](https://github.com/img2threejs/img2threejs-showcase/blob/main/src/demos/crown-chest/createCrownChestModel.ts) |
 
-⚠︎ marks a demo whose registry `status` is still `placeholder` rather than `final` — it renders, but it
-is not finished work. The **Built with** column is the version each demo's own registry entry records in
-`generatedWith`, not an inference from dates; `awp-medusa-v2` records `V2`, which is that demo's rebuild
-pass rather than a release number. Rows are ordered newest first by the commit that added the demo.
+⚠︎ 表示该演示在注册表中的 `status` 仍为 `placeholder` 而非 `final`——它能渲染，但并非完成品。
+**构建版本**一列是每个演示自己的注册表条目在 `generatedWith` 中记录的版本，不是根据日期推断的；
+`awp-medusa-v2` 记录的是 `V2`，指该演示的重建 pass，而不是发布版本号。各行按添加该演示的提交从新到旧排列。
 
-The gallery source lives in [img2threejs/img2threejs-showcase](https://github.com/img2threejs/img2threejs-showcase). If this project is useful, a star on this repo helps others find it.
-
----
-
-## What it does
-
-You give it one reference image of an object. It produces a `THREE.Group` factory written in TypeScript that recreates that object from primitives, procedural shaders, and generated geometry — with a runtime hierarchy (pivots, sockets, colliders) so the result is ready to animate, not an inert lump.
-
-It runs under Claude Code, Codex, or OpenCode. It is agent-agnostic: wherever the docs say "agent vision" or "agent browser tool", it uses whatever the host provides — native image reading, a browser MCP, the project preview, or a user-supplied screenshot.
-
-### Subjects and detail accuracy
-
-- **Objects and characters.** Each subject is classified `object`, `character`, or `hybrid`. Objects follow the hard-surface pipeline; characters route through an anatomy-aware track (head-unit proportions, facial landmarks, pose) documented in `grimoire/character/reconstruction.md`.
-- **Detail-first analysis.** Before code generation the pipeline enumerates a `detailInventory` of identity-defining small details (gloss, bevel/rounding, screws/rivets, engraved or painted linework, contours, stains and wear). Every detail must map to a real component or material entry, and a strict-quality gate blocks generation until the inventory is complete. Taxonomy: `grimoire/intake/detail_inventory.md`.
-- **Maximum likeness for a specific person or character.** An opt-in projection-first path fits a parametric template to image landmarks, de-lights the photo, camera-matches the render, and projects the reference onto the mesh. A single image cannot guarantee 100 percent likeness, so the pipeline reports per-region confidence and asks for more views when it matters. Details: `grimoire/character/likeness_maximization.md`.
-- **Multi-view silhouette carving.** An opt-in `geometryDescriptor.visualHull` intersects at least two deterministic orthographic binary silhouettes into a bounded, welded voxel mesh. It records unseen areas as low-confidence rather than inventing hidden detail. Schema and runtime check: `grimoire/scripts.md`.
-- **CS2 weapon review gates.** Knife and Glock-18 routes use family-specific component contracts. The review records exactness tier, family identity, painted-region and projection coverage, per-region confidence, approximation notes, and versioned review-scene metadata; component-coverage and map-stripped blockout gates prevent a convincing texture from standing in for real structure. Ships with the CS2 domain plugin; see its `docs/cs2/review-gates.md`.
-- **Resumable local workflow.** `forge/state.py` records an ordered, evidence-backed intake/pass checklist for the generic profile and every registered domain (in-repo `character`, plus installed domain plugins such as CS2 and `animated-character` from plugin-character). `forge/next.py --state` resumes from that checklist while the existing spec, render, and review gates remain authoritative.
-- **Material reference pipeline.** Every visible material region can be cropped, analyzed, resolved against the versioned Three.js material registry, fitted into `ObjectSculptSpec`, rendered from controlled camera views, and accepted only after a per-region comparison gate. See [`docs/materials/README.md`](docs/materials/README.md).
-- **Python-assisted browser rendering.** Python may orchestrate camera batches, hashes, manifests, and deterministic diagnostics, but the target browser Three.js route remains the rendering authority. See [`grimoire/build/python_threejs_render_bridge.md`](grimoire/build/python_threejs_render_bridge.md).
+画廊源码位于 [img2threejs/img2threejs-showcase](https://github.com/img2threejs/img2threejs-showcase)。如果这个项目对你有用，给本仓库点个 star 能帮助更多人发现它。
 
 ---
 
-## How it works
+## 它做什么
 
-A staged sculpting pipeline turns the reference image into a spec, then generates and vision-reviews one build pass at a time — `blockout → structural → form → material → surface → lighting → interaction → optimization` — self-correcting until every identity-defining feature clears its threshold.
+你给它一张物体的参考图。它生成一个用 TypeScript 编写的 `THREE.Group` factory，用基元、程序化着色器和生成的几何重建该物体——并带有运行时层级（枢轴点、挂点、碰撞体），因此结果可以直接用于动画，而不是一团死物。
 
-**→ Full pipeline diagram, gates, self-correction logic, and the token-efficiency design: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
-A staged sculpting pipeline turns the reference image into a spec, then generates and vision-reviews one build pass at a time — `blockout → structural → form → material → surface → lighting → interaction → optimization` — self-correcting until every identity-defining feature clears its threshold. Deterministic Python scripts handle validation and gating; model tokens are spent only on visual judgment and code.
+它可在 Claude Code、Codex 或 OpenCode 下运行。它与代理无关：文档中凡提到"代理视觉"或"代理浏览器工具"，都使用宿主提供的任何能力——原生图像读取、浏览器 MCP、项目预览，或用户提供的截图。
 
-**→ Full pipeline diagram, gates, self-correction logic, script reference, and the token-efficiency design: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
+### 对象类型与细节精度
+
+- **物体与角色。** 每个对象被分类为 `object`、`character` 或 `hybrid`。物体走硬表面流水线；角色走一条感知解剖结构的路线（头身比例、面部关键点、姿态），详见 `grimoire/character/reconstruction.md`。
+- **细节优先的分析。** 在代码生成之前，流水线会列举一份 `detailInventory`，记录决定身份的小细节（光泽、倒角/圆角、螺丝/铆钉、雕刻或涂绘的线条、轮廓、污渍与磨损）。每个细节都必须映射到真实的组件或材质条目，严格质量门禁会阻止生成，直到清单完整。分类体系：`grimoire/intake/detail_inventory.md`。
+- **对特定人物或角色的最大相似度。** 一条需主动开启的投影优先路径会把参数化模板拟合到图像关键点，对照片去光照，让渲染与相机匹配，再把参考图投影到网格上。单张图片无法保证 100% 相似，因此流水线会按区域报告置信度，并在必要时请求更多视角。详情：`grimoire/character/likeness_maximization.md`。
+- **多视角轮廓雕刻。** 需主动开启的 `geometryDescriptor.visualHull` 会把至少两个确定性的正交二值轮廓求交，得到有界、已焊接的体素网格。它把未见区域记录为低置信度，而不是编造隐藏细节。schema 与运行时检查：`grimoire/scripts.md`。
+- **CS2 武器评审门禁。** 刀具和 Glock-18 路线使用按家族区分的组件契约。评审会记录精确度档位、家族身份、涂装区域与投影覆盖、分区域置信度、近似说明以及带版本号的评审场景元数据；组件覆盖门禁和去贴图 blockout 门禁可防止以逼真的纹理冒充真实结构。随 CS2 领域插件发布；见其 `docs/cs2/review-gates.md`。
+- **可恢复的本地工作流。** `forge/state.py` 为通用 profile 和每个已注册领域（仓内的 `character`，以及已安装的领域插件，如 CS2 和来自 plugin-character 的 `animated-character`）记录有序、有证据支撑的 intake/pass 检查清单。`forge/next.py --state` 从该清单恢复，而现有的 spec、渲染和评审门禁仍是权威。
+- **材质参考流水线。** 每个可见的材质区域都可以被裁切、分析、对照带版本号的 Three.js 材质注册表解析、拟合进 `ObjectSculptSpec`、从受控相机视角渲染，并且只有通过分区域对比门禁后才会被接受。见 [`docs/materials/README.md`](docs/materials/README.md)。
+- **Python 辅助的浏览器渲染。** Python 可以编排相机批次、哈希、manifest 和确定性诊断，但目标浏览器 Three.js 路线仍是渲染的权威。见 [`grimoire/build/python_threejs_render_bridge.md`](grimoire/build/python_threejs_render_bridge.md)。
 
 ---
 
-## Quick start
+## 工作原理
 
-1. **Install** — place this folder in your skills directory:
+分阶段雕刻流水线把参考图转为 spec，然后一次生成并视觉评审一个构建 pass——`blockout → structural → form → material → surface → lighting → interaction → optimization`——不断自我修正，直到每个决定身份的特征都越过其阈值。
+
+**→ 完整流水线图、门禁、自我修正逻辑以及 token 效率设计：[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
+分阶段雕刻流水线把参考图转为 spec，然后一次生成并视觉评审一个构建 pass——`blockout → structural → form → material → surface → lighting → interaction → optimization`——不断自我修正，直到每个决定身份的特征都越过其阈值。确定性的 Python 脚本负责校验与门禁；模型 token 只花在视觉判断和代码上。
+
+**→ 完整流水线图、门禁、自我修正逻辑、脚本参考以及 token 效率设计：[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
+
+---
+
+## 快速开始
+
+1. **安装**——把本文件夹放入你的技能目录：
 
    ```bash
    git clone https://github.com/img2threejs/img2threejs.git ~/.claude/skills/img2threejs
    ```
 
-   If you use more than one host, keep a single checkout and point each entrypoint at it as a
-   symlink, so they cannot drift apart:
+   如果你使用多个宿主，只保留一份 checkout，并让每个入口以符号链接指向它，这样它们就不会
+   逐渐分叉：
 
    ```text
    ~/.claude/skills/img2threejs -> <your checkout>
    ~/.codex/skills/img2threejs  -> <your checkout>
    ```
 
-2. **Add domain plugins (optional)** — domain knowledge (CS2 skins today) lives in installed
-   plugins, not in this checkout. Install the [img2 harness](https://github.com/img2threejs/img2)
-   once, then add plugins to it:
+2. **添加领域插件（可选）**——领域知识（目前是 CS2 皮肤）位于已安装的插件中，而不在本 checkout
+   里。先安装一次 [img2 harness](https://github.com/img2threejs/img2)，再向其中添加插件：
 
    ```bash
    npx github:img2threejs/img2 install   # ~/.img2, the plugin registry, and an `img2` launcher
@@ -134,68 +132,66 @@ A staged sculpting pipeline turns the reference image into a spec, then generate
    img2 doctor                           # fail-loud static audit of every installed plugin
    ```
 
-   An installed domain plugin contributes its own checklist steps, evidence collection, spec
-   augmentation (quality floors merge raise-only), and a blocking review gate — and registers its
-   profile with `forge/state.py init --profile <id>`. With no plugins installed, `generic`,
-   and `character` are available; a profile whose plugin is missing (`cs2`, `animated-character`) fails
-   loud naming what is installed, never silently downgrades. `img2 remove <id>` reverses cleanly.
+   已安装的领域插件会贡献自己的检查清单步骤、证据收集、spec augmentation（质量下限只升不降
+   地合并）以及一个阻断性评审门禁——并通过 `forge/state.py init --profile <id>` 注册其 profile。
+   未安装任何插件时，可用的是 `generic` 和 `character`；插件缺失的 profile（`cs2`、
+   `animated-character`）会响亮地失败并列出已安装的内容，绝不静默降级。`img2 remove <id>` 可干净地
+   撤销。
 
-   **Official plugins:**
+   **官方插件：**
 
-   | Plugin | Adds | Install |
+   | 插件 | 新增内容 | 安装 |
    |---|---|---|
-   | [plugin-cs2](https://github.com/img2threejs/plugin-cs2) | `cs2` profile — CS2 weapon-skin reconstruction: family adapters, finish rules, domain review gate | `img2 add img2threejs/plugin-cs2` |
-   | [plugin-character](https://github.com/img2threejs/plugin-character) | `animated-character` profile — everything `character` has plus the Stage R rigging/animation gates | `img2 add img2threejs/plugin-character` |
-   | [plugin-img2glb](https://github.com/img2threejs/plugin-img2glb) | `image → glb` emission target via the hosted TRELLIS space | `img2 add img2threejs/plugin-img2glb` |
-   | [plugin-hello-cube](https://github.com/img2threejs/plugin-hello-cube) | minimal reference plugin — copy it to write your own | `img2 add img2threejs/plugin-hello-cube` |
+   | [plugin-cs2](https://github.com/img2threejs/plugin-cs2) | `cs2` profile——CS2 武器皮肤重建：家族适配器、表面处理规则、领域评审门禁 | `img2 add img2threejs/plugin-cs2` |
+   | [plugin-character](https://github.com/img2threejs/plugin-character) | `animated-character` profile——包含 `character` 的全部内容，外加 Stage R 绑定/动画门禁 | `img2 add img2threejs/plugin-character` |
+   | [plugin-img2glb](https://github.com/img2threejs/plugin-img2glb) | 通过托管的 TRELLIS space 提供 `image → glb` 输出目标 | `img2 add img2threejs/plugin-img2glb` |
+   | [plugin-hello-cube](https://github.com/img2threejs/plugin-hello-cube) | 最小参考插件——复制它来编写你自己的插件 | `img2 add img2threejs/plugin-hello-cube` |
 
-   Writing your own: the harness repo's
-   [docs/WRITING_A_PLUGIN.md](https://github.com/img2threejs/img2/blob/main/docs/WRITING_A_PLUGIN.md).
+   编写自己的插件：见 harness 仓库的
+   [docs/WRITING_A_PLUGIN.md](https://github.com/img2threejs/img2/blob/main/docs/WRITING_A_PLUGIN.md)。
 
-3. **Invoke** — in Claude Code, attach or point to an object image and run:
+3. **调用**——在 Claude Code 中，附上或指向一张物体图片并运行：
 
    ```
-   /img2threejs Rebuild this object as a Three.js model, keep the proportions, angles, and colours.
+   /img2threejs 把这个物体重建为 Three.js 模型，保持比例、角度和颜色。
    ```
 
-   That is enough: the skill classifies the subject, runs the detail inventory, and gates every pass on its own.
+   这就够了：技能会自行对对象分类、运行细节清单，并为每个 pass 把关。
 
-4. **Follow the pipeline** — the skill validates the image, writes an assessment and spec, generates the factory pass by pass, and shows you a side-by-side comparison at each step until the render matches.
+4. **跟随流水线**——技能会验证图像，写出评估与 spec，逐 pass 生成 factory，并在每一步给你看并排对比，直到渲染匹配为止。
 
-   For a multi-session reconstruction, create a local state index first:
+   对于跨多个会话的重建，先创建本地状态索引：
 
    ```bash
    python3 forge/state.py init --reference <image> --profile character --spec object-sculpt-spec.json
    python3 forge/next.py --state .img2threejs/state.json
    ```
 
-### Driving it harder
+### 更强力地驱动它（Driving it harder）
 
-The one-liner leaves the judgement calls to the skill. When you already know what "correct" means for your subject, say so — each line below maps onto a real gate or artifact in the pipeline, so it changes what gets enforced rather than just adding adjectives:
+一行命令会把判断交给技能。当你已经知道对你的对象而言"正确"意味着什么时，就说出来——下面每一行都对应流水线中一个真实的门禁或产物，因此它改变的是被强制执行的内容，而不只是多加几个形容词：
 
 ```
-/img2threejs Rebuild the subject in this image as a procedural Three.js model.
+/img2threejs 把这张图片中的对象重建为程序化 Three.js 模型。
 
-Fidelity   Hold proportions and silhouette to the reference. Enumerate the identity-defining
-           details first — bevels and rounding, panel seams, fasteners, engraved or painted
-           linework, gloss vs matte zones, wear — and drop any detail you cannot place on a
-           real component instead of faking it.
-Materials  Derive the finish class and gradient stops from the reference pixels, not from
-           memory. Flag any colour that will not survive tone-mapping.
-Runtime    Expose pivots and sockets for whatever should move, plus a userData.tick for a
-           looping idle animation.
-Gates      Run --strict-quality, and do not advance a pass until the side-by-side review
-           passes. Report per-region confidence for anything the image cannot show.
+保真度     比例和轮廓严格对齐参考图。先列举决定身份的细节——倒角与圆角、面板接缝、
+           紧固件、雕刻或涂绘的线条、光泽与哑光区域、磨损——无法落到真实组件上的细节
+           直接舍弃，不要伪造。
+材质       从参考图像素推导表面处理类别和渐变色标，不要凭记忆。标出任何经过色调映射后
+           无法保留的颜色。
+运行时     为所有应该能动的部分暴露枢轴点和挂点，并提供一个 userData.tick 用于循环待机动画。
+门禁       运行 --strict-quality，并行对比评审通过之前不推进 pass。对图像无法显示的任何部分
+           报告分区域置信度。
 ```
 
-Useful additions depending on the subject:
+视对象而定的有用补充：
 
-- **A specific person or character** — `Maximize likeness: fit the parametric template to the landmarks, de-light and camera-match the reference, then project it. Tell me which regions are inferred.`
-- **An animal or creature** — `This is a creature, not a humanoid — use the quadruped body plan and the body-unit proportion system.`
-- **A saturated anodized or candy finish** — `The coat is candy-coat, not gem-metal. Keep the hue; do not let the environment steal it.`
-- **A cost ceiling** — `Stay at low effort and skip the presentation composer; I only need the evaluation render.`
+- **特定人物或角色**——`最大化相似度：把参数化模板拟合到关键点，对参考图去光照并匹配相机，然后投影。告诉我哪些区域是推断的。`
+- **动物或生物**——`这是一个生物，不是人形——使用四足身体结构和身体单位比例系统。`
+- **饱和的阳极氧化或糖果色表面处理**——`涂层是 candy-coat，不是 gem-metal。保持色相；不要让环境光把它吃掉。`
+- **成本上限**——`保持低推理强度，跳过展示合成器；我只需要评估渲染。`
 
-The scripts run from the skill root and need only Python 3.10+ — nothing to install.
+脚本在技能根目录运行，只需要 Python 3.10+——无需安装任何东西。
 
 ```bash
 python3 forge/stage1_intake/probe_image.py <image>
@@ -205,166 +201,158 @@ python3 forge/stage2_spec/validate_sculpt_spec.py spec.json --strict-quality
 python3 forge/stage3_build/generate_threejs_factory.py spec.json --out src/createObjectModel.ts
 ```
 
-The factory generator repeats the strict-quality gate and is fail-closed: on failure it returns
-`BLOCKED` with the spec artifact, failure metrics, causes, and next action, and does not write a
-factory. `--allow-nonstrict` is only for explicit legacy test fixtures, never production output.
+factory 生成器会重复执行严格质量门禁，并且是失败即关闭的：失败时它返回 `BLOCKED`，附带 spec
+产物、失败指标、原因和下一步动作，且不会写出 factory。`--allow-nonstrict` 仅用于显式的旧版测试
+夹具，绝不用于生产输出。
 
-### Copy-paste prompts for the GLB-reference route
+### GLB 参考路线的可直接复制提示词
 
-Rebuilding a character from a **GLB reference** rather than a photo is a different route with its own
-gates — the GLB is a measurement instrument and never ships. Three prompts cover it, each in its own
-copy block:
+用 **GLB 参考**而不是照片来重建角色，是一条有自己门禁的不同路线——GLB 是测量仪器，永远不会随
+产物发布。三份提示词覆盖这条路线，各自在独立的复制块中：
 
-| Prompt | Use it when | Do not use it when |
+| 提示词 | 何时使用 | 何时不要使用 |
 |---|---|---|
-| [Build](docs/GLB_CHARACTER_PROMPT.md) | you have a GLB and no built surfaces yet | there is no GLB, or the build already completed and merely looks wrong |
-| [Polish](docs/GLB_CHARACTER_POLISH_PROMPT.md) | the build completed and the result does not look like the GLB | the surfaces were never built — that is a build re-run, not a polish |
-| [Animation](docs/GLB_CHARACTER_ANIMATION_PROMPT.md) | the figure looks right standing still and has passed the build gates | the surface is ungated, or `joint_loops.py` fails — that is a surface finding no weight tuning reaches |
+| [Build](docs/GLB_CHARACTER_PROMPT.md) | 你有 GLB，且还没有构建任何表面 | 没有 GLB，或构建已经完成只是看起来不对 |
+| [Polish](docs/GLB_CHARACTER_POLISH_PROMPT.md) | 构建已完成，但结果看起来不像 GLB | 表面从未构建过——那需要重跑构建，而不是打磨 |
+| [Animation](docs/GLB_CHARACTER_ANIMATION_PROMPT.md) | 人物静止站立时看起来正确，并已通过构建门禁 | 表面未经门禁，或 `joint_loops.py` 失败——那是表面问题，任何权重调整都解决不了 |
 
-They force every parameter the GLB genuinely carries — size, proportions, per-band widths and
-centroids, base colour, roughness and metalness — to the measured value, with the check that proves
-it landed. Three things are **not** 1:1 and each prompt says so: rigging and animation are usually
-absent from the asset (`skinCount: 0`, `animationCount: 0`), texture images and normal maps are
-deliberately not copied per this skill's code-only contract, and nothing finer than the node's cell
-size can be carried at all.
+它们把 GLB 真正携带的每个参数——尺寸、比例、各带宽度与质心、基础色、粗糙度和金属度——强制设为
+测量值，并附上证明其落实的检查。有三件事**不是** 1:1 的，每份提示词都会说明：绑定和动画通常
+不在资产中（`skinCount: 0`、`animationCount: 0`），纹理图像和法线贴图按本技能的纯代码约定刻意不
+复制，而比节点单元格尺寸更细的东西根本无法携带。
 
-**These are reference material, not a guarantee.** They are written to be general, so the measured
-figures in them came from one character and are there to show what to measure — not values to copy.
-Run the one that matches your situation rather than all three in sequence; each notes the cost of
-being used out of turn.
+**这些是参考资料，不是保证。** 它们写得较为通用，其中的测量数值来自一个角色，用来展示该测量
+什么——而不是可以照抄的数值。运行与你的情况相符的那一份，而不是按顺序把三份全跑一遍；每份都
+注明了在错误时机使用的代价。
 
-For the script-by-script reference, the full scripts table, and expected artifacts, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+逐个脚本的参考、完整脚本表以及预期产物，见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
 
 ---
 
-## Why it is token-efficient
+## 为什么省 token
 
-Most image-to-3D agent loops burn tokens by asking the model to do mechanical work — re-reading the whole model every pass, scoring pixels, validating JSON by hand, re-running steps it already did. img2threejs pushes all of that into deterministic scripts and spends model tokens only where judgment is actually required.
+大多数图像转 3D 的代理循环之所以烧 token，是因为让模型做机械性工作——每个 pass 都重读整个模型、给像素打分、手工校验 JSON、重跑已经做过的步骤。img2threejs 把这些全部推给确定性脚本，只在真正需要判断的地方花费模型 token。
 
-- **Scripts enforce, the model judges.** The Python scripts handle validation, gating, spec authoring, PBR extraction, comparison-sheet packaging, and pipeline state. They never score visuals. The model's tokens go to one thing: looking at a single side-by-side sheet and deciding pass or fail.
-- **Zero dependencies, zero install churn.** Every script is pure Python 3.10+ standard library. No pip, no PIL, no numpy, no Playwright. PNG read/write is done with `struct` and `zlib`. Nothing to install means nothing to debug in-context.
-- **Pass-gated generation.** The code generator emits only the currently unlocked build pass. The model does not regenerate or re-read the entire model on every iteration — each step is small and scoped.
-- **Fail fast, before codegen.** A strict-quality gate blocks shallow specs before a single line of Three.js is generated, so you never spend tokens rendering a model that was underspecified from the start.
-- **One image per review.** Each pass is judged from exactly one packaged comparison sheet (reference beside render), not a scattering of screenshots.
-- **Text output, not binaries.** The result is diffable TypeScript plus a JSON spec — small, reviewable, and version-controllable, instead of multi-megabyte mesh files.
+- **脚本负责强制执行，模型负责判断。** Python 脚本处理校验、门禁、spec 编写、PBR 提取、对比图打包和流水线状态。它们从不对视觉效果打分。模型的 token 只用于一件事：看一张并排对比图，判定通过或失败。
+- **零依赖，零安装折腾。** 每个脚本都是纯 Python 3.10+ 标准库。没有 pip、没有 PIL、没有 numpy、没有 Playwright。PNG 读写用 `struct` 和 `zlib` 完成。没有要安装的东西，就没有要在上下文中调试的东西。
+- **按 pass 把关的生成。** 代码生成器只输出当前已解锁的构建 pass。模型不会在每次迭代时重新生成或重读整个模型——每一步都小而有界。
+- **快速失败，在代码生成之前。** 严格质量门禁会在生成任何一行 Three.js 之前阻止浅薄的 spec，因此你永远不会把 token 花在渲染一个从一开始就描述不足的模型上。
+- **每次评审一张图。** 每个 pass 恰好由一张打包好的对比图（参考图与渲染图并排）来评判，而不是一堆零散的截图。
+- **输出文本，而非二进制。** 结果是可 diff 的 TypeScript 加一份 JSON spec——小巧、可评审、可版本控制，而不是几兆字节的网格文件。
 
-The net effect: you still get a faithful 3D model from an image, but the expensive model context is reserved for visual judgment and code, not bookkeeping. For the full per-stage and per-cycle token breakdown, see [docs/TOKEN_COST.md](docs/TOKEN_COST.md).
+最终效果：你依然能从一张图片得到忠实的 3D 模型，但昂贵的模型上下文被留给视觉判断和代码，而不是簿记工作。完整的分阶段、分循环 token 明细见 [docs/TOKEN_COST.md](docs/TOKEN_COST.md)。
 
 ---
 
-## Scripts
+## 脚本
 
-| Script | Role |
+| 脚本 | 作用 |
 | --- | --- |
-| `stage1_intake/probe_image.py` | Image metadata and obvious technical issues (not a visual check). |
-| `stage2_spec/new_pre_spec_assessment.py` | Classify the object, score complexity, emit a quality contract. |
-| `stage2_spec/new_sculpt_spec.py` | Author the ObjectSculptSpec from the assessment. |
-| `stage2_spec/validate_sculpt_spec.py` | Validate the spec; `--strict-quality` blocks shallow specs before codegen. |
-| `stage1_intake/extract_pbr_evidence.py` | Reference-derived PBR evidence per crop (inference, not inverse rendering). |
-| `stage1_intake/material_region_analysis.py` | Crop material regions, run texture/PBR evidence, and resolve registry profiles. |
-| `stage2_spec/apply_material_analysis.py` | Wire region assignments, priors, maps, and provenance into ObjectSculptSpec. |
-| `stage3_build/orchestrate_passes.py` | Locked pass state: status, check, sync. |
-| `stage3_build/generate_threejs_factory.py` | Emit the Three.js `Group` factory for the current unlocked pass. |
-| `stage4_review/material_views.py` | Emit multi-angle, zoomed, microscope, environment, and capture-readback contracts. |
-| `stage4_review/material_comparator.py` | Compare the visible material crop and classify per-channel mismatches. |
-| `stage4_review/material_feedback.py` | Apply bounded, material-scoped corrections through the existing stop policy. |
-| `stage4_review/material_gate.py` | Block material-pass until registry, crop, render, compatibility, and comparison evidence passes. |
-| `stage4_review/make_comparison_sheet.py` | Package one reference-vs-render sheet for review. |
-| `stage4_review/append_review.py` | Record a per-pass review: scores, decision, evidence. |
-| `_shared/feature_acceptance_policy.py` | Internal helper enforcing per-feature score thresholds. |
-| `stage1_intake/build_detail_inventory.py` | Slice the reference into zones and scaffold a detail inventory. |
-| `stage1_intake/extract_landmarks.py` | Overlay a landmark grid and scaffold an anatomy block for characters. |
-| `stage1_intake/solve_camera_pose.py` | Emit a reference-camera block so the render can be camera-matched. |
-| `stage1_intake/delight_albedo.py` | Approximate a neutral albedo from the photo before texture projection. |
-| `stage3_build/bake_projected_texture.py` | Emit a projection/UV-bake descriptor for photo-texture projection. |
+| `stage1_intake/probe_image.py` | 图像元数据与明显的技术问题（不是视觉检查）。 |
+| `stage2_spec/new_pre_spec_assessment.py` | 对物体分类、复杂度评分、输出质量契约。 |
+| `stage2_spec/new_sculpt_spec.py` | 根据评估编写 ObjectSculptSpec。 |
+| `stage2_spec/validate_sculpt_spec.py` | 校验 spec；`--strict-quality` 在代码生成前阻止浅薄的 spec。 |
+| `stage1_intake/extract_pbr_evidence.py` | 按裁切图从参考图推导 PBR 证据（推断，不是逆向渲染）。 |
+| `stage1_intake/material_region_analysis.py` | 裁切材质区域，运行纹理/PBR 证据提取，并解析注册表 profile。 |
+| `stage2_spec/apply_material_analysis.py` | 把区域分配、先验、贴图和来源记录接入 ObjectSculptSpec。 |
+| `stage3_build/orchestrate_passes.py` | 锁定的 pass 状态：status、check、sync。 |
+| `stage3_build/generate_threejs_factory.py` | 为当前已解锁的 pass 输出 Three.js `Group` factory。 |
+| `stage4_review/material_views.py` | 输出多角度、放大、显微、环境以及截图读回契约。 |
+| `stage4_review/material_comparator.py` | 比较可见材质裁切图，并对各通道的不匹配分类。 |
+| `stage4_review/material_feedback.py` | 通过现有停止策略应用有界、限定在材质范围内的修正。 |
+| `stage4_review/material_gate.py` | 在注册表、裁切、渲染、兼容性和对比证据都通过之前阻断材质 pass。 |
+| `stage4_review/make_comparison_sheet.py` | 打包一张参考图对渲染图的对比图供评审。 |
+| `stage4_review/append_review.py` | 记录每个 pass 的评审：分数、决策、证据。 |
+| `_shared/feature_acceptance_policy.py` | 强制执行逐特征分数阈值的内部辅助模块。 |
+| `stage1_intake/build_detail_inventory.py` | 把参考图切分为区域，并搭建细节清单骨架。 |
+| `stage1_intake/extract_landmarks.py` | 叠加关键点网格，并为角色搭建解剖数据块骨架。 |
+| `stage1_intake/solve_camera_pose.py` | 输出参考相机数据块，使渲染可以与相机匹配。 |
+| `stage1_intake/delight_albedo.py` | 在纹理投影前从照片近似出中性 albedo。 |
+| `stage3_build/bake_projected_texture.py` | 为照片纹理投影输出投影/UV 烘焙描述符。 |
 
-| `stage5_rig/rig_spec.py` | Derive and validate a skeleton from the component tree, so bones cannot drift from the geometry. |
-| `stage5_rig/geodesic_skinning.py` | Vertex weights from distance measured through the solid; keeps rigid roles out of smooth skinning. |
-| `stage5_rig/validate_rig_payload.py` | Blocking payload-integrity gate before a `THREE.Skeleton` is bound. |
-| `stage1_intake/extract_hair_evidence.py` | Hair/skin split, banded coverage, hairline, highlight band, root-to-tip delta. |
-| `stage4_review/scalp_exposure.py` | HARD gate: finds bald patches on geometry, before any render. |
-| `stage4_review/hair_gate.py` | Soft gate: hair coverage, hairline and highlight offsets against the reference. |
-| `stage4_review/interior_difference.py` | Appearance difference inside the silhouette, banded by height. Required per visual pass. |
-| `_shared/chirality.py` | Left/right as an importable convention, with the two gates the two chirality defects need. |
-| `_shared/pipeline_routing.py` | Fail-closed weapon/character routing; low confidence resolves to `request-input`. |
+| `stage5_rig/rig_spec.py` | 从组件树推导并校验骨架，使骨骼不会偏离几何。 |
+| `stage5_rig/geodesic_skinning.py` | 按穿过实体测得的距离计算顶点权重；让刚性角色远离平滑蒙皮。 |
+| `stage5_rig/validate_rig_payload.py` | 在绑定 `THREE.Skeleton` 之前的阻断性载荷完整性门禁。 |
+| `stage1_intake/extract_hair_evidence.py` | 头发/皮肤分割、分带覆盖、发际线、高光带、发根到发梢的差值。 |
+| `stage4_review/scalp_exposure.py` | **硬**门禁：在任何渲染之前在几何上找出秃斑。 |
+| `stage4_review/hair_gate.py` | 软门禁：对照参考图检查头发覆盖、发际线和高光偏移。 |
+| `stage4_review/interior_difference.py` | 轮廓内部的外观差异，按高度分带。每个视觉 pass 都必须运行。 |
+| `_shared/chirality.py` | 把左/右作为可导入的约定，附带两类手性缺陷各自需要的两个门禁。 |
+| `_shared/pipeline_routing.py` | 失败即关闭的武器/角色路由；低置信度解析为 `request-input`。 |
 
-This is a curated selection — `forge/` holds around ninety modules. The executable reference with every flag is [`grimoire/scripts.md`](grimoire/scripts.md), and the gate-by-gate contract is [`grimoire/review/gates_reference.md`](grimoire/review/gates_reference.md). The rest of `grimoire/` holds the rubrics each gate applies (validation, pre-spec assessment, procedural patterns, material and lighting realism, attachment correctness, action-ready models, self-correction).
+这只是精选部分——`forge/` 中大约有九十个模块。包含所有参数的可执行参考是 [`grimoire/scripts.md`](grimoire/scripts.md)，逐项门禁契约是 [`grimoire/review/gates_reference.md`](grimoire/review/gates_reference.md)。`grimoire/` 的其余部分存放各门禁所应用的评分细则（校验、pre-spec 评估、程序化模式、材质与光照真实感、附着正确性、可用于动作的模型、自我修正）。
 
-### Optional reference-fidelity tooling
+### 可选的参考保真度工具
 
-The stdlib-only core can use an isolated evidence layer without taking on runtime dependencies:
-SAM2 component masks, Depth Anything V2 relative-depth priors, MediaPipe face/pose landmarks,
-Chrome DevTools diagnostics, Three.js scene inspection, Playwright cross-browser fallback, and
-version-aware Context7 retrieval. These tools never approve a pass or silently provide geometry.
-Install, routing, provenance rules and exact commands:
-[`docs/integrations/reference_fidelity_tooling.md`](docs/integrations/reference_fidelity_tooling.md).
+仅依赖标准库的核心可以使用一个隔离的证据层，而无需引入运行时依赖：SAM2 组件遮罩、Depth
+Anything V2 相对深度先验、MediaPipe 面部/姿态关键点、Chrome DevTools 诊断、Three.js 场景检查、
+Playwright 跨浏览器回退，以及感知版本的 Context7 检索。这些工具从不批准 pass，也从不静默提供
+几何。安装、路由、来源规则和确切命令：
+[`docs/integrations/reference_fidelity_tooling.md`](docs/integrations/reference_fidelity_tooling.md)。
 
-### Optional GLB-baseline character pipeline
+### 可选的 GLB 基线角色流水线
 
-[`integrations/glb_character_pipeline`](integrations/glb_character_pipeline) reconstructs a character
-from a **multipart GLB used as a measurement instrument plus its diffuse image**, and emits the
-procedural TypeScript the demo actually ships — no `.glb` or `.bin` is fetched at runtime. It carries
-its own `pyproject.toml`/`uv.lock` so the stdlib-only `forge` core stays dependency-free, and operates
-on a companion showcase checkout via `IMG2THREEJS_SHOWCASE_ROOT`.
+[`integrations/glb_character_pipeline`](integrations/glb_character_pipeline) 从**一个用作测量仪器的
+多部件 GLB 加上其漫反射图**重建角色，并输出演示实际发布的程序化 TypeScript——运行时不会获取任何
+`.glb` 或 `.bin`。它自带 `pyproject.toml`/`uv.lock`，使仅依赖标准库的 `forge` 核心保持零依赖，并
+通过 `IMG2THREEJS_SHOWCASE_ROOT` 在配套 showcase checkout 上运行。
 
-It applies **only** when a build has a GLB to measure — skip it entirely otherwise, and use the core
-image-driven pipeline instead. Reproduces `girl-character`'s shipped `crossSections.ts` exactly (748
-rings, 86,240 ring points). Method and per-stage rationale:
-[`PIPELINE.md`](integrations/glb_character_pipeline/PIPELINE.md).
+它**只**在构建有可测量的 GLB 时适用——否则完全跳过，改用核心的图像驱动流水线。它能精确复现
+`girl-character` 已发布的 `crossSections.ts`（748 个环、86,240 个环点）。方法与各阶段原理：
+[`PIPELINE.md`](integrations/glb_character_pipeline/PIPELINE.md)。
 
 ---
 
-## What you get
+## 你会得到什么
 
-- An `ObjectSculptSpec` JSON: the full component tree, materials, repetition systems, sockets, and a recorded review history for every pass.
-- A TypeScript `createObjectNameModel(spec, options)` factory returning a `THREE.Group`, with `root.userData.sculptRuntime` exposing nodes, sockets, colliders, and destruction groups.
-- For character builds, `root.userData.rig`: bones, one shared `Skeleton`, bone order and index map, and a `bound` flag computed from whether every skinned mesh actually bound.
-- A render plus comparison sheets documenting the fidelity at each pass.
-For the script-by-script reference and the full list of output artifacts, see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
-
----
-
-## Roadmap
-
-**Shipped:**
-
-- **v1.0** — object pipeline: staged sculpt, render-vs-reference review loop, action-ready hierarchy.
-- **v1.1** — detail-first analysis: required detail inventory, strict-quality gate.
-- **v1.2** — humanoid character generator: anatomy track, proportion-lock and feature-placement passes.
-- **v1.3** — quality & efficiency: the Divine Eye deterministic review harness, input-integrity and geometry-truth gates, reference-grounded texture and gradient analysis, CIEDE2000 colour math.
-- **v1.4 — The Weapon Update** — CS2 image-matched reconstruction: provenance-aware intake, projection-first finishes, family-specific weapon adapters, and structural review gates.
-- **v1.4.1** — CS2 hardening: explicit component coverage, a dedicated Glock-18 assembly contract, map-stripped blockout evidence, and stricter geometry-integrity checks.
-- **creature generator** — 4 body plans (quadruped / avian / winged-dragon / serpentine), `animalAnatomy` spec, spine-loft geometry, ΔE00 colour gates.
-- **v1.5 — The Character Update** — a skeleton derived from the component tree and bound to `SkinnedMesh` geometry, geodesic skinning, hair as a five-stage subsystem with a hard scalp-exposure gate, chirality gates, interior-difference review, the `tapered-sweep` primitive, the material pipeline with a blocking acceptance gate, and resumable workflow state. Not included: the `hairProfile` compiler, IK, pose-sweep gating, clothing.
-- **v2.0 — The Plugin Update** — the domain registry, pull-based spec augmentation
-  with raise-only quality floors, the emission-target socket with provenance, per-plugin blocking
-  gates, and the img2 harness (`img2 install/add/doctor`). CS2 extracted into `plugin-cs2`,
-  `animated-character` served by `plugin-character`; the base names no domain. The "plugin
-  ecosystem and API" originally slotted for the Procedural World bundle, shipped first as its own major.
-
-**Next — one theme per release:**
-- **v2.1 — The Character Split**: the in-repo `character` domain joins `plugin-character`, so the base names no domain and the v2.0 plugin split closes.
-- **v2.2 — The Environment Update**: buildings, rooms, streets, vegetation, terrain-aware and multi-object reconstruction.
-- **v2.3 — The Game Pipeline Update**: Unity and Unreal exporters, a Blender bridge, LOD and collision-mesh generation.
-- **v2.4 — The Animation Update**: auto rigging, auto skin weights, Mixamo compatibility, facial rig.
-- **v2.5 — The AI Studio Update**: web UI, batch processing, visual prompt builder, cloud rendering.
-- **v3.0 — The Procedural World Update**: multi-view reconstruction, procedural city generation, semantic world understanding.
-
-The arc: assets (v1.4–v1.5) → the plugin ecosystem (v2.0–v2.1) → worlds (v2.2–v2.3) → production (v2.4–v2.5) → an AI game-asset platform that generates playable worlds from reference images (v3.0).
-
-**→ Full roadmap** — per-version detail, the four-phase long view, and the tracked capability gaps: **[ROADMAP.md](ROADMAP.md)**. Technical specification: [docs/UPGRADE_PLAN.md](docs/UPGRADE_PLAN.md).
+- 一份 `ObjectSculptSpec` JSON：完整的组件树、材质、重复系统、挂点，以及每个 pass 的评审历史记录。
+- 一个 TypeScript `createObjectNameModel(spec, options)` factory，返回 `THREE.Group`，其 `root.userData.sculptRuntime` 暴露节点、挂点、碰撞体和破坏分组。
+- 对于角色构建，`root.userData.rig`：骨骼、一个共享的 `Skeleton`、骨骼顺序与索引映射，以及一个根据每个蒙皮网格是否真正完成绑定计算出的 `bound` 标志。
+- 一张渲染图以及记录每个 pass 保真度的对比图。
+逐个脚本的参考以及输出产物的完整列表，见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
 
 ---
 
-## Honesty about limits
+## 路线图
 
-A single image cannot reveal hidden sides or guarantee exact geometry. The skill states plainly when output is approximate, stylized, or low-poly, and infers unseen faces by mirroring visible ones rather than faking confidence. It is strong for hard-surface objects; characters are stylized reconstructions, not photoreal likeness. "This cannot reach the requested fidelity from this image" is a valid, expected result.
+**已发布：**
+
+- **v1.0**——物体流水线：分阶段雕刻、渲染对参考图的评审循环、可用于动作的层级。
+- **v1.1**——细节优先的分析：必需的细节清单、严格质量门禁。
+- **v1.2**——人形角色生成器：解剖路线、比例锁定与特征放置 pass。
+- **v1.3**——质量与效率：Divine Eye 确定性评审框架、输入完整性与几何真实性门禁、基于参考的纹理与渐变分析、CIEDE2000 色彩计算。
+- **v1.4——The Weapon Update**——CS2 图像匹配重建：感知来源的 intake、投影优先的表面处理、按家族区分的武器适配器，以及结构评审门禁。
+- **v1.4.1**——CS2 加固：显式组件覆盖、专用的 Glock-18 装配契约、去贴图 blockout 证据，以及更严格的几何完整性检查。
+- **生物生成器**——4 种身体结构（四足 / 鸟类 / 有翼龙 / 蛇形）、`animalAnatomy` spec、脊柱放样几何、ΔE00 色彩门禁。
+- **v1.5——The Character Update**——从组件树推导并绑定到 `SkinnedMesh` 几何的骨架、测地蒙皮、作为五阶段子系统并带有头皮暴露硬门禁的头发、手性门禁、内部差异评审、`tapered-sweep` 基元、带阻断性验收门禁的材质流水线，以及可恢复的工作流状态。未包含：`hairProfile` 编译器、IK、姿态扫描门禁、服装。
+- **v2.0——The Plugin Update**——领域注册表、拉取式 spec augmentation（质量下限只升不降）、带来源记录的
+  输出目标插槽、按插件的阻断性门禁，以及 img2 harness（`img2 install/add/doctor`）。CS2 被提取到
+  `plugin-cs2`，`animated-character` 由 `plugin-character` 提供；基础层不指名任何领域。原本排在
+  Procedural World 版本中的"插件生态与 API"，作为独立的大版本率先发布。
+
+**下一步——每个版本一个主题：**
+- **v2.1——The Character Split**：仓内的 `character` 领域并入 `plugin-character`，使基础层不再指名任何领域，v2.0 的插件拆分就此收尾。
+- **v2.2——The Environment Update**：建筑、房间、街道、植被、感知地形以及多物体重建。
+- **v2.3——The Game Pipeline Update**：Unity 和 Unreal 导出器、Blender 桥接、LOD 与碰撞网格生成。
+- **v2.4——The Animation Update**：自动绑定、自动蒙皮权重、Mixamo 兼容、面部绑定。
+- **v2.5——The AI Studio Update**：Web UI、批处理、可视化提示词构建器、云渲染。
+- **v3.0——The Procedural World Update**：多视角重建、程序化城市生成、语义化世界理解。
+
+演进路线：资产（v1.4–v1.5）→ 插件生态（v2.0–v2.1）→ 世界（v2.2–v2.3）→ 生产（v2.4–v2.5）→ 一个能从参考图生成可玩世界的 AI 游戏资产平台（v3.0）。
+
+**→ 完整路线图**——各版本细节、四阶段长期展望以及跟踪中的能力缺口：**[ROADMAP.md](ROADMAP.md)**。技术规格：[docs/UPGRADE_PLAN.md](docs/UPGRADE_PLAN.md)。
 
 ---
 
-## Star history
+## 如实说明局限
 
-If img2threejs is useful to you, a star helps others find it.
+单张图片无法揭示被遮挡的面，也无法保证几何精确。当输出是近似、风格化或低多边形时，技能会直白说明，并通过镜像可见面来推断未见面，而不是假装有把握。它擅长硬表面物体；角色是风格化重建，而非照片级相似。"无法从这张图片达到所要求的保真度"是一个有效且预期之中的结果。
+
+---
+
+## Star 历史
+
+如果 img2threejs 对你有用，点个 star 能帮助更多人发现它。
 
 <a href="https://www.star-history.com/#hoainho/img2threejs&Timeline">
   <picture>
@@ -376,20 +364,20 @@ If img2threejs is useful to you, a star helps others find it.
 
 ---
 
-## Support the project
+## 支持本项目
 
-img2threejs is free and open source. If it saved you time or found its way into your project, consider supporting continued development:
+img2threejs 免费且开源。如果它为你节省了时间或被用进了你的项目，请考虑支持后续开发：
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/O8A625YLSR)
 
-VietQR / MoMo / PayPal also work — see the [donate page](https://img2threejs.io/donate.html).
+也支持 VietQR / MoMo / PayPal——见[捐赠页面](https://img2threejs.io/donate.html)。
 
 ---
 
-## Sponsors
+## 赞助商
 
-Reconstruction-by-code is an inference workload before it is a graphics one: every gate rerun, every
-render-vs-reference pass and every material fit spends tokens. These three pay for that loop.
+用代码重建首先是推理负载，其次才是图形负载：每次重跑门禁、每个渲染对参考图的 pass、每次材质
+拟合都要花费 token。以下三家为这个循环买单。
 
 <table>
   <tr>
@@ -402,7 +390,7 @@ render-vs-reference pass and every material fit spends tokens. These three pay f
         </picture>
       </a>
       <br /><sub><b>Atlas Cloud</b></sub>
-      <br /><sub>Full-modal AI inference</sub>
+      <br /><sub>全模态 AI 推理</sub>
     </td>
     <td align="center" width="200">
       <a href="https://www.tripo3d.ai/" target="_blank" rel="noopener noreferrer">
@@ -413,7 +401,7 @@ render-vs-reference pass and every material fit spends tokens. These three pay f
         </picture>
       </a>
       <br /><sub><b>Tripo</b></sub>
-      <br /><sub>Image &amp; text to 3D</sub>
+      <br /><sub>图像与文本转 3D</sub>
     </td>
     <td align="center" width="200">
       <a href="https://hyper3d.ai/" target="_blank" rel="noopener noreferrer">
@@ -424,7 +412,7 @@ render-vs-reference pass and every material fit spends tokens. These three pay f
         </picture>
       </a>
       <br /><sub><b>Hyper3D</b></sub>
-      <br /><sub>Rodin generative 3D</sub>
+      <br /><sub>Rodin 生成式 3D</sub>
     </td>
   </tr>
 </table>
@@ -437,15 +425,14 @@ render-vs-reference pass and every material fit spends tokens. These three pay f
   <img alt="" src="assets/sponsors/atlas-cloud-logomark-black.svg" width="38" height="36" align="right" />
 </picture>
 
-**[Atlas Cloud](https://www.atlascloud.ai/console/coding-plan)** is a full-modal AI inference
-platform: one AI API for video generation, image generation and LLM access, with unified access to
-300+ curated models across every modality instead of a separate integration per vendor.
+**[Atlas Cloud](https://www.atlascloud.ai/console/coding-plan)** 是一个全模态 AI 推理平台：一个 AI
+API 即可访问视频生成、图像生成和 LLM，统一接入覆盖各个模态的 300 多个精选模型，而不必为每个厂商
+单独集成。
 
-That single endpoint is what keeps this project's loop affordable — the pipeline is token-hungry by
-design, because gating a spec before codegen means running the analysis more than once. Atlas Cloud's
-coding plan is the budget-friendly route to that API.
+正是这个单一端点让本项目的循环负担得起——这条流水线按设计就很耗 token，因为在代码生成之前对
+spec 把关意味着分析要运行不止一次。Atlas Cloud 的 coding plan 是使用该 API 的实惠途径。
 
-**→ [Open the Atlas Cloud coding plan](https://www.atlascloud.ai/console/coding-plan)**
+**→ [打开 Atlas Cloud coding plan](https://www.atlascloud.ai/console/coding-plan)**
 
 ### Tripo
 
@@ -455,17 +442,15 @@ coding plan is the budget-friendly route to that API.
   <img alt="" src="assets/sponsors/tripo-logomark-black.svg" width="38" height="38" align="right" />
 </picture>
 
-**[Tripo](https://www.tripo3d.ai/)** turns a prompt or a reference image into a production 3D asset:
-High Detail meshes up to 2M polygons for render and print, artist-grade quad **Smart Mesh** from 500
-to 50K triangles for real-time engines, AI auto-rigging, PBR texturing up to 8K, and part-level
-segmentation. Exports GLB, FBX, OBJ, USD, STL and 3MF, with first-party plugins for Blender, Unity,
-Unreal, Godot, Cocos and ComfyUI.
+**[Tripo](https://www.tripo3d.ai/)** 把提示词或参考图转为生产级 3D 资产：面向渲染和打印、最高
+2M 多边形的 High Detail 网格，面向实时引擎、500 到 50K 三角形的美术级四边形 **Smart Mesh**，AI
+自动绑定，最高 8K 的 PBR 贴图，以及部件级分割。可导出 GLB、FBX、OBJ、USD、STL 和 3MF，并提供
+Blender、Unity、Unreal、Godot、Cocos 和 ComfyUI 的官方插件。
 
-It pairs with img2threejs as the measuring stick. A procedural rebuild lives or dies on silhouette,
-proportion and joint placement, and a quad mesh plus an auto-rig of the same subject gives those
-gates a second read that one reference photograph cannot settle on its own.
+它与 img2threejs 搭配作为量尺。程序化重建的成败取决于轮廓、比例和关节位置，而同一对象的四边形
+网格加自动绑定能为这些门禁提供第二种读数——这是单张参考照片自己无法确定的。
 
-**→ [Open Tripo Studio](https://www.tripo3d.ai/)**
+**→ [打开 Tripo Studio](https://www.tripo3d.ai/)**
 
 ### Hyper3D
 
@@ -475,30 +460,27 @@ gates a second read that one reference photograph cannot settle on its own.
   <img alt="" src="assets/sponsors/hyper3d-logomark-black.png" width="38" height="38" align="right" />
 </picture>
 
-**[Hyper3D](https://hyper3d.ai/)** builds **Rodin**, which generates a 3D asset from a prompt or an
-image in seconds with high reference fidelity and coherent detail across views. Generation is
-steerable rather than a dice roll: bounding-box, voxel and point-cloud ControlNet guidance, partial
-editing to refine one region without disturbing the rest, smart low-poly optimisation, and
-ChatAvatar for rigged production faces. Exports STL, FBX, OBJ, GLB, glTF and USDZ.
+**[Hyper3D](https://hyper3d.ai/)** 打造了 **Rodin**，它能在几秒内根据提示词或图像生成 3D 资产，
+参考保真度高，且各视角的细节连贯。生成是可引导的，而不是掷骰子：包围盒、体素和点云 ControlNet
+引导，局部编辑可在不影响其余部分的情况下细化某一区域，智能低多边形优化，以及用于带绑定的生产级
+面部的 ChatAvatar。可导出 STL、FBX、OBJ、GLB、glTF 和 USDZ。
 
-It answers the one question a single photograph never can — what the back looks like. Generate the
-subject, orbit it, and the hidden sides become references the material and surface gates can actually
-be run against, instead of assumptions the pipeline has to make silently.
+它回答了单张照片永远无法回答的问题——背面长什么样。生成该对象、环绕查看，被遮挡的面就成了材质与
+表面门禁可以真正对照运行的参考，而不再是流水线不得不默默做出的假设。
 
-**→ [Open Hyper3D Rodin](https://hyper3d.ai/)**
+**→ [打开 Hyper3D Rodin](https://hyper3d.ai/)**
 
 ---
 
-Sponsorship pays for compute, not for coverage: a sponsor's product is described here in its own
-terms, and no gate, default or benchmark in this repository is weighted toward one. Want your logo in
-this row? Open an issue or write to <hoainho.work@gmail.com>.
+赞助支付的是算力，而不是曝光：赞助商的产品在这里按其自身的表述介绍，本仓库中没有任何门禁、默认值
+或基准测试偏向任何一家。想让你的 logo 出现在这一行？请提交 issue 或发邮件至 <hoainho.work@gmail.com>。
 
 ---
 
-## Contributing
+## 参与贡献
 
-Contributions are welcome — procedural material recipes, new gates, host coverage, and demos especially. See [CONTRIBUTING.md](CONTRIBUTING.md) and the [roadmap](ROADMAP.md) for where the project is headed.
+欢迎贡献——尤其是程序化材质配方、新门禁、宿主覆盖和演示。参见 [CONTRIBUTING.md](CONTRIBUTING.md) 以及[路线图](ROADMAP.md)了解项目方向。
 
-## License
+## 许可证
 
-Apache License 2.0. See [LICENSE](LICENSE).
+Apache License 2.0。见 [LICENSE](LICENSE)。

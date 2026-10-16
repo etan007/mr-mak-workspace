@@ -10,11 +10,11 @@ const args = process.platform === 'win32' ? ['/c', 'echo mrmak-pty-ready'] : ['-
 await new Promise((resolve, reject) => {
   const child = pty.spawn(command, args, { cwd: runtime, env: process.env });
   let output = '';
-  const timer = setTimeout(() => { child.kill(); reject(Error('Bundled PTY did not finish')); }, 10000);
+  const timer = setTimeout(() => { child.kill(); reject(Error('内置 PTY 未能结束')); }, 10000);
   child.onData(data => { output += data; });
   child.onExit(({ exitCode }) => {
     clearTimeout(timer);
     try { assert.equal(exitCode, 0); assert.match(output, /mrmak-pty-ready/); resolve(); } catch (error) { reject(error); }
   });
 });
-console.log(`Packaged Node ${process.version} and native PTY launch passed.`);
+console.log(`打包的 Node ${process.version} 与原生 PTY 启动检查通过。`);

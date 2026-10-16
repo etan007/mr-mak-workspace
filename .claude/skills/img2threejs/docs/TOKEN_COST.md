@@ -1,37 +1,37 @@
-# Token Cost Analysis
+# Token 成本分析
 
-The numbers below are engineering estimates, not a measured benchmark. They are order-of-magnitude figures anchored to one reference build (a rounded-bevel loot chest: gradient enamel, gold corner brackets, an emissive emblem, resolved in about six render-review cycles). Actual cost varies with the model tier, image resolution, object complexity, and — above all — how many review cycles a subject needs. Treat them as a cost model, not a guarantee.
+以下数字是工程估算，不是实测基准。它们是数量级数值，以一次参考构建为锚点（一个圆角倒边的战利品宝箱：渐变珐琅、金色包角、一个自发光徽记，约六轮渲染-评审循环完成）。实际成本随模型档位、图像分辨率、物体复杂度变化，而最关键的是题材需要多少轮评审循环。请把它们当作成本模型，而非保证。
 
-A measured benchmark, based on empirical data across real reconstructions, is planned for v1.5. See [ROADMAP.md](../ROADMAP.md) for details.
+基于真实重建实测数据的基准计划在 v1.5 推出。详见 [ROADMAP.md](../ROADMAP.md)。
 
-## Where the tokens go per full object reconstruction
+## 一次完整物体重建的 token 去向
 
-| Stage | Est. model tokens | Notes |
+| 阶段 | 估计模型 token | 说明 |
 |---|---|---|
-| Deterministic scripts (probe, assessment, spec, validate, generate, sync) | ~2k-5k total | Run as subprocesses. This is the work that is near-free. |
-| Read the reference image | <1k | A small reference; higher-res costs more. |
-| Author assessment + detail inventory + spec JSON | ~15k-25k | The spec is the largest text artifact. |
-| Write and edit the Three.js factory | ~20k-45k | Scales with part count and edit iterations. |
-| Render-review loop (5-8 cycles) | ~30k-70k | The dominant cost; scales linearly with cycles. |
-| **Total, one object** | **~80k-180k** | Simple/few-cycles to complex/many-cycles. |
+| 确定性脚本（probe、assessment、spec、validate、generate、sync） | 合计约 2k-5k | 以子进程运行。这部分工作几乎免费。 |
+| 读取参考图 | <1k | 小尺寸参考图；分辨率越高成本越高。 |
+| 编写评估 + 细节清单 + spec JSON | 约 15k-25k | spec 是最大的文本产物。 |
+| 编写并修改 Three.js 工厂函数 | 约 20k-45k | 随部件数量和修改迭代次数增长。 |
+| 渲染-评审循环（5-8 轮） | 约 30k-70k | 主要成本；随轮数线性增长。 |
+| **合计，单个物体** | **约 80k-180k** | 从简单/少轮次到复杂/多轮次。 |
 
-## One render-review cycle in isolation
+## 单轮渲染-评审循环
 
-| Step | Est. model tokens |
+| 步骤 | 估计模型 token |
 |---|---|
-| Capture screenshot (browser tool) | ~0 (tool call) |
-| Package comparison sheet (stdlib script) | ~0 (subprocess) |
-| Inspect the comparison sheet with vision | ~2k-3k |
-| Write the review and scores (script) | ~1k-2k |
-| **Per cycle** | **~5k-12k** |
+| 截图（浏览器工具） | 约 0（工具调用） |
+| 打包对比图（标准库脚本） | 约 0（子进程） |
+| 用视觉能力检查对比图 | 约 2k-3k |
+| 写评审与评分（脚本） | 约 1k-2k |
+| **每轮** | **约 5k-12k** |
 
-## Character reconstruction cost
+## 角色重建成本
 
-Characters cost more (more review cycles plus landmark and projection checks): roughly ~150k-350k for a full stylized or likeness-maximized reconstruction with the v1.2 character generator.
+角色成本更高（评审轮次更多，外加关键点和投影检查）：用 v1.2 角色生成器做一次完整的风格化或最大化还原相似度的重建，大约需 150k-350k。
 
-## What this buys you
+## 这样做的收益
 
-- Deterministic scripts contribute close to zero model tokens, so validation, gating, detail counting, sheet packaging, and pipeline state never eat context.
-- Model tokens are spent only on vision (reading one sheet per pass), authoring the spec, and writing code.
-- The gates are the savings mechanism: strict-quality blocks codegen on an underspecified spec, and the detail-inventory gate blocks it on missing detail — each avoided bad render saves roughly one full cycle (~10k-20k tokens).
-- The single biggest lever on cost is the review-cycle count. A well-formed spec up front is worth more tokens than any micro-optimization downstream.
+- 确定性脚本几乎不消耗模型 token，因此校验、门禁、细节计数、对比图打包和流水线状态都不会占用上下文。
+- 模型 token 只花在视觉（每轮读一张对比图）、编写 spec 和写代码上。
+- 门禁就是省钱机制：strict-quality 在 spec 描述不足时阻止代码生成，细节清单门禁在缺失细节时阻止代码生成——每避免一次糟糕的渲染，约节省一整轮（约 10k-20k token）。
+- 对成本影响最大的单一杠杆是评审轮数。前期写好一份结构完善的 spec，比下游任何微优化都更值得投入 token。

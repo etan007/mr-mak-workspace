@@ -1,64 +1,48 @@
 ---
 name: game-vfx-workflow
-description: Develop game effects from visual references and motion studies through an engine handoff, with event timing, lifecycle, readability and native review. Use for combat, status, environment or object effects.
+description: 从视觉参考与运动研究出发开发游戏特效，直至引擎交接，覆盖事件时序、生命周期、可读性与原生审查。适用于战斗、状态、环境或物体特效。
 ---
 
-# Game VFX workflow
+# 游戏特效（VFX）工作流
 
-Start from the effect's gameplay meaning, the actual game camera and an existing
-capture. Inspect the relevant animation, event and visibility code before
-promising a trigger. A diagram can propose appearance; only the engine can prove
-event timing, cleanup and rendering cost.
+从特效的玩法含义、实际游戏相机和已有截取画面入手。承诺某个触发点之前，先检查相关的
+动画、事件和可见性代码。示意图可以提出外观方案；只有引擎能证明事件时序、清理和渲染开销。
 
-## Establish a reviewable direction
+## 确定可审查的方向
 
-Separate a reference board, proposed motion and implemented effects. Preserve
-the user's selected direction and revisions. For a vendor preview, record its
-source and what should be borrowed; viewing it does not supply an asset licence.
-Use the project's approved provider when new concept art is requested. Do not
-generate another batch just to turn a chosen direction into a handoff.
+把参考板、拟定运动和已实现特效分开。保留用户选定的方向及其修改。对于供应商预览，
+记录其来源以及要借鉴的内容；看过预览不等于获得素材许可。用户要求新概念图时，使用
+项目认可的服务商。不要仅为了把已选方向做成交接而再生成一批。
 
-Describe the effect in layers: purpose, shape, colour, attachment, timing and
-intensity. Distinguish a continuous state from a one-shot event. A small contact
-burst, a spreading death stain and an ongoing damage fire need separate lifecycles.
-Make attachment space explicit: a hand glow follows a socket, while a released
-trail stays briefly in world space. Changing an emitter must not teleport old
-particles.
+分层描述特效：用途、形状、颜色、挂载、时序和强度。区分持续状态与一次性事件。
+小型接触爆发、扩散的死亡污渍和持续的受损火焰需要各自独立的生命周期。明确挂载空间：
+手部光晕跟随挂点（socket），而释放出的拖尾会在世界空间中短暂停留。更换发射器不得
+让旧粒子瞬移。
 
-For an interactive study, expose only useful comparisons: layer isolation,
-normal/slow playback, scale, ground contrast and the relevant interruption.
-Label its timings as illustrative when they are not verified animation markers.
-Keep old versions reachable and use stable option names.
+交互式研究只暴露有用的对比项：图层隔离、正常/慢速播放、缩放、地面对比度和相关的
+打断情况。时序若不是经过验证的动画标记，就标注为示意值。保留旧版本可访问，并使用
+稳定的选项名称。
 
-## Write the engine contract
+## 编写引擎约定
 
-Read [the lifecycle and review checklist](references/implementation.md) when
-preparing integration. Record real release/contact markers from the accepted
-animation or gameplay clock. A projectile owns its travel; confirmed contact
-owns its impact. A cancelled windup must not schedule a later hit effect.
+准备集成时阅读[生命周期与审查清单](references/implementation.md)。从已接受的动画或
+玩法时钟中记录真实的释放/接触标记。投射物负责自身飞行；确认的接触负责其命中效果。
+被取消的前摇不得调度后续的命中特效。
 
-Specify where an effect is spawned, who owns it, how it fades and what removes
-it. Include death, cancellation, despawn, scene unload and any game-specific
-visibility/storage transitions. Reset trail history on teleport or reuse.
-For surface effects, use reviewed anchors or validated surface sampling. A
-bounding box alone does not establish a valid wall, roof or ground contact.
+明确特效在哪里生成、由谁持有、如何淡出以及由什么移除。包括死亡、取消、消失（despawn）、
+场景卸载以及游戏特有的可见性/存储切换。瞬移或复用时重置拖尾历史。对于表面特效，
+使用经过审查的锚点或经过验证的表面采样。仅凭包围盒无法确定有效的墙面、屋顶或地面接触。
 
-Use shared materials and bounded pools where appropriate. Restore only this
-effect's material contribution; preserve team tint, hit flashes and other active
-states. Measure transparent overlap and crowd cost on the actual target. Do not
-add gameplay damage, buffs or balance changes as incidental VFX work.
+在合适的地方使用共享材质和有上限的对象池。只恢复本特效的材质贡献；保留队伍色调、
+受击闪烁及其他活动状态。在实际目标平台上测量透明叠加和人群开销。不要把玩法伤害、
+增益或数值平衡改动当作特效工作的附带改动。
 
-## Deliver and review
+## 交付与审查
 
-Deliver the selected appearance, motion contract, local source references,
-editable assets and implementation status. Record concept approval, native
-verification and visual acceptance separately. Capture a real OFF/ON comparison
-at normal gameplay zoom using the same action and camera; ensure underlying
-gameplay is unchanged. Add an implemented effect to the project library with
-its trigger, usage and native preview, not a generated illustration.
+交付选定外观、运动约定、本地源参考、可编辑素材和实现状态。分别记录概念认可、原生验证
+和视觉验收。在正常游戏缩放下，使用相同动作和相机截取真实的 OFF/ON 对比；确保底层
+玩法不变。把已实现的特效加入项目库，附上其触发条件、用法和原生预览，而不是生成的插图。
 
-Example request: "Design a small shield impact that remains readable on pale
-ground, then prepare its integration handoff." Success means a selected direction,
-confirmed-hit trigger, cleanup contract and native review plan. It does not imply
-that a concept preview has already been integrated. Dependencies: the project's
-references and engine access for implementation; generation tools are optional.
+示例请求：“设计一个在浅色地面上仍清晰可读的小型护盾命中特效，然后准备其集成交接。”
+成功意味着有选定方向、确认命中触发、清理约定和原生审查计划。这并不意味着概念预览
+已被集成。依赖：项目参考资料和用于实现的引擎访问；生成工具为可选。

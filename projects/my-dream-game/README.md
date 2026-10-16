@@ -1,35 +1,30 @@
-# My Dream Game: Mr. Mak 64
+# 我的梦想游戏：Mr. Mak 64
 
-A small third-person platformer set on floating Sky Islands. Mr. Mak is a white
-piglet with a grey beanie and a brown backpack. The first world is a climb through
-grass islands and a small village, with a secret below the main route.
+一个设定在漂浮天空岛（Sky Islands）上的小型第三人称平台跳跃游戏。Mr. Mak 是一只
+戴灰色毛线帽、背棕色背包的小白猪。第一个世界是一段穿过草地岛屿和小村庄的攀登，
+主路线下方藏有一个秘密。
 
-## The level contract
+## 关卡约定
 
-- Unity is the example engine; confirm the recipient's project before editing it.
-- Run, jump, double jump, attack and jump attack.
-- Collect 100 golden waistcoat buttons and earn five top hats through distinct
-  challenges. Keep the first implementation small before expanding the route.
-- Use a forgiving third-person camera and a readable low-poly art direction.
+- 示例引擎是 Unity；编辑前先确认接收者的项目。
+- 跑、跳、二段跳、攻击和跳跃攻击。
+- 收集 100 颗金色马甲纽扣，并通过不同挑战赢得五顶高礼帽。先把第一版实现做小，
+  再扩展路线。
+- 使用宽容的第三人称镜头和易读的低多边形美术方向。
 
-## Selected references
+## 选定的参考
 
-The [Workspace hub](../../workspace/2026-09-15_my-dream-game/index.html) contains
-four sections: Intro screen, Character, Locations and Development. Its character
-and level images come from the original Mr. Mak 64 concept exploration. Prompts
-are preserved next to those images. Character and Development also include
-camera renders from the existing Bellweather Sky Unity prototype. These document
-the scene's appearance; gameplay was not re-tested for the template, and the
-engine project and playable build are not included.
+[工作区主页](../../workspace/2026-09-15_my-dream-game/index.html) 包含四个部分：
+开场画面、角色、场景和开发。其中的角色和关卡图片来自最初的 Mr. Mak 64 概念探索。
+提示词保存在这些图片旁边。角色和开发部分还包含现有 Bellweather Sky Unity 原型的
+相机渲染图。它们记录场景外观；未针对模板重新测试玩法，也不包含引擎项目和可玩
+版本。
 
-Start from the beanie character, the spiral layout and the village return route.
-Keep alternate outfits and locations visible as design history. The first world
-does not need every explored location.
+从毛线帽角色、螺旋布局和村庄回程路线开始。保留其他服装和场景作为设计历史可见。
+第一个世界不需要包含所有探索过的场景。
 
-## Next implementation
+## 下一步实现
 
-Build one safe island with responsive movement, a clear camera and one collectible.
-Then record the actual build version, captures and acceptance checks in this card.
-The development board is an example backlog that a recipient can replace with
-their own tasks. Put engine files and editable source assets in this folder when
-starting an implementation; no Unity project or executable is bundled.
+做一个安全的岛屿，具备灵敏的移动、清晰的镜头和一个收集物。然后在此卡片中记录实际
+的构建版本、截图和验收检查。开发看板是示例待办，接收者可以换成自己的任务。开始
+实现时，把引擎文件和可编辑的源素材放在此文件夹；不附带 Unity 项目或可执行文件。

@@ -1,230 +1,170 @@
-# GLB animated-character prompt
+# GLB 动画角色提示词
 
-> **Checklist authority note (extract-animated-character, 2026-09-03):** the `animated-character`
-> profile is served by the installed **plugin-character** (`img2 add img2threejs/plugin-character`);
-> its `domain.json` owns the rig-step order and invokes the plugin's `tools/` ports. The
-> `forge/stage5_rig/...` commands below remain runnable as the base LIBRARY the emitters use, but
-> the checklist runs the plugin's copies -- when the two disagree, the plugin is the authority.
+> **检查清单权威说明（extract-animated-character，2026-09-03）：** `animated-character`
+> profile 由已安装的 **plugin-character**（`img2 add img2threejs/plugin-character`）提供；
+> 其 `domain.json` 掌管绑定步骤顺序，并调用插件的 `tools/` 移植版本。下文的
+> `forge/stage5_rig/...` 命令仍可作为输出器所用的基础库运行，但检查清单运行的是插件中的副本——二者不一致时，以插件为准。
 
-One copy-paste prompt that carries a subject from a GLB reference to a **rigged, animated,
-gate-cleared** procedural Three.js character, for img2threejs 1.5.2 and later.
+一份可直接复制粘贴的提示词，把主体从 GLB 参考一路带到**已绑定、有动画、通过门禁**的程序化 Three.js 角色，适用于 img2threejs 1.5.2 及以后版本。
 
-It is the animated sibling of [`prompts/build.md`](standard-prompts/build.md). That one stops
-at a static reconstruction; this one continues through Stage R — rigging, animation, and the G1–G10
-gates — under one rule the static route never needed:
+它是 [`prompts/build.md`](standard-prompts/build.md) 的动画版姊妹篇。那一份止步于静态重建；这一份继续走完 Stage R——绑定、动画和 G1–G10 门禁——并遵循一条静态路线从来不需要的规则：
 
-> **Repair the mesh before you freeze it. After the freeze, rigging may only ADD.**
+> **冻结网格之前先修复它。冻结之后，绑定只能新增（ADD）。**
 
-## Why this prompt exists
+## 为什么要有这份提示词
 
-Animation used to break meshes, and the reason was structural rather than accidental.
+动画过去会破坏网格，原因是结构性的，而非偶然。
 
-1. **The gates were unreachable.** Every module under `forge/stage5_rig/` was callable and nothing
-   in the workflow ever told anyone to call one. `next.py` walks the checklist, so a gate absent
-   from the checklist never runs — and a gate that never runs reports a clean verdict forever. The
-   `animated-character` profile puts Stage R on the checklist, so the gates are now unskippable
-   rather than merely available.
-2. **The rig was authored beside the GLB instead of read from it.** A GLB carries a real skin and
-   real clips; its animation channels target ITS node indices and its `skinIndex` values address
-   ITS joint array. Feeding either into a procedurally authored skeleton indexes a different
-   skeleton entirely, which shreds the mesh. Hence: read the rig FROM the GLB, and where a
-   procedural skeleton must coexist, build an explicit measured correspondence rather than assuming
-   the indices line up.
-3. **Nothing proved the mesh survived.** `validate_rig_payload.py` proves structural payload
-   integrity only — by its own scope note, never pose stress or likeness. A green payload was being
-   read as "animation is safe". `mesh_parity.py` closes that: hash the geometry before rigging,
-   re-hash after, and a single changed float names the mesh, the attribute and the vertex.
+1. **门禁无法触达。** `forge/stage5_rig/` 下的每个模块都可调用，但工作流里从来没有任何地方叫人去调用它们。`next.py` 按检查清单逐项推进，所以不在清单上的门禁永远不会运行——而从不运行的门禁会永远报告干净的结论。`animated-character` profile 把 Stage R 放进了检查清单，于是这些门禁从"可用"变成了"不可跳过"。
+2. **绑定是在 GLB 旁边另行编写的，而不是从 GLB 读出来的。** GLB 带有真实的蒙皮和真实的动画片段；它的动画通道指向它自己的节点索引，它的 `skinIndex` 值寻址它自己的关节数组。把任何一个喂给程序化编写的骨架，都会索引到完全不同的骨架，网格因此被撕碎。所以：从 GLB 读取绑定；在必须与程序化骨架共存的地方，建立显式的、经测量的对应关系，而不是假设索引能对上。
+3. **没有任何东西证明网格完好。** `validate_rig_payload.py` 只证明结构载荷完整性——按它自己的范围说明，从不涉及姿态压力或相似度。绿色的载荷结果却被当成了"动画是安全的"。`mesh_parity.py` 补上了这一环：绑定前对几何做哈希，绑定后再哈希一次，只要有一个浮点数变了，就会指出是哪个网格、哪个属性、哪个顶点。
 
-Two distinct symptoms have two distinct causes, and it is worth knowing which one you are looking
-at before hunting:
+两种不同的症状有两种不同的成因，动手排查前值得先分清你看到的是哪一种：
 
-| What you see | What it is |
+| 你看到的 | 实际是什么 |
 |---|---|
-| Nothing moves; the scene renders fine | Binding never reaches the node, or inverse binds cancel the wrong pose — **G1** |
-| Parts fly apart / the figure is shredded | Geometry rewritten during rigging, or joint indices addressing a different skeleton — **mesh parity** and **correspondence** |
+| 什么都不动；场景渲染正常 | 绑定没有作用到节点，或者 inverse bind 抵消了错误的姿态——**G1** |
+| 部件四散飞开 / 人物被撕碎 | 绑定过程中几何被改写，或关节索引寻址到了另一个骨架——**mesh parity** 和 **correspondence** |
 
-## How to use it
+## 使用方法
 
-1. Replace every `<PLACEHOLDER>`.
-2. Paste the whole thing as one prompt. It is written to complete in a single pass.
-3. A hard stop is the prompt working. Answer the question it asks rather than telling it to continue.
+1. 替换每一个 `<PLACEHOLDER>`。
+2. 把整段作为一条提示词粘贴。它按一次完成来编写。
+3. 遇到硬停止说明提示词在正常工作。回答它提出的问题，而不是让它继续。
 
-## The prompt
+## 提示词
 
 ````text
-Build a rigged, animated procedural Three.js character from a GLB reference using img2threejs 1.5.2.
+使用 img2threejs 1.5.2，从一个 GLB 参考构建一个已绑定、有动画的程序化 Three.js 角色。
 
-## Inputs
+## 输入
 - GLB reference:  <ABSOLUTE_PATH_TO_GLB>
 - Reference photo (optional): <PATH_OR_NONE>
 - Subject name:   <SubjectName>
 - Demo id:        <subject-id>
 - Showcase root:  <PATH_TO_img2threejs-showcase>
-- Real longest dimension: <e.g. 1.70 m>   # sanity-checks scale; never used to scale
+- Real longest dimension: <e.g. 1.70 m>   # 用于检查尺度是否合理；绝不用来缩放
 
-## Hard contract — do not violate these
+## 硬性契约——不得违反
 
-1. **The GLB is a measurement instrument, never an asset.** Symlink it into `public/mesh/`
-   (gitignored). No `.glb`/`.bin` may be fetched by the running demo. Its topology and textures are
-   measured, never copied into the factory.
-2. **Rigging and animation are REFERENCED FROM THE GLB.** Skeleton, skin joint order, inverse bind
-   matrices and clips come from `forge/stage5_rig/glb_rig_reference.py`, not from invention. The
-   skin's joint ordering is the authority — never traversal order, never node names.
-3. **Repair before the freeze; after the freeze, only ADD.** If meshes are broken, fix them in the
-   `mesh-repair` step and say what you fixed. Then freeze. From that moment vertex positions,
-   normals, uvs and indices are evidence: rigging may add `skeleton`, `skinIndex` and `skinWeight`
-   and nothing else. `mesh_parity.py verify` must pass. If it fails, the rigging is wrong — never
-   re-freeze to make it pass.
-4. **State gate on every step.** `python3 forge/next.py --state .img2threejs/state.json` at start,
-   at resume, and before every correction. Exit 3 / `status=stopped` is a hard stop: report and ask,
-   never continue from memory.
-5. **Never label a node from its name.** Baseline assets name nodes `root.0..root.N` and rigs name
-   joints `node_17`. Labels come from measured world-space bounds; joint correspondence comes from
-   measured position. Treat every label as `hypothesis-requires-render-confirmation`.
-6. **An unevaluated gate is not a pass.** If a gate's input is missing, produce the input or report
-   the gate as unevaluated with the reason. Never record a gate as green because it did not run.
-7. **Never claim "done" when it is "improved."** Name what still does not match.
+1. **GLB 是测量仪器，绝不是资产。** 把它软链接到 `public/mesh/`
+   （已 gitignore）。运行中的 demo 不得获取任何 `.glb`/`.bin`。它的拓扑和纹理只用于测量，绝不复制进工厂。
+2. **绑定和动画都从 GLB 引用（REFERENCED FROM THE GLB）。** 骨架、蒙皮关节顺序、inverse bind
+   矩阵和动画片段都来自 `forge/stage5_rig/glb_rig_reference.py`，而不是凭空编造。以蒙皮的关节顺序为准——绝不用遍历顺序，绝不用节点名称。
+3. **冻结前修复；冻结后只能新增（ADD）。** 如果网格有损坏，在 `mesh-repair` 步骤修复，并说明修了什么。然后冻结。从那一刻起，顶点位置、法线、uv 和索引都是证据：绑定只能新增 `skeleton`、`skinIndex` 和 `skinWeight`，别的都不行。`mesh_parity.py verify` 必须通过。如果失败，说明绑定有错——绝不能为了让它通过而重新冻结。
+4. **每一步都过状态门禁。** 开始时、恢复时以及每次修正之前运行 `python3 forge/next.py --state .img2threejs/state.json`。退出码 3 / `status=stopped` 是硬停止：报告并提问，绝不凭记忆继续。
+5. **绝不根据名称给节点贴标签。** 基线资产把节点命名为 `root.0..root.N`，绑定把关节命名为 `node_17`。标签来自测得的世界空间包围盒；关节对应关系来自测得的位置。把每个标签都视为 `hypothesis-requires-render-confirmation`。
+6. **未评估的门禁不算通过。** 如果某个门禁缺少输入，就生成该输入，或者把该门禁报告为未评估并说明原因。绝不因为门禁没运行就把它记为绿色。
+7. **"有改善"时绝不宣称"完成"。** 指出哪些地方仍不匹配。
 
-## Procedure
+## 流程
 
-### Stage 0 — Intake, on the animated profile
+### Stage 0——采集，使用 animated profile
 ```
 python3 forge/state.py init --state .img2threejs/state.json --reference <glb> \
   --profile animated-character --spec object-sculpt-spec.json
 python3 forge/stage1_intake/probe_glb.py <glb> --out glb-probe.json
 python3 forge/stage1_intake/label_glb_nodes.py <glb> --out nodes.json --min-confidence 0.6
 ```
-`--profile animated-character` is what puts Stage R on the checklist. On `character` the rig gates
-are absent and the build will complete without ever running them.
+正是 `--profile animated-character` 把 Stage R 放进了检查清单。若用 `character`，绑定门禁不存在，构建会在从未运行它们的情况下完成。
 
-Read `glb-probe.json` for `skinCount` and `animationCount` before anything else. `skinCount > 1`
-means you must choose a skin explicitly and say why. `animationCount: 0` means Stage R4 authoring,
-not R3 identification — a different route with different gates.
+在做任何事之前，先读 `glb-probe.json` 中的 `skinCount` 和 `animationCount`。`skinCount > 1` 表示你必须显式选择一个蒙皮并说明理由。`animationCount: 0` 表示走 Stage R4 编写，而不是 R3 识别——这是另一条路线，门禁也不同。
 
-### Stages 1–3 — Reconstruction
-Follow `docs/standard-prompts/build.md` for the geometry route (cross-section loft, implicit surface
-only where the loft cannot reach, TypeScript encoding, `verify_cells.mjs` before any encode). None
-of it changes here. Come back when the static model renders and its gates are green.
+### Stages 1–3——重建
+几何路线按 `docs/standard-prompts/build.md` 执行（cross-section loft；只在 loft 覆盖不到的地方用隐式曲面；TypeScript 编码；任何编码之前先跑 `verify_cells.mjs`）。这里对它没有任何改动。静态模型能渲染且其门禁全绿后再回来。
 
-### Stage R — rigging and animation
+### Stage R——绑定与动画
 
-Read `grimoire/readiness/animation_contract.md` and
-`docs/pipelines/character-rigging-animation-1.5.2.md` completely first. Both are short and every
-rule in them traces to a measured failure.
+先完整阅读 `grimoire/readiness/animation_contract.md` 和
+`docs/pipelines/character-rigging-animation-1.5.2.md`。两份都很短，其中每条规则都可追溯到一次测得的失败。
 
-**R-1. Read the rig from the GLB.**
+**R-1. 从 GLB 读取绑定。**
 ```
 python3 forge/stage5_rig/glb_rig_reference.py <glb> --out glb-rig.json
 ```
-Report `deformVsTechnical`: clips routinely target technical nodes that are not joints, and
-building those as bones corrupts the skeleton's index space. If a procedural skeleton must coexist
-with the GLB's, build the correspondence and read `usable` — an unmatched joint on either side
-means it is not usable for retargeting, and inventing the mapping is what shreds a mesh.
+报告 `deformVsTechnical`：动画片段经常指向并非关节的技术节点，把它们建成骨骼会破坏骨架的索引空间。如果程序化骨架必须与 GLB 的骨架共存，建立对应关系并读取 `usable`——任一侧有未匹配的关节，就意味着不能用于重定向，而编造映射正是撕碎网格的原因。
 
-**R-2. Repair, then freeze.**
-Inspect the meshes and repair what is broken NOW. Then:
+**R-2. 修复，然后冻结。**
+现在就检查网格并修复损坏之处。然后：
 ```
 node runtime/scripts/export_mesh_buffers.mjs --url <preview> --out meshes.json
 python3 forge/stage5_rig/mesh_parity.py freeze meshes.json --out mesh-manifest.json
 ```
-Everything after this point is measured against that manifest.
+此后的一切都以该 manifest 为基准测量。
 
-**R-3. Bind — additively.**
+**R-3. 绑定——只做加法。**
 ```
 python3 forge/stage5_rig/validate_rig_payload.py <spec>
 ```
-Then bind. Three rules, each of which produced a real failure:
-- `mesh.bind(skeleton, new THREE.Matrix4())` — identity, always, in attached bind mode. Attached
-  mode recomputes `bindMatrixInverse` from `matrixWorld` every frame, so `matrixWorld` cancels out
-  entirely. Binding with the armature's matrix rendered a blank frame; adding the armature
-  translation to the display offset moved the figure by exactly that translation.
-- The display offset comes from the **mesh bounds alone**: `(−centre.x, −min.y, −centre.z)`.
-- `updateMatrixWorld(true)` BEFORE `new THREE.Skeleton(...)`. `calculateInverses()` reads each
-  bone's current world matrix; constructed first it captures identity, the rest pose never cancels,
-  and every vertex is displaced by its bone's offset. That failure compiles, binds, reports
-  `bound: true`, and renders a corpse.
+然后绑定。三条规则，每一条都曾导致过真实的失败：
+- `mesh.bind(skeleton, new THREE.Matrix4())`——始终使用单位矩阵，采用 attached 绑定模式。attached 模式每帧从 `matrixWorld` 重新计算 `bindMatrixInverse`，所以 `matrixWorld` 会被完全抵消。用 armature 的矩阵绑定时渲染出一帧空白；把 armature 的平移加到显示偏移上，人物恰好被移动了这段平移。
+- 显示偏移**只**来自网格包围盒：`(−centre.x, −min.y, −centre.z)`。
+- 在 `new THREE.Skeleton(...)` 之前调用 `updateMatrixWorld(true)`。`calculateInverses()` 读取每根骨骼当前的世界矩阵；若先构造骨架，它捕获到的是单位矩阵，静止姿态永远不会被抵消，每个顶点都会被其骨骼的偏移量推开。这种失败能编译、能绑定、报告 `bound: true`，渲染出来却是一具尸体。
 
-**R-4. Prove the mesh survived.**
+**R-4. 证明网格完好。**
 ```
 node runtime/scripts/export_mesh_buffers.mjs --url <preview> --out meshes-after.json
 python3 forge/stage5_rig/mesh_parity.py verify mesh-manifest.json meshes-after.json
 ```
-`skinIndex`/`skinWeight` appearing is expected and reported as legally added. A changed position,
-normal, uv or index is a failure naming the mesh and the first differing vertex.
+出现 `skinIndex`/`skinWeight` 是预期的，会被报告为合法新增。位置、法线、uv 或索引有任何变化都是失败，并会指出网格和第一个不同的顶点。
 
-Use `export_mesh_buffers.mjs`, not `export_mesh_geometry.mjs`. The latter multiplies every vertex by
-`matrixWorld` — correct for self-intersection, wrong here in both directions: posing changes
-`matrixWorld` without touching the buffer, so a correctly rigged mesh would report as changed; and a
-real buffer edit cancelled by a compensating transform would report as unchanged.
+用 `export_mesh_buffers.mjs`，不要用 `export_mesh_geometry.mjs`。后者把每个顶点乘以 `matrixWorld`——对自相交检测是对的，在这里则两个方向都错：摆姿态会改变 `matrixWorld` 而不触碰 buffer，因此正确绑定的网格会被报告为已改变；而被补偿变换抵消掉的真实 buffer 修改会被报告为未改变。
 
-**R-5. Measure the clips; never name them by guess.**
+**R-5. 测量动画片段；绝不靠猜来命名。**
 ```
 python3 forge/stage5_rig/glb_rig_reference.py <glb> --sample-clips --landmarks landmarks.json \
   --out sampled-clips.json
 python3 forge/stage5_rig/clip_features.py sampled-clips.json
 ```
-Source clips arrive as `NlaTrack.001` and carry no information. Rename from measurement and record
-which measurement the name rests on. A name that describes motion is provable; a name that implies
-intent is not — no kinematic feature distinguishes a strike from a stumble, so that carries
-`inferred: true`. Loop comes from `poseReturn`, never from travel: a clip that wanders and returns
-loops, and one that ends mid-stride a centimetre away does not.
+源动画片段以 `NlaTrack.001` 这样的名字进来，不携带任何信息。根据测量重新命名，并记录名字依据的是哪项测量。描述运动的名字是可证明的；暗示意图的名字则不是——没有任何运动学特征能区分一次出击和一次踉跄，所以这类名字要带 `inferred: true`。是否循环由 `poseReturn` 决定，绝不由位移决定：四处移动后又回到原处的动画片段是循环的，而停在半步、相差一厘米的则不是。
 
-`scaleDelta ≠ 0` is a tripwire, not a descriptor. Surface it before anything else proceeds.
+`scaleDelta ≠ 0` 是绊线，不是描述符。在其他任何事继续之前先把它暴露出来。
 
-**R-6. Gates.**
+**R-6. 门禁。**
 ```
 python3 forge/stage5_rig/rig_gates.py rig-gate-payload.json
 ```
-G1 is the one that catches silent death: seek each clip to five times and compare each node's actual
-transform against `track.createInterpolant().evaluate(t)`, requiring `maxSampledBindingDelta ≤ 2⁻²³`.
-It is the only check that distinguishes a clip that plays from one that exists, loads, holds an
-action, reports a duration and drives nothing. Under-coverage is a failure, not a pass: a harness
-that sampled one clip once is not evidence.
+G1 是捕获"静默死亡"的那个：把每个动画片段 seek 到五个时间点，将每个节点的实际变换与 `track.createInterpolant().evaluate(t)` 比较，要求 `maxSampledBindingDelta ≤ 2⁻²³`。它是唯一能区分"会播放的动画片段"和"存在、能加载、持有 action、报告时长却什么都不驱动的动画片段"的检查。覆盖不足是失败，不是通过：只对一个动画片段采样一次的 harness 不构成证据。
 
-G10 is visual and needs a real sweep. Five poses is not coverage — the sweep that found the actual
-defects was 11 clips × 4 times × 2 sides × 2 azimuths = 176 frames. Report holes and creases as two
-numbers; a single combined score hides the fact that Stage R2 trades one against the other.
+G10 是视觉门禁，需要真正的扫描。五个姿态不算覆盖——真正发现缺陷的扫描是 11 个动画片段 × 4 个时间点 × 2 侧 × 2 个方位角 = 176 帧。把破洞和褶皱报告为两个数字；单一的合并分数会掩盖 Stage R2 在二者之间此消彼长的事实。
 
-### Stage 8 — Prove nothing is fetched, then look at it
-Move the binary directory aside, rebuild, re-render. Renders that still appear are the proof.
+### Stage 8——证明没有获取任何东西，然后亲眼看
+把二进制目录移开，重新构建，重新渲染。仍能出现的渲染就是证明。
 ```
 npx tsc --noEmit && npx vite build
 ```
-Then actually watch the animation, at 0°, 40° and a grazing angle. Metrics hide structural failure.
-If the render and the metric disagree, the render is right.
+然后真正观看动画，在 0°、40° 和一个掠射角度下。指标会掩盖结构性失败。渲染与指标不一致时，以渲染为准。
 
-## Report format
-Per stage: what was **measured** (the number and the command that printed it), what was **decided**
-from it, what remains **unverified**. Close with:
-- every gate and its status, with `unevaluated` listed as unevaluated and never as a pass;
-- the mesh-parity verdict, and what was repaired before the freeze;
-- which clips were named by measurement and which carry `inferred: true`;
-- per-region confidence, and what still does not match the reference.
+## 报告格式
+每个阶段：**测得**了什么（数字以及打印它的命令），据此**决定**了什么，还有什么**未验证**。最后列出：
+- 每个门禁及其状态，`unevaluated` 列为未评估，绝不列为通过；
+- mesh-parity 结论，以及冻结前修复了什么；
+- 哪些动画片段是按测量命名的，哪些带 `inferred: true`；
+- 逐区域置信度，以及哪些地方仍与参考不匹配。
 
-"This rig cannot be animated from this reference without breaking the mesh" is a valid result. Say
-it rather than shipping a shredded figure.
+"无法在不破坏网格的前提下从这个参考为该绑定制作动画"是一个有效结果。直接说出来，而不是交付一个被撕碎的人物。
 ````
 
-## Where each rule comes from
+## 每条规则的来源
 
-| Rule in the prompt | What it prevents |
+| 提示词中的规则 | 它防止什么 |
 |---|---|
-| `--profile animated-character` | Stage R gates existed but nothing invoked them; a gate that never runs reports clean forever |
-| Rig read from the GLB | GLB clips target GLB node indices; fed to a procedural skeleton they index a different rig and shred the mesh |
-| Correspondence by measured position | Joint names are `node_17`; a name-matched correspondence is confidently wrong |
-| Repair before freeze | Freezing a broken mesh certifies the breakage instead of catching it |
-| Freeze before bind | Binding first leaves nothing to compare against |
-| Parity verified after bind | Binding is the only moment "implementation did not touch the mesh" can be falsified |
-| Identity bind in attached mode | Binding with `armature.matrixWorld` rendered a blank frame; a `skinSpace` wrapper gave a half-height floating figure |
-| `updateMatrixWorld` before `Skeleton` | Inverse binds capture identity, the rest pose never cancels, and it renders a corpse while reporting `bound: true` |
-| Loop from `poseReturn` | The travel-based rule contradicted its own data: `idle-gesture` travels 0.121H and loops correctly |
-| G1 coverage counts | A harness reporting a tiny delta over one clip at one time is not evidence |
-| 176-frame sweep | Five poses missed defects that a real sweep found in 28 frames |
+| `--profile animated-character` | Stage R 门禁存在但没有任何东西调用它们；从不运行的门禁会永远报告干净 |
+| 从 GLB 读取绑定 | GLB 动画片段指向 GLB 节点索引；喂给程序化骨架时会索引到另一个绑定并撕碎网格 |
+| 按测得位置建立对应关系 | 关节名是 `node_17`；按名称匹配的对应关系会自信地出错 |
+| 冻结前修复 | 冻结一个已损坏的网格等于为损坏背书，而不是捕获它 |
+| 绑定前冻结 | 先绑定就没有可比较的基准 |
+| 绑定后验证 parity | 绑定是唯一能证伪"实现没有碰网格"的时刻 |
+| attached 模式下用单位矩阵绑定 | 用 `armature.matrixWorld` 绑定渲染出一帧空白；`skinSpace` 包装器得到半身高、悬浮的人物 |
+| 在 `Skeleton` 之前 `updateMatrixWorld` | inverse bind 捕获到单位矩阵，静止姿态永远不会被抵消，渲染出一具尸体却报告 `bound: true` |
+| 由 `poseReturn` 判断循环 | 基于位移的规则与它自己的数据矛盾：`idle-gesture` 位移 0.121H 却能正确循环 |
+| G1 覆盖计数 | 只对一个动画片段在一个时间点报告微小差值的 harness 不构成证据 |
+| 176 帧扫描 | 五个姿态漏掉了真实扫描在 28 帧中就发现的缺陷 |
 
-## Related
+## 相关文档
 
-- [`docs/pipelines/character-rigging-animation-1.5.2.md`](pipelines/character-rigging-animation-1.5.2.md) — the derivation and the failure log.
-- [`grimoire/readiness/animation_contract.md`](../grimoire/readiness/animation_contract.md) — the routing file read at Stage R.
-- [`forge/stage5_rig/CONTRACT_1.5.2.md`](../forge/stage5_rig/CONTRACT_1.5.2.md) — module map and payload shapes.
-- [`docs/standard-prompts/build.md`](standard-prompts/build.md) — the static reconstruction route this one continues.
-- [`docs/standard-prompts/glb-force-measured.md`](standard-prompts/glb-force-measured.md) — when every parameter the GLB measures should be forced rather than approximated.
+- [`docs/pipelines/character-rigging-animation-1.5.2.md`](pipelines/character-rigging-animation-1.5.2.md)——推导过程和失败日志。
+- [`grimoire/readiness/animation_contract.md`](../grimoire/readiness/animation_contract.md)——Stage R 阶段读取的路由文件。
+- [`forge/stage5_rig/CONTRACT_1.5.2.md`](../forge/stage5_rig/CONTRACT_1.5.2.md)——模块地图和载荷结构。
+- [`docs/standard-prompts/build.md`](standard-prompts/build.md)——本提示词所延续的静态重建路线。
+- [`docs/standard-prompts/glb-force-measured.md`](standard-prompts/glb-force-measured.md)——当 GLB 测得的每个参数都应被强制使用而不是近似时。

@@ -16,7 +16,7 @@ test('Markdown knowledge provider searches and retrieves source-scoped documents
   assert.equal(hits[0].title, 'Project context');
   const document = await provider.retrieve(hits[0].ref);
   assert.match(document.text, /Godot and Linux/);
-  await assert.rejects(provider.retrieve('../outside.md'), /leaves its provider root/);
+  await assert.rejects(provider.retrieve('../outside.md'), /超出了提供方根目录/);
 });
 
 test('Markdown knowledge search does not expose files symlinked from outside its root', { skip: process.platform !== 'linux' }, async () => {

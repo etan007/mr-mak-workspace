@@ -46,12 +46,12 @@ async function executable() {
 
 export const godotProjectAdapter = {
   id: 'godot',
-  label: 'Godot project',
+  label: 'Godot 项目',
   async detect({ start }) {
     const root = await findRoot(start);
     if (!root) return null;
     const details = await config(root);
-    return projectMatch({ adapterId: 'godot', root, confidence: 1, reason: 'Found project.godot.', name: details.name, metadata: { mainScene: details.mainScene, features: details.features } });
+    return projectMatch({ adapterId: 'godot', root, confidence: 1, reason: '找到 project.godot。', name: details.name, metadata: { mainScene: details.mainScene, features: details.features } });
   },
   async describe(project) {
     const details = await config(project.root);
@@ -78,8 +78,8 @@ export const godotProjectAdapter = {
       const details = await config(project.root);
       const base = { executable: godot, cwd: project.root };
       return [
-        { id: 'godot-editor', label: 'Open Godot editor', ...base, args: ['--editor', '--path', project.root], safety: 'open' },
-        { id: 'godot-run', label: 'Run Godot project', ...base, args: ['--path', project.root], safety: 'run', metadata: { mainScene: details.mainScene } },
+        { id: 'godot-editor', label: '打开 Godot 编辑器', ...base, args: ['--editor', '--path', project.root], safety: 'open' },
+        { id: 'godot-run', label: '运行 Godot 项目', ...base, args: ['--path', project.root], safety: 'run', metadata: { mainScene: details.mainScene } },
       ];
     } },
     artifacts: { async artifacts(project) {

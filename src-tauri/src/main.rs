@@ -25,7 +25,7 @@ type RecallShortcut = win_key::WinKeyShortcut;
 #[cfg(target_os = "macos")]
 type RecallShortcut = mac_key::RecallShortcut;
 #[cfg(windows)]
-const RECALL_LABEL: &str = "Win key";
+const RECALL_LABEL: &str = "Win 键";
 #[cfg(target_os = "macos")]
 const RECALL_LABEL: &str = mac_key::LABEL;
 
@@ -134,10 +134,10 @@ fn repo_path(app: &tauri::AppHandle) -> Result<PathBuf, Box<dyn std::error::Erro
                 return Ok(root.to_owned());
             }
         }
-        selected = rfd::FileDialog::new().set_title("Choose your Mr. Mak Workspace repository").pick_folder();
+        selected = rfd::FileDialog::new().set_title("选择你的 Mr. Mak 工作区仓库").pick_folder();
         if selected.is_none() { return Err("No Workspace repository selected".into()); }
         if !selected.as_ref().unwrap().join("workspace/workspace.json").is_file() {
-            rfd::MessageDialog::new().set_title("Choose the Workspace folder").set_description("Select the repository folder containing workspace/workspace.json.").show();
+            rfd::MessageDialog::new().set_title("选择工作区文件夹").set_description("请选择包含 workspace/workspace.json 的仓库文件夹。").show();
         }
     }
 }
@@ -165,13 +165,13 @@ fn make_windows(app: &tauri::AppHandle, workspace: &str, chats: &str) -> Result<
     let workspace_window = WebviewWindowBuilder::new(app, "workspace", WebviewUrl::External(workspace.parse()?))
         .on_new_window(|url, _| external_links::open_popup(url))
         .disable_drag_drop_handler().visible(false)
-        .title(format!("{} — Workspace", app.config().product_name.as_deref().unwrap_or("Mr. Mak"))).inner_size((width - chat_width - 8.0).max(500.0), (height - 6.0).max(450.0))
+        .title(format!("{} — 工作区", app.config().product_name.as_deref().unwrap_or("Mr. Mak"))).inner_size((width - chat_width - 8.0).max(500.0), (height - 6.0).max(450.0))
         .position(x + chat_width + 6.0, y + 2.0).min_inner_size(500.0, 400.0)
         .theme(Some(tauri::Theme::Dark)).background_color(tauri::webview::Color(12, 13, 16, 255)).build()?;
     let chats_window = WebviewWindowBuilder::new(app, "chats", WebviewUrl::External(chats.parse()?))
         .on_new_window(|url, _| external_links::open_popup(url))
         .visible(false)
-        .title(format!("{} — Chats", app.config().product_name.as_deref().unwrap_or("Mr. Mak"))).inner_size(chat_width, (height - 6.0).max(450.0))
+        .title(format!("{} — 对话", app.config().product_name.as_deref().unwrap_or("Mr. Mak"))).inner_size(chat_width, (height - 6.0).max(450.0))
         .position(x + 2.0, y + 2.0).min_inner_size(330.0, 420.0)
         .theme(Some(tauri::Theme::Dark)).background_color(tauri::webview::Color(12, 13, 16, 255)).build()?;
     // Native drops expose every original file/folder path. Keep Workspace's
@@ -238,10 +238,10 @@ fn recall_all_windows(app: &tauri::AppHandle) {
 fn install_chats_menu(app: &tauri::AppHandle) -> tauri::Result<()> {
     use tauri::menu::Submenu;
     let menu = Menu::default(app)?;
-    let items = (1..=9).map(|n| MenuItem::with_id(app, format!("chat-{n}"), format!("Chat {n}"), true, Some(format!("CmdOrCtrl+{n}"))))
+    let items = (1..=9).map(|n| MenuItem::with_id(app, format!("chat-{n}"), format!("对话 {n}"), true, Some(format!("CmdOrCtrl+{n}"))))
         .collect::<tauri::Result<Vec<_>>>()?;
     let refs: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> = items.iter().map(|item| item as &dyn tauri::menu::IsMenuItem<tauri::Wry>).collect();
-    menu.append(&Submenu::with_items(app, "Chats", true, &refs)?)?;
+    menu.append(&Submenu::with_items(app, "对话", true, &refs)?)?;
     app.set_menu(menu)?;
     app.on_menu_event(|app, event| {
         let Some(index) = event.id.as_ref().strip_prefix("chat-").and_then(|n| n.parse::<u8>().ok()) else { return };
@@ -310,7 +310,7 @@ fn main() {
                             let chats = event["chats"].as_str().unwrap_or("").to_owned();
                             let _ = app_handle.run_on_main_thread(move || {
                                 if let Err(error) = make_windows(&handle, &workspace, &chats) {
-                                    rfd::MessageDialog::new().set_title("Mr. Mak could not open").set_description(error.to_string()).show(); handle.exit(1);
+                                    rfd::MessageDialog::new().set_title("Mr. Mak 无法打开").set_description(error.to_string()).show(); handle.exit(1);
                                 }
                             });
                         },
@@ -351,7 +351,7 @@ fn main() {
                             if let (Some(window), Some(request_id)) = (app_handle.get_webview_window("chats"), event["requestId"].as_str()) {
                                 let request_id = request_id.to_owned();
                                 std::thread::spawn(move || {
-                                    let paths = rfd::FileDialog::new().set_parent(&window).set_title("Attach file paths").pick_files().unwrap_or_default();
+                                    let paths = rfd::FileDialog::new().set_parent(&window).set_title("附加文件路径").pick_files().unwrap_or_default();
                                     let detail = serde_json::json!({ "requestId": request_id, "paths": paths });
                                     let _ = window.eval(format!("window.dispatchEvent(new CustomEvent('mrmak-picked-files',{{detail:{detail}}}))"));
                                 });
@@ -362,16 +362,16 @@ fn main() {
                     }
                 }
                 if app_handle.get_webview_window("workspace").is_none() {
-                    rfd::MessageDialog::new().set_title("Mr. Mak service did not start").set_description("The local service stopped before opening the windows. See the Mr. Mak service.log in your local application data.").show();
+                    rfd::MessageDialog::new().set_title("Mr. Mak 服务未能启动").set_description("本地服务在打开窗口前已停止。请查看本地应用数据目录中的 Mr. Mak service.log。").show();
                     app_handle.exit(1);
                 }
             });
             #[cfg(target_os = "macos")]
             install_chats_menu(app.handle())?;
-            let workspace_item = MenuItem::with_id(app, "workspace", "Show Workspace", true, None::<&str>)?;
-            let chats_item = MenuItem::with_id(app, "chats", "Show Chats", true, None::<&str>)?;
-            let both_item = MenuItem::with_id(app, "both", "Show both windows", true, None::<&str>)?;
-            let quit_item = MenuItem::with_id(app, "quit", "Quit Mr. Mak and stop terminals", true, None::<&str>)?;
+            let workspace_item = MenuItem::with_id(app, "workspace", "显示工作区", true, None::<&str>)?;
+            let chats_item = MenuItem::with_id(app, "chats", "显示对话", true, None::<&str>)?;
+            let both_item = MenuItem::with_id(app, "both", "显示两个窗口", true, None::<&str>)?;
+            let quit_item = MenuItem::with_id(app, "quit", "退出 Mr. Mak 并停止终端", true, None::<&str>)?;
             let separator = PredefinedMenuItem::separator(app)?;
             let menu = Menu::with_items(app, &[&workspace_item, &chats_item, &both_item, &separator, &quit_item])?;
             #[cfg(any(windows, target_os = "macos"))]
@@ -381,12 +381,12 @@ fn main() {
                 let shortcut = RecallShortcut::start(app.handle(), enabled);
                 let available = shortcut.is_ok();
                 if let Ok(shortcut) = shortcut { app.manage(shortcut); }
-                let item = CheckMenuItem::with_id(app, "win-key", format!("{RECALL_LABEL} shows Mr. Mak"), available, enabled && available, None::<&str>)?;
+                let item = CheckMenuItem::with_id(app, "win-key", format!("按 {RECALL_LABEL} 显示 Mr. Mak"), available, enabled && available, None::<&str>)?;
                 menu.insert(&item, 3)?;
                 app.manage(item);
-                publish_shortcut(app.handle(), None, if available { None } else { Some(format!("The system could not register {RECALL_LABEL}.")) });
+                publish_shortcut(app.handle(), None, if available { None } else { Some(format!("系统无法注册 {RECALL_LABEL}。")) });
             }
-            TrayIconBuilder::new().icon(app.default_window_icon().unwrap().clone()).tooltip("Mr. Mak — your agents, close at hand")
+            TrayIconBuilder::new().icon(app.default_window_icon().unwrap().clone()).tooltip("Mr. Mak — 你的代理，触手可及")
                 .menu(&menu).show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "workspace" => reveal(app, "workspace"), "chats" => reveal(app, "chats"),
@@ -421,7 +421,7 @@ fn main() {
                 if let Some(job) = app.try_state::<ServiceJob>() { job.0.lock().unwrap().take(); }
             }
         }),
-        Err(error) => { rfd::MessageDialog::new().set_title("Mr. Mak could not start").set_description(error.to_string()).show(); }
+        Err(error) => { rfd::MessageDialog::new().set_title("Mr. Mak 无法启动").set_description(error.to_string()).show(); }
     }
 }
 

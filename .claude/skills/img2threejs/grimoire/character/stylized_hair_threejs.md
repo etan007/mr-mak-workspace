@@ -1,225 +1,225 @@
-# Stylized 3D Hair for Three.js
+# Three.js 风格化 3D 头发
 
-Version: 1.0
-Scope: code-only procedural character hair, Three.js r169 / WebGL, fixed hero view plus meaningful orbit views.
-Target case: Zenonia Chronobreak warrior.
+版本：1.0
+范围：纯代码程序化角色头发，Three.js r169 / WebGL，固定主视角加有意义的环绕视角。
+目标案例：Zenonia Chronobreak 战士。
 
-## Provenance and distillation status
+## 出处与提炼状态
 
-NotebookLM deep research was completed for this topic under notebook `d397a9fe-a8a8-49d8-92ac-56eb92e623c3` and research task `560deabc-c7d1-4c5c-be68-c5548c9b3087`. NotebookLM reported 120 imported sources. The local facts supplied to that notebook were sanitized and contained only visual observations; internal workspace paths were not uploaded.
+本主题的 NotebookLM 深度研究已在 notebook `d397a9fe-a8a8-49d8-92ac-56eb92e623c3` 和研究任务 `560deabc-c7d1-4c5c-be68-c5548c9b3087` 下完成。NotebookLM 报告导入了 120 个来源。提供给该 notebook 的本地事实已经过脱敏，只包含视觉观察；没有上传内部工作区路径。
 
-The NotebookLM `ask` distill response was submitted but could not be read back after the environment's escalation usage limit was reached. Therefore this file is an explicitly labelled local distillation of the completed research task, the imported-source summary, the sanitized reference facts, and the official Three.js/paper sources listed below. It is not claimed to be a verbatim NotebookLM answer. Refresh this document with a successful NotebookLM ask before treating it as a final research publication.
+NotebookLM 的 `ask` 提炼请求已提交，但在环境的升级用量上限耗尽后无法读回结果。因此，本文件是一份明确标注的本地提炼，依据为已完成的研究任务、导入来源摘要、脱敏后的参考事实，以及下方列出的官方 Three.js/论文来源。本文不声称是 NotebookLM 的逐字回答。在把它视为最终研究成果之前，应通过一次成功的 NotebookLM ask 刷新本文档。
 
-## 1. Requirement classification
+## 1. 需求分类
 
-| Label | Zenonia hair requirement or decision | Evidence / confidence |
+| 标签 | Zenonia 头发需求或决策 | 证据 / 置信度 |
 |---|---|---|
-| REQUIREMENT | Keep the model code-only and procedural; do not download hair meshes or art packs. | img2threejs contract; high |
-| REQUIREMENT | Support the installed Three.js r169 / WebGL runtime. | project constraint; high |
-| REQUIREMENT | Review a fixed hero view and at least two non-degenerate orbit views. | img2threejs visual gate; high |
-| OBSERVATION | The hairstyle is a large blonde crown mass made of broad layered locks, not realistic individual fibers. | sanitized multi-view facts; high |
-| OBSERVATION | Front bangs frame the face; the eyes must remain readable in the hero view. | sanitized multi-view facts; high |
-| OBSERVATION | Three-quarter/profile views show real depth, rear locks and overlap. | sanitized multi-view facts; medium-high |
-| INFERENCE | A hybrid clustered-lock system is a better representation than a strand groom or one flat card. | synthesis of observations and implementation research; high |
-| IMPLEMENTATION | Use a scalp mass, custom tapered volumetric ribbon locks, and curved tube/loft locks for secondary depth. | geometry decision; high |
-| APPROXIMATION | Hidden backside topology, exact strand count and exact fiber scattering are not observable and must be parameterized as inferred. | multi-view coverage; medium |
-| ACCEPTANCE | Geometry and material are evaluated separately; a blonde shader cannot compensate for a wrong silhouette or detached lock. | review policy; high |
+| REQUIREMENT | 模型保持纯代码、程序化；不下载头发网格或美术资源包。 | img2threejs 契约；高 |
+| REQUIREMENT | 支持已安装的 Three.js r169 / WebGL 运行时。 | 项目约束；高 |
+| REQUIREMENT | 评审一个固定主视角和至少两个非退化的环绕视角。 | img2threejs 视觉门禁；高 |
+| OBSERVATION | 发型是由宽阔分层发绺组成的大块金色头冠体块，而不是写实的单根发丝。 | 脱敏后的多视角事实；高 |
+| OBSERVATION | 前额刘海框住面部；主视角中眼睛必须保持可读。 | 脱敏后的多视角事实；高 |
+| OBSERVATION | 四分之三/侧面视图显示了真实的纵深、后部发绺和层叠。 | 脱敏后的多视角事实；中高 |
+| INFERENCE | 混合式发簇系统比发丝梳理或单张扁平发片更合适。 | 综合观察与实现研究；高 |
+| IMPLEMENTATION | 使用头皮体块、自定义渐细的体积带状发绺，以及用于次级纵深的弯曲管状/放样发绺。 | 几何决策；高 |
+| APPROXIMATION | 隐藏的背面拓扑、精确发丝数量和精确的纤维散射无法观测，必须作为推断值参数化。 | 多视角覆盖；中 |
+| ACCEPTANCE | 几何和材质分别评估；金色着色器无法弥补错误的轮廓或脱离的发绺。 | 评审策略；高 |
 
-## 2. Hairstyle taxonomy and route selection
+## 2. 发型分类与路线选择
 
-### Clustered anime/spiky locks
+### 簇状动漫/尖刺发绺
 
-Visual signature: a few large, deliberate masses with tapered tips, controlled asymmetry and readable negative space. The silhouette is designed in image space but each lock has enough depth to survive an orbit.
+视觉特征：少数几个经过设计的大体块，尖端渐细，不对称受控，负空间可读。轮廓在图像空间中设计，但每个发绺都有足够纵深，经得起环绕观看。
 
-Recommended representation: custom tapered ribbon/loft geometry around a 3D centerline, backed by a low-poly scalp mass.
+推荐表示：围绕 3D 中心线的自定义渐细带状/放样几何，背后由低面数头皮体块支撑。
 
-Failure mode: cones or repeated straight spikes create a porcupine silhouette; identical lengths and angles destroy the reference's designed rhythm.
+失败模式：圆锥或重复的直尖刺会形成豪猪般的轮廓；长度和角度完全相同会破坏参考图精心设计的节奏。
 
-### Ribbon or strip locks
+### 带状或条状发绺
 
-Visual signature: broad graphic surfaces with a strong front-facing contour and a narrow edge profile.
+视觉特征：宽阔的平面化图形表面，正面轮廓鲜明，侧边轮廓窄。
 
-Recommended representation: custom `BufferGeometry` with two or more width samples per curve section, front/back faces, side thickness, UVs and stable normals. This is the primary route for the Zenonia crown and bangs.
+推荐表示：自定义 `BufferGeometry`，每个曲线截面有两个或更多宽度采样，带正/背面、侧面厚度、UV 和稳定法线。这是 Zenonia 头冠和刘海的主要路线。
 
-Failure mode: a single flat extruded panel reads as a petal or card. The ribbon needs a changing width, thickness, normal frame and root overlap.
+失败模式：单片扁平挤出面板读起来像花瓣或卡片。带状发绺需要变化的宽度、厚度、法线标架和根部重叠。
 
-### Curve-tube locks
+### 曲线管状发绺
 
-Visual signature: round or semi-round secondary strands that wrap around the scalp and preserve profile depth.
+视觉特征：圆形或半圆形的次级发绺，环绕头皮并保留侧面纵深。
 
-Recommended representation: `CatmullRomCurve3` plus `TubeGeometry`, or a custom elliptical tube when the section needs to be flattened or tapered. Three.js `TubeGeometry` takes one constant constructor radius, so a procedural taper requires per-ring scaling or custom geometry.
+推荐表示：`CatmullRomCurve3` 加 `TubeGeometry`；当截面需要压扁或渐细时，使用自定义椭圆管。Three.js `TubeGeometry` 的构造函数只接受一个固定半径，所以程序化渐细需要逐环缩放或自定义几何。
 
-Failure mode: constant-radius tubes look like noodles; an overly small radius produces wires; too many radial segments make stylized hair visually soft and expensive.
+失败模式：等半径管看起来像面条；半径过小会变成铁丝；径向分段过多会让风格化头发在视觉上发软且开销大。
 
-### Hair cards
+### 发片（hair card）
 
-Visual signature: many thin locks or wisps represented by alpha-cut planes.
+视觉特征：用 alpha 裁切平面表示的许多细发绺或碎发。
 
-Recommended representation: small numbers of oriented cards with an alpha map and hard cutout (`alphaTest`) for micro-strands only.
+推荐表示：少量定向发片，带 alpha 贴图和硬裁切（`alphaTest`），仅用于微细发丝。
 
-Failure mode: transparent cards sort incorrectly, self-overlap, or reveal their plane at orbit angles. Three.js documentation explicitly treats perfect transparency as difficult; alpha-tested cutouts are safer when the edge can be hard.
+失败模式：透明发片排序错误、自我重叠，或在环绕角度下暴露出平面。Three.js 文档明确指出完美透明很难实现；当边缘可以是硬边时，alpha 测试裁切更安全。
 
-### Shell/fur layers
+### 壳层/毛发层
 
-Visual signature: dense short fur or fuzzy volume produced by concentric shells and alpha detail.
+视觉特征：由同心壳层和 alpha 细节产生的浓密短毛或毛绒体积。
 
-Recommended representation: layered shells with alpha-tested textures.
+推荐表示：带 alpha 测试纹理的分层壳。
 
-Failure mode: overdraw, sorting, noisy silhouette and excessive detail. This is inappropriate for the broad, graphic Zenonia crown except perhaps for a tiny soft root fringe.
+失败模式：过度绘制、排序问题、轮廓噪点和细节过多。这不适合宽阔、平面化的 Zenonia 头冠，或许只有一小圈柔和的发根碎发例外。
 
-### Groomed individual strands
+### 梳理的单根发丝
 
-Visual signature: realistic fiber field, many fine curves, anisotropic strand highlights and natural clumping.
+视觉特征：写实的纤维场、大量细曲线、各向异性的发丝高光和自然成簇。
 
-Recommended representation: strand curves, cards, or a dedicated hair renderer.
+推荐表示：发丝曲线、发片，或专用的头发渲染器。
 
-Failure mode: high authoring/runtime cost and poor return for stylized reference matching. Physical hair scattering improves material realism, not the large-scale crown silhouette.
+失败模式：创作/运行时成本高，对风格化参考匹配的回报差。物理头发散射提升的是材质真实感，而不是大尺度的头冠轮廓。
 
-### Hybrid route selected for Zenonia
+### 为 Zenonia 选定的混合路线
 
-Use one continuous scalp/crown mass, 10–16 primary custom ribbon-loft locks, 4–6 front bangs, 8–14 secondary curved locks, and optional 0–24 micro-cards only where a screenshot proves they are needed. The counts are starting ranges, not a universal rule; fit them to the silhouette and performance budget.
+使用一个连续的头皮/头冠体块、10–16 个主要的自定义带状放样发绺、4–6 个前额刘海、8–14 个次级弯曲发绺，以及可选的 0–24 个微发片——仅在截图证明需要时添加。这些数量是起始范围，不是通用规则；要根据轮廓和性能预算调整。
 
-## 3. Zenonia hair analysis
+## 3. Zenonia 头发分析
 
-### Observable
+### 可观测
 
-- Blonde/golden palette with soft highlight bands and darker occlusion between locks.
-- Broad crown volume with locks rising upward and fanning outward from a central root region.
-- Front bangs are separated and frame the face.
-- Side and rear locks change the silhouette in three-quarter/profile views.
-- Tips are tapered, curved and varied in length and direction.
-- Roots visually merge into the scalp/crown mass; floating pieces are not acceptable.
-- Stylization depends on large readable masses more than individual fiber count.
+- 金色/金黄调色板，带柔和的高光带，发绺之间有较深的遮蔽。
+- 宽阔的头冠体积，发绺从中心根部区域向上升起并向外散开。
+- 前额刘海彼此分开，框住面部。
+- 侧面和后部发绺在四分之三/侧面视图中改变轮廓。
+- 尖端渐细、弯曲，长度和方向各异。
+- 根部在视觉上融入头皮/头冠体块；不接受漂浮的部件。
+- 风格化依赖于可读的大体块，而不是单根纤维的数量。
 
-### Inferred construction
+### 推断的构造
 
-- The crown should be layered front-to-back: rear mass first, middle silhouette locks second, bangs last.
-- Each primary lock should have 3–5 control points, a broad root, a narrowing middle, a near-zero tip width and small twist.
-- The scalp mass should be hidden but overlap each root enough to prevent visible seams.
-- A slight lock-to-lock color variation is useful, but the palette must remain a unified warm blonde family.
-- The rear topology and exact number of strands remain medium-confidence inference; validate them from orbit renders rather than treating them as reference truth.
+- 头冠应从后到前分层：先后部体块，再中间的轮廓发绺，最后是刘海。
+- 每个主要发绺应有 3–5 个控制点、宽阔的根部、收窄的中段、接近零的尖端宽度和轻微扭转。
+- 头皮体块应隐藏，但与每个根部有足够重叠，防止出现可见接缝。
+- 发绺之间轻微的颜色变化有帮助，但调色板必须保持统一的暖金色系。
+- 后部拓扑和精确发丝数量仍是中等置信度的推断；要通过环绕渲染来验证，而不是当作参考事实。
 
-### Hair/face constraints
+### 头发/面部约束
 
-- No primary bang may cross both eye centres in the hero view.
-- A bang may overlap a small part of the forehead or outer eye region only if the reference shows it.
-- The nose-to-hair clearance visible in profile must remain open.
-- Hair depth should be visible in the positive and negative orbit, but the head must not become hollow between locks.
+- 主视角中，任何主要刘海都不得同时跨过两个眼睛中心。
+- 刘海只有在参考图显示如此时，才能遮挡额头或外眼角区域的一小部分。
+- 侧面中可见的鼻子与头发之间的间隙必须保持敞开。
+- 正向和负向环绕视角中都应能看到头发纵深，但发绺之间的头部不得变成空心。
 
-## 4. Three.js design recipe
+## 4. Three.js 设计配方
 
-### Build order
+### 构建顺序
 
-1. Create the head-local scalp/crown mass.
-2. Add rear locks that establish depth and back silhouette.
-3. Add primary crown locks with custom tapered ribbon-loft geometry.
-4. Add side locks and front bangs with explicit face-occlusion limits.
-5. Add secondary tube/elliptical locks only where they improve profile or root continuity.
-6. Tune hair materials and lighting after silhouette review.
-7. Add micro-cards or instanced wisps only after a screenshot shows a missing scale band.
+1. 创建头部局部坐标下的头皮/头冠体块。
+2. 添加建立纵深和背部轮廓的后部发绺。
+3. 用自定义渐细带状放样几何添加主要头冠发绺。
+4. 添加侧面发绺和前额刘海，并设定明确的面部遮挡上限。
+5. 仅在能改善侧面或根部连续性的地方添加次级管状/椭圆发绺。
+6. 在轮廓评审之后再调头发材质和光照。
+7. 只有在截图显示缺少某个尺度层次之后，才添加微发片或实例化碎发。
 
-### Custom tapered ribbon-loft
+### 自定义渐细带状放样
 
-For each sampled centerline point, compute a tangent `T`, a stable side vector `B`, and a surface normal `N`. Emit front/back vertices using width `w(t)` and thickness `d(t)`, connect adjacent sections, assign `u` across the lock and `v` along its length, then compute normals. Use a stable frame or parallel-transport-like update when the tangent approaches the world-up vector; do not allow the frame to flip at a bend.
+对每个采样的中心线点，计算切线 `T`、稳定的侧向向量 `B` 和表面法线 `N`。用宽度 `w(t)` 和厚度 `d(t)` 输出正/背面顶点，连接相邻截面，沿发绺横向分配 `u`、沿长度分配 `v`，然后计算法线。当切线接近世界向上向量时，使用稳定标架或类平行移动（parallel transport）的更新；不允许标架在弯折处翻转。
 
-Recommended profiles:
+推荐轮廓：
 
 ```text
 width:     1.00 -> 0.80 -> 0.40 -> 0.03
 thickness: 1.00 -> 0.75 -> 0.35 -> 0.08
 ```
 
-Those are normalized shape profiles, not world-unit constants. The first section should be embedded into the scalp; the last section should be capped or closed cleanly.
+这些是归一化的形状轮廓，不是世界单位常量。第一个截面应嵌入头皮；最后一个截面应干净地封口或闭合。
 
-### When to use each Three.js primitive
+### 何时使用哪种 Three.js 基本体
 
-- `CatmullRomCurve3`: control a lock centreline through artist-readable points.
-- `TubeGeometry`: secondary rounded locks; scale ring radii manually for taper, or author an elliptical custom section.
-- `ExtrudeGeometry`: small fixed graphic trims or a temporary blockout, not the final crown system.
-- `BufferGeometry`: primary crown/bang locks, because width, thickness, twist and normals must vary per section.
-- `InstancedMesh`: repeated micro-strands that share geometry and material; never use it to hide different primary silhouettes inside one generic instance.
-- Hair cards: only hard-cut micro detail, with controlled orientation and `alphaTest`; avoid large transparent overlapping planes.
+- `CatmullRomCurve3`：通过美术可读的控制点控制发绺中心线。
+- `TubeGeometry`：次级圆形发绺；手动缩放环半径实现渐细，或编写椭圆形自定义截面。
+- `ExtrudeGeometry`：小型固定图形饰边或临时粗模，不用于最终的头冠系统。
+- `BufferGeometry`：主要头冠/刘海发绺，因为宽度、厚度、扭转和法线必须逐截面变化。
+- `InstancedMesh`：共享几何和材质的重复微发丝；绝不能用它把不同的主要轮廓藏进一个通用实例里。
+- 发片：仅用于硬裁切的微细节，控制朝向并使用 `alphaTest`；避免大面积透明重叠平面。
 
-### Material route
+### 材质路线
 
-Start with a non-metal physical material: `metalness: 0`, mid roughness, restrained `sheen`, warm sheen colour and moderate specular intensity. Use darker materials or vertex/lock colour at roots and occluded overlaps. Material tuning cannot repair wrong lock topology.
+从非金属物理材质起步：`metalness: 0`、中等粗糙度、克制的 `sheen`、暖色 sheen 颜色和适中的镜面强度。在根部和被遮挡的重叠处使用更暗的材质或顶点/发绺颜色。材质调参无法修复错误的发绺拓扑。
 
-The physically based hair literature explains tangent-oriented highlights and multiple scattering lobes, but a full Marschner implementation is beyond the current r169/WebGL scope. A custom tangent-aware shader is a later material experiment, not a prerequisite for fixing Zenonia likeness. TSL/WebGPU should remain optional because the current deliverable is WebGL r169.
+基于物理的头发文献解释了沿切线方向的高光和多重散射波瓣，但完整的 Marschner 实现超出了当前 r169/WebGL 的范围。自定义的切线感知着色器是后续的材质实验，而不是修复 Zenonia 相似度的前提。TSL/WebGPU 应保持可选，因为当前交付物是 WebGL r169。
 
-## 5. Parameter contract
+## 5. 参数契约
 
-The machine-readable contract lives in `grimoire/character/threejs_hair_parameter_contract.json`. It is intentionally head-local and deterministic so a script can generate both a spec artifact and TypeScript factory inputs.
+机器可读的契约位于 `grimoire/character/threejs_hair_parameter_contract.json`。它有意采用头部局部坐标且是确定性的，以便脚本能同时生成 spec 产物和 TypeScript 工厂函数的输入。
 
-Coordinate convention:
+坐标约定：
 
-- `headHeight = 1` is the visible head height from crown scalp to chin.
-- `x` is character-left/right, `y` is up, `z` is forward.
-- `root` and `controlPoints` are in head-local units.
-- Camera fit parameters are separate from geometry parameters.
-- Values labelled as starting ranges must be fitted against screenshots, not copied as universal constants.
+- `headHeight = 1` 是从头冠头皮到下巴的可见头高。
+- `x` 为角色的左/右，`y` 向上，`z` 向前。
+- `root` 和 `controlPoints` 以头部局部单位表示。
+- 相机拟合参数与几何参数分开。
+- 标为起始范围的数值必须对照截图拟合，不能当作通用常量照抄。
 
-Important fields:
+重要字段：
 
-- `scalpMass`: ellipsoid/low-poly anchor that receives roots.
-- `locks[].family`: `primary`, `bang`, `secondary`, `rear` or `micro`.
-- `locks[].layer`: depth ordering for deterministic assembly.
-- `locks[].controlPoints`: 3–5 centreline points in head-local space.
-- `locks[].widthProfile` and `thicknessProfile`: normalized profiles from root to tip.
-- `locks[].rootEmbedDepth`: overlap into the scalp mass, not a visual gap.
-- `locks[].twistDegrees`: controlled section rotation, clamped to avoid flips.
-- `locks[].visibility`: hero-view eye/face occlusion constraints.
-- `materials`: base, root shadow and highlight variants.
-- `lod`: sample/radial budgets for hero and orbit views.
-- `reviewCameras`: fixed plus positive/negative orbit contracts.
+- `scalpMass`：接收发根的椭球/低面数锚体。
+- `locks[].family`：`primary`、`bang`、`secondary`、`rear` 或 `micro`。
+- `locks[].layer`：用于确定性组装的纵深排序。
+- `locks[].controlPoints`：头部局部空间中的 3–5 个中心线点。
+- `locks[].widthProfile` 和 `thicknessProfile`：从根部到尖端的归一化轮廓。
+- `locks[].rootEmbedDepth`：嵌入头皮体块的重叠量，不是视觉间隙。
+- `locks[].twistDegrees`：受控的截面旋转，带钳制以避免翻转。
+- `locks[].visibility`：主视角中眼睛/面部的遮挡约束。
+- `materials`：基础、根部阴影和高光变体。
+- `lod`：主视角和环绕视角的采样/径向预算。
+- `reviewCameras`：固定视角加正/负环绕视角的契约。
 
-## 6. Acceptance and diagnosis
+## 6. 验收与诊断
 
-### Fixed hero view
+### 固定主视角
 
-Inspect the saved PNG, not an inline preview. Score separately:
+检查已保存的 PNG，而不是内联预览。分别评分：
 
-- crown top/side silhouette;
-- width and spacing of primary locks;
-- bang-to-eye clearance;
-- root continuity;
-- taper and tip direction;
-- warm blonde palette and root occlusion.
+- 头冠顶部/侧面轮廓；
+- 主要发绺的宽度和间距；
+- 刘海与眼睛的间隙；
+- 根部连续性；
+- 渐细程度和尖端方向；
+- 暖金色调色板和根部遮蔽。
 
-### Two orbit views
+### 两个环绕视角
 
-Use one positive and one negative orbit. Confirm the crown retains volume, rear locks remain attached, the profile has a believable depth order, and no flat card or hollow head is exposed.
+使用一个正向和一个负向环绕视角。确认头冠保持体积、后部发绺仍然相连、侧面有可信的纵深顺序，且没有暴露扁平发片或空心头部。
 
-### Side-by-side and semantic review
+### 并排对比与语义评审
 
-Create a side-by-side sheet with the matching reference view. Use semantic feature labels rather than a single global score: `crown-silhouette`, `bang-eye-clearance`, `side-depth`, `rear-attachment`, `root-continuity`, `tip-taper`, `hair-palette`.
+用匹配的参考视图制作一张并排对比图。使用语义特征标签，而不是单一的全局分数：`crown-silhouette`、`bang-eye-clearance`、`side-depth`、`rear-attachment`、`root-continuity`、`tip-taper`、`hair-palette`。
 
-### Pixel/feature review
+### 像素/特征评审
 
-Use hair-specific ROIs or a visible-footprint comparison. A global 64×64 score can miss a bang that covers an eye or a small detached root. Do not use isolation renders that show geometry hidden in the reference; measure the visible footprint instead.
+使用头发专属的 ROI 或可见覆盖区域对比。全局 64×64 分数可能漏掉遮住一只眼睛的刘海或一个很小的脱离根部。不要使用会显示参考图中被遮挡几何的隔离渲染；改为测量可见覆盖区域。
 
-### Background warning
+### 背景警告
 
-Brown studio gradients can be classified as foreground by simple segmentation. In that condition, IoU/area/aspect results may look excellent while measuring the background rather than the hair. Use a neutral, separable capture background or an explicit foreground mask for diagnosis, and record the warning instead of claiming a visual pass.
+棕色影棚渐变可能被简单分割归为前景。在这种情况下，IoU/面积/宽高比结果可能看起来非常好，但测量的其实是背景而不是头发。诊断时使用中性、可分离的拍摄背景或显式的前景遮罩，并记录该警告，而不是声称视觉通过。
 
-## 7. Ordered implementation backlog
+## 7. 有序的实现待办
 
-1. Add a dedicated hair parameter object to the Zenonia model factory; keep it separate from renderer objects.
-2. Implement `createTaperedHairRibbon()` with a stable frame, variable width, thickness, twist, UVs and normals.
-3. Replace crown/bang `ExtrudeGeometry` blades with parameterized volumetric ribbon locks.
-4. Keep `TubeGeometry` only for secondary/profile locks and apply true ring taper.
-5. Add scalp overlap and root shadow material; remove any lock that floats or terminates visibly at the scalp.
-6. Encode eye-clearance constraints and reject/adjust any front lock that crosses both eye centres in the fixed camera.
-7. Tune non-metal blonde hair material only after the geometry review.
-8. Capture fixed plus two orbit PNGs, read them back with the image-capable tool, create the comparison sheet, run semantic/pixel feature checks and `diagnose_render.py`, then record the honest next action.
+1. 在 Zenonia 模型工厂函数中加入专用的头发参数对象；与渲染器对象分开。
+2. 实现 `createTaperedHairRibbon()`，带稳定标架、可变宽度、厚度、扭转、UV 和法线。
+3. 用参数化的体积带状发绺替换头冠/刘海的 `ExtrudeGeometry` 刀片。
+4. `TubeGeometry` 仅保留用于次级/侧面发绺，并实现真正的逐环渐细。
+5. 添加头皮重叠和根部阴影材质；移除任何漂浮或在头皮处可见截断的发绺。
+6. 编码眼睛间隙约束，在固定相机下拒绝/调整任何同时跨过两个眼睛中心的前部发绺。
+7. 只在几何评审之后再调非金属金色头发材质。
+8. 截取固定视角加两个环绕视角的 PNG，用支持图像的工具读回，制作对比图，运行语义/像素特征检查和 `diagnose_render.py`，然后如实记录下一步行动。
 
-## Source register
+## 来源登记
 
-- Three.js `TubeGeometry`: https://threejs.org/docs/pages/TubeGeometry.html
-- Three.js `CatmullRomCurve3`: https://threejs.org/docs/pages/CatmullRomCurve3.html
-- Three.js custom `BufferGeometry`: https://threejs.org/manual/en/custom-buffergeometry.html
-- Three.js transparency and `alphaTest`: https://threejs.org/manual/en/transparency.html
-- Three.js `MeshPhysicalMaterial`: https://threejs.org/docs/pages/MeshPhysicalMaterial.html
-- Three.js `InstancedMesh`: https://threejs.org/docs/pages/InstancedMesh.html
+- Three.js `TubeGeometry`：https://threejs.org/docs/pages/TubeGeometry.html
+- Three.js `CatmullRomCurve3`：https://threejs.org/docs/pages/CatmullRomCurve3.html
+- Three.js 自定义 `BufferGeometry`：https://threejs.org/manual/en/custom-buffergeometry.html
+- Three.js 透明与 `alphaTest`：https://threejs.org/manual/en/transparency.html
+- Three.js `MeshPhysicalMaterial`：https://threejs.org/docs/pages/MeshPhysicalMaterial.html
+- Three.js `InstancedMesh`：https://threejs.org/docs/pages/InstancedMesh.html
 - Kajiya and Kay, *Rendering Fur with Three Dimensional Textures*: https://doi.org/10.1145/74333.74361
 - Marschner et al., *Light Scattering from Human Hair Fibers*: https://www.cs.cornell.edu/~srm/publications/SG03-hair-abstract.html
 - CHARM, *Control-point-based 3D Anime Hairstyle Auto-Generation*: https://arxiv.org/abs/2509.21111

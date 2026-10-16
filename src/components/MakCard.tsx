@@ -1,6 +1,6 @@
 import type { WorkspaceEntity } from '../types'
 import { entityHash } from '../lib/route'
-import { categoryIcon } from '../lib/categories'
+import { categoryIcon, categoryLabel } from '../lib/categories'
 import { contentUrl } from '../desktop/client'
 import { EntityStatusButton } from './EntityControls'
 
@@ -22,9 +22,9 @@ export default function MakCard({ entity }: { entity: WorkspaceEntity }) {
       <div className="card-top">
         <span className="chip">
           <span aria-hidden="true">{categoryIcon(entity.category)}</span>
-          {entity.category || 'other'}
+          {categoryLabel(entity.category || 'other')}
         </span>
-        {entity.pinned && <span className="chip chip-pin">pinned</span>}
+        {entity.pinned && <span className="chip chip-pin">已置顶</span>}
       </div>
 
       <div className="card-project-title">
@@ -36,12 +36,12 @@ export default function MakCard({ entity }: { entity: WorkspaceEntity }) {
 
       <div className="card-foot">
         <span>
-          {steps} step{steps === 1 ? '' : 's'}
+          {steps} 个标签页
         </span>
         <span>·</span>
         <span>{entity.updated ?? entity.created}</span>
         <span className="card-open" aria-hidden="true">
-          open →
+          打开 →
         </span>
       </div>
     </a>

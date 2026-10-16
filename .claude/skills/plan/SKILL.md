@@ -1,23 +1,17 @@
 ---
 name: plan
-description: Turn a broad project request into a small actionable plan with concrete deliverables, dependencies and acceptance checks.
+description: 把宽泛的项目请求转化为小而可执行的计划，包含具体交付物、依赖和验收检查。
 ---
 
-# Plan useful work
+# 规划有用的工作
 
-Read the project context and existing workflows first. State the requested
-outcome in one sentence. Identify what already exists and what needs changing.
-Ask only for information that materially changes the work; continue independent
-preparation when an answer is pending.
+先阅读项目上下文和现有工作流。用一句话说明所请求的结果。找出已有的内容和需要修改的
+内容。只询问会实质改变工作的信息；等待回答期间继续推进互不依赖的准备工作。
 
-Write a short plan around deliverables, not a list of tool calls. For each
-stage, name its output and the observation that will show it works. Separate
-mandatory work from optional extensions. Preserve the user's scope, budget,
-provider choices and restart constraints.
+围绕交付物写简短计划，而不是列出工具调用。为每个阶段写明其产出以及证明其可用的观察
+结果。把必做工作与可选扩展分开。遵守用户的范围、预算、服务商选择和重启限制。
 
-Keep the plan in the project's existing Workspace card or project folder. If the
-user asked for execution, proceed with authorized work after planning. Update
-the plan when evidence changes the approach. Do not call incomplete work done.
+把计划保存在项目已有的工作区卡片或项目文件夹中。如果用户要求执行，规划后继续完成已
+授权的工作。证据改变方案时更新计划。不要把未完成的工作称为已完成。
 
-For handing an implementation to another worker, use `feature-handoff` and
-include the exact skill paths that worker needs.
+把实现交给其他执行者时，使用 `feature-handoff`，并写明该执行者所需的确切技能路径。

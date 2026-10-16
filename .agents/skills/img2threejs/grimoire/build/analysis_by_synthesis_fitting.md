@@ -1,52 +1,44 @@
-# Analysis-By-Synthesis Fitting
+# 合成分析拟合（Analysis-By-Synthesis Fitting）
 
-This is the WS4 fitting loop for v1.5. It ties the deterministic parameter search
-to Divine Eye so the loop behaves like a bounded artist correction pass, not a
-free-running guesser.
+这是 v1.5 的 WS4 拟合循环。它把确定性参数搜索与 Divine Eye 绑定在一起，使循环表现得像一次
+有界的美术修正迭代，而不是自由运行的猜测器。
 
-`forge/stage4_review/fit_params.py` provides pure-stdlib, deterministic bounded
-coordinate descent for analysis-by-synthesis parameters. Use it to tune a small
-rendering or scene vector only when the caller can provide a deterministic objective.
+`forge/stage4_review/fit_params.py` 为合成分析参数提供纯标准库、确定性的有界坐标下降。
+仅当调用方能提供确定性目标函数时，才用它来调优一个小型渲染或场景向量。
 
-## API And Limits
+## API 与限制
 
 ```python
 result = fit(initial, bounds, objective, FitConfig())
 ```
 
-- `initial` has 1 through 15 finite, non-boolean numeric parameters.
-- `bounds` has one `[lower, upper]` finite pair for each parameter. The lower value
-  is strictly less than the upper value, and every initial value is in range.
-- `objective(parameters)` returns a finite score. Higher scores are better.
-- Candidate order is fixed: for every coordinate, evaluate the bounded lower move,
-  then the bounded upper move. `seed` is metadata only; no random source is used.
-- `max_iterations` and `max_evaluations` are hard limits. The fitter additionally
-  stops on a configured plateau or consecutive coordinate-direction thrashing; flip
-  tracking applies only to consecutive iterations whose net gain is below
-  `min_improvement`. Each unstable iteration with at least one reversal advances the
-  thrash streak once; tracking resets after a stable iteration or one without a
-  reversal. This keeps normal bracket refinement, one multi-coordinate reversal,
-  and non-consecutive flips out of the `oscillation` stop condition.
-- If the evaluation budget blocks the second direction for a coordinate, an already
-  evaluated better first-direction proposal is committed and recorded before the
-  `max-evaluations` result is returned.
+- `initial` 包含 1 到 15 个有限、非布尔的数值参数。
+- `bounds` 为每个参数提供一个有限的 `[lower, upper]` 数对。下界严格小于上界，且每个初始值
+  都在范围内。
+- `objective(parameters)` 返回一个有限分数。分数越高越好。
+- 候选顺序固定：对每个坐标，先评估有界的向下移动，再评估有界的向上移动。`seed` 仅为元数据；
+  不使用任何随机源。
+- `max_iterations` 与 `max_evaluations` 是硬性上限。拟合器还会在达到配置的平台期，或出现连续的
+  坐标方向来回抖动（thrashing）时停止；翻转跟踪只作用于净增益低于 `min_improvement` 的连续迭代。
+  每个至少包含一次反向的不稳定迭代会让抖动连续计数加一；遇到稳定迭代或不含反向的迭代时，跟踪
+  重置。这样可使正常的区间细化、单次多坐标反向，以及非连续的翻转都不会触发 `oscillation` 停止
+  条件。
+- 如果评估预算不足以评估某个坐标的第二个方向，则在返回 `max-evaluations` 结果之前，会先提交并
+  记录已评估过且更优的第一方向候选。
 
-`FitResult` contains final `parameters`, objective `best_score`, `status`, evaluation
-and iteration totals, `seed`, and per-iteration `FitTelemetry` with objective score,
-improvement flag, cumulative evaluations, and step sizes. `to_json()` retains
-`bestScore` for compatibility and adds the explicit `bestObjectiveScore` field.
+`FitResult` 包含最终的 `parameters`、目标函数的 `best_score`、`status`、评估与迭代总数、`seed`，
+以及逐迭代的 `FitTelemetry`（含目标分数、是否改进标记、累计评估次数和步长）。`to_json()` 为兼容
+保留 `bestScore`，并新增显式的 `bestObjectiveScore` 字段。
 
-`fit_against_divine_eye()` wraps `fit()` with a render callback, calls the Divine Eye
-evaluator for each candidate, stores the raw results, and writes candidate metadata
-back onto every evaluated record. Clean candidates keep their raw fidelity in the
-`[0, 1]` range. Candidates with hard gates are scored as `-1.0` for the objective,
-but their raw fidelity is still preserved separately as `bestRawFidelity` and in the
-copied `divineEyeResults` / `correctionHistory` payloads.
+`fit_against_divine_eye()` 用一个渲染回调包装 `fit()`，对每个候选调用 Divine Eye 评估器，存储
+原始结果，并把候选元数据回写到每条已评估记录上。干净的候选保持其 `[0, 1]` 范围内的原始保真度。
+触发硬门禁的候选在目标函数中计为 `-1.0`，但其原始保真度仍会单独保留为 `bestRawFidelity`，并保留
+在复制出的 `divineEyeResults` / `correctionHistory` 载荷中。
 
-## CLI Fixture Objective
+## CLI 夹具目标函数
 
-The CLI only runs a deterministic quadratic fixture objective. Its top-level object
-must contain exactly `initial`, `bounds`, `target`, and `config`; it reads:
+CLI 只运行一个确定性的二次夹具目标函数。其顶层对象必须恰好包含 `initial`、`bounds`、`target`
+和 `config`；它读取：
 
 ```json
 {
@@ -57,58 +49,48 @@ must contain exactly `initial`, `bounds`, `target`, and `config`; it reads:
 }
 ```
 
-`config` accepts only `maxIterations`, `maxEvaluations`, `minImprovement`,
-`plateauIterations`, `oscillationFlips`, and `seed`. Unknown keys are rejected with
-exit status 2. Production callers use `fit()` directly with their own objective.
+`config` 只接受 `maxIterations`、`maxEvaluations`、`minImprovement`、`plateauIterations`、
+`oscillationFlips` 和 `seed`。未知键会以退出状态 2 被拒绝。生产调用方直接用自己的目标函数调用
+`fit()`。
 
-## Executable Divine Eye Fitting
+## 可执行的 Divine Eye 拟合
 
 `fit_against_divine_eye(initial, bounds, render_for_parameters, reference_png, evaluator=None, config=FitConfig())`
-turns a deterministic parameter-to-render callback into a bounded fidelity objective.
-For every evaluation it calls `render_for_parameters(parameters)`, evaluates the
-render against `reference_png`, and maximizes a gate-aware objective score. Clean
-results use their raw Divine Eye fidelity in `[0, 1]`; results with non-empty
-`hardGateFailures` use `-1.0`, below every clean score. The raw fidelity is retained
-unchanged in evaluator results and correction history, so all-gated runs remain
-bounded and auditable without allowing a high raw gated score to displace a clean fit.
+把一个确定性的"参数到渲染"回调转换为有界的保真度目标函数。每次评估时，它调用
+`render_for_parameters(parameters)`，将渲染结果与 `reference_png` 对比评估，并最大化一个感知门禁的
+目标分数。干净的结果使用其 `[0, 1]` 范围内的原始 Divine Eye 保真度；`hardGateFailures` 非空的结果
+使用 `-1.0`，低于任何干净分数。原始保真度在评估器结果和修正历史中原样保留，因此全部触发门禁的
+运行仍然有界且可审计，同时不会让一个原始分数很高但触发门禁的结果顶替干净的拟合。
 
-The optional evaluator receives `(reference_path, render_path)` and defaults to a
-lazy import of `divine_eye.evaluate`, so importing the fitting module does not load
-image-analysis dependencies. Its `DivineEyeFitResult` returns the `fit_result`, a
-copied record of every evaluator result, and normalized `correction_history` with
-hard gates and full Divine Eye provenance. The integration does not mutate evaluator
-result mappings. Each copied result receives adapter-owned `fitCandidateParameters`,
-`fitReferencePng`, and `fitRenderPath` fields.
+可选的评估器接收 `(reference_path, render_path)`，默认惰性导入 `divine_eye.evaluate`，因此导入
+拟合模块不会加载图像分析依赖。其 `DivineEyeFitResult` 返回 `fit_result`、每个评估器结果的复制
+记录，以及带硬门禁和完整 Divine Eye 溯源信息的规范化 `correction_history`。该集成不会修改评估器
+返回的结果映射。每个复制出的结果会获得由适配器持有的 `fitCandidateParameters`、`fitReferencePng`
+和 `fitRenderPath` 字段。
 
-`DivineEyeFitResult.fit_result.best_score` and `bestObjectiveScore` are objective
-scores, not necessarily raw fidelity: an all-gated run reports `-1.0`. Use optional
-`best_raw_fidelity` / JSON `bestRawFidelity` for the selected clean candidate. Its
-`correction_history` / JSON `correctionHistory` is derived from raw copied Divine Eye
-records, never objective scores, so it remains valid and auditable for all-gated runs.
+`DivineEyeFitResult.fit_result.best_score` 和 `bestObjectiveScore` 是目标分数，不一定是原始保真度：
+全部触发门禁的运行会报告 `-1.0`。对选中的干净候选，使用可选的 `best_raw_fidelity` / JSON
+`bestRawFidelity`。其 `correction_history` / JSON `correctionHistory` 派生自复制出的原始 Divine Eye
+记录，绝不来自目标分数，因此对全部触发门禁的运行也保持有效且可审计。
 
-## Divine Eye And Correction Loop
+## Divine Eye 与修正循环
 
-`divine_eye_fidelity(result)` reads the original Divine Eye `fidelity` as a scalar
-objective score only when it is finite and within `[0, 1]`. `divine_eye_correction_history(results)` retains each result's
-`hardGateFailures` and copies the same values into correction-loop `defectTags`.
-Each normalized record also has a deep-copied `divineEye` mapping with the original
-result context, including fidelity, gate failures, action, signals, and reference or
-render paths when present. A result is approved only when it has no hard gates and
-its present routing fields are `action="continue"` and `verdict="pass"`; fidelity-only
-mappings remain approved for compatibility. A fidelity decrease from the last
-approved best score records `reverted=True`; pending (`probe`/non-pass), reverted,
-or hard-gated attempts do not replace that baseline or win gate-aware fitting.
-Neither the source mapping nor its nested provenance is mutated.
+`divine_eye_fidelity(result)` 仅在原始 Divine Eye `fidelity` 有限且位于 `[0, 1]` 内时，才将其读作
+标量目标分数。`divine_eye_correction_history(results)` 保留每个结果的 `hardGateFailures`，并把相同
+的值复制到修正循环的 `defectTags` 中。每条规范化记录还带有一个深拷贝的 `divineEye` 映射，包含原始
+结果上下文：保真度、门禁失败、动作、信号，以及存在时的参考图或渲染图路径。只有当结果没有硬门禁，
+且其存在的路由字段为 `action="continue"` 和 `verdict="pass"` 时，才视为通过；仅含保真度的映射为
+兼容起见仍视为通过。相对上一个已通过的最佳分数出现保真度下降时，记录 `reverted=True`；待定
+（`probe`/非 pass）、已回退或触发硬门禁的尝试不会替换该基线，也不会在感知门禁的拟合中胜出。
+源映射及其嵌套的溯源信息都不会被修改。
 
-`correction_loop.decide()` is the stop policy. It checks, in order, hard gates,
-pending review routing, success, repeated defects, oscillation, plateau, and the
-hard ceiling. That order matters, because a hard gate always routes to `refine-code`
-and the ceiling always stops the loop even if the score is still climbing.
+`correction_loop.decide()` 是停止策略。它依次检查：硬门禁、待定评审路由、成功、重复缺陷、振荡、
+平台期，以及硬性上限。这个顺序很重要，因为硬门禁总是路由到 `refine-code`，而上限总会停止循环，
+即使分数仍在上升。
 
-When correction history contains nested `divineEye` provenance, its finite fidelity,
-hard gates, action, and verdict are authoritative. Mirrored top-level fidelity and
-routing fields must match or validation rejects the entry; fidelity-only history
-entries remain supported.
+当修正历史包含嵌套的 `divineEye` 溯源信息时，其中的有限保真度、硬门禁、动作和判定（verdict）具有
+权威性。镜像到顶层的保真度和路由字段必须与之一致，否则校验会拒绝该条目；仅含保真度的历史条目仍受
+支持。
 
-`budget_exceeded(spent_tokens, budget)` accepts a finite non-negative numeric spend
-and a non-negative integer budget; malformed values raise `ValueError`.
+`budget_exceeded(spent_tokens, budget)` 接受有限非负的数值开销和非负整数预算；格式错误的值会抛出
+`ValueError`。

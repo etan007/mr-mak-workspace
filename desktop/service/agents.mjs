@@ -37,7 +37,7 @@ export function codexBinary(env = process.env) {
   if (!isWindows) {
     const executable = commandPath('codex', env);
     if (executable) return { file: executable, args: [] };
-    throw new Error('Codex CLI is not installed. Install it and sign in once to use Mr. Mak.');
+    throw new Error('未安装 Codex CLI。请先安装并登录一次，再使用 Mr. Mak。');
   }
   const npmRoot = path.join(env.APPDATA || '', 'npm', 'node_modules', '@openai');
   const triple = process.arch === 'arm64' ? 'aarch64-pc-windows-msvc' : 'x86_64-pc-windows-msvc';
@@ -52,23 +52,23 @@ export function codexBinary(env = process.env) {
   if (existsSync(js)) return { file: process.execPath, args: [js] };
   const executable = commandPath('codex', env);
   if (executable && !/\.(cmd|bat|ps1)$/i.test(executable)) return { file: executable, args: [] };
-  throw new Error('Codex CLI is not installed. Install it and sign in once to use Mr. Mak.');
+  throw new Error('未安装 Codex CLI。请先安装并登录一次，再使用 Mr. Mak。');
 }
 
 // Conversation IDs become CLI arguments. One shaped like an option would be
 // parsed as an option, for example a CLI's own permission-bypass flag.
 export function nativeConversationId(value) {
   if (value == null || value === '') return undefined;
-  if (typeof value !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(value)) throw new Error('This conversation ID is not valid. Copy it again from the CLI.');
+  if (typeof value !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(value)) throw new Error('对话 ID 无效。请从 CLI 重新复制。');
   return value;
 }
 
 export function terminalCommand(agent, { bypass = false, resumeId, nativeId, effort, opencodeMajor = 1, antigravityLog } = {}) {
-  if (!AGENTS.some(item => item.id === agent)) throw new Error('Unknown agent');
+  if (!AGENTS.some(item => item.id === agent)) throw new Error('未知代理');
   resumeId = nativeConversationId(resumeId); nativeId = nativeConversationId(nativeId);
   const command = agent === 'shell' ? shellCommand() : { file: commandPath(AGENTS.find(item => item.id === agent).command), args: [] };
-  if (!command || !command.file) throw new Error(`${agent} is not installed on this computer`);
-  if (agent === 'shell' && (path.isAbsolute(command.file) ? !existsSync(command.file) : !commandPath(command.file))) throw new Error('The local shell is not available on this computer');
+  if (!command || !command.file) throw new Error(`此电脑上未安装 ${agent}`);
+  if (agent === 'shell' && (path.isAbsolute(command.file) ? !existsSync(command.file) : !commandPath(command.file))) throw new Error('此电脑上没有可用的本地 shell');
   const args = [];
   if (agent === 'codex') {
     if (resumeId) args.push('resume', resumeId);
@@ -82,7 +82,7 @@ export function terminalCommand(agent, { bypass = false, resumeId, nativeId, eff
     if (bypass) args.push('--dangerously-skip-permissions');
     if (effort) args.push('--effort', effort);
   } else if (agent === 'antigravity') {
-    if (resumeId && !validAntigravityId(resumeId)) throw new Error('Use the Antigravity conversation UUID from its /resume picker.');
+    if (resumeId && !validAntigravityId(resumeId)) throw new Error('请使用 Antigravity /resume 选择器中的对话 UUID。');
     if (resumeId) args.push('--conversation', resumeId);
     if (bypass) args.push('--dangerously-skip-permissions');
     if (effort) args.push('--effort', effort);

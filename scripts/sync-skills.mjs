@@ -30,6 +30,6 @@ async function visit(relative = '') {
 }
 await visit();
 if (differences.length) {
-  console.error(`Claude skills differ in ${differences.length} files. Run npm run skills:sync after editing .agents/skills, or move intended Claude edits into that source first.`);
+  console.error(`Claude 技能有 ${differences.length} 个文件不一致。编辑 .agents/skills 后请运行 npm run skills:sync，或先把要保留的 Claude 端修改移到该源目录。`);
   process.exitCode = 1;
-} else console.log(`${files} skill files ${check ? 'verified identical' : 'synchronized'} for Codex and Claude.`);
+} else console.log(`Codex 与 Claude 的 ${files} 个技能文件${check ? '已校验一致' : '已同步'}。`);

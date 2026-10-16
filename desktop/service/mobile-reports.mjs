@@ -16,13 +16,13 @@ export class MobileReports {
   }
   async open(device, { entityId, step = 0 }) {
     const entity = (await this.registry()).find(item => item.id === entityId);
-    if (!entity || !safePath(entity.folder) || !Number.isInteger(step) || !safePath(entity.steps?.[step]?.path)) fail('This report is unavailable on mobile.', 404);
+    if (!entity || !safePath(entity.folder) || !Number.isInteger(step) || !safePath(entity.steps?.[step]?.path)) fail('此报告在手机上不可用。', 404);
     const root = await realpath(path.join(this.gateway.repo, 'workspace', entity.folder));
-    if (!within(await realpath(this.gateway.repo), root)) fail('This report folder is outside the Workspace repository.');
+    if (!within(await realpath(this.gateway.repo), root)) fail('此报告文件夹位于工作区仓库之外。');
     const relative = entity.steps[step].path, { file, info } = await realFile(root, relative);
-    if (!info.isFile()) fail('Report not found', 404);
+    if (!info.isFile()) fail('未找到报告', 404);
     const extension = path.extname(file).toLowerCase();
-    if (!['.html', '.htm', '.md', '.txt'].includes(extension)) fail('Open this type of report on your computer.');
+    if (!['.html', '.htm', '.md', '.txt'].includes(extension)) fail('请在电脑上打开此类报告。');
     const prefix = `workspace/${entity.folder.replaceAll('\\', '/')}/`;
     for (const [id, grant] of this.grants) if (grant.expires < Date.now() || !this.gateway.state.devices.some(item => item.id === grant.deviceId)) this.grants.delete(id);
     const existing = [...this.grants].find(([, grant]) => grant.deviceId === device.id && grant.root === root && grant.prefix === prefix);
@@ -34,18 +34,18 @@ export class MobileReports {
   }
   async serve(request, response, url) {
     const gateway = this.gateway;
-    if (!gateway.active || !['GET', 'HEAD'].includes(request.method) || request.headers.host !== new URL(gateway.origin).host) fail('Not allowed');
+    if (!gateway.active || !['GET', 'HEAD'].includes(request.method) || request.headers.host !== new URL(gateway.origin).host) fail('不允许');
     const match = /^\/mobile\/view\/([a-zA-Z0-9_-]+)\/(.+)$/.exec(url.pathname), grant = match && this.grants.get(match[1]);
-    if (!grant || grant.expires < Date.now() || !gateway.state.devices.some(device => device.id === grant.deviceId && device.expires > Date.now())) fail('Reopen this report to refresh its preview.', 401);
+    if (!grant || grant.expires < Date.now() || !gateway.state.devices.some(device => device.id === grant.deviceId && device.expires > Date.now())) fail('请重新打开此报告以刷新预览。', 401);
     const relative = decodeURIComponent(match[2]);
-    if (!safePath(relative)) fail('Invalid report path');
+    if (!safePath(relative)) fail('报告路径无效');
     let root, filePath;
     if (relative.startsWith(grant.prefix)) { root = grant.root; filePath = relative.slice(grant.prefix.length); }
     else if (/^workspace\/_shared\/(report\.(css|js)|examples\.css)$/.test(relative)) { root = path.join(gateway.repo, 'workspace/_shared'); filePath = relative.slice('workspace/_shared/'.length); }
-    else fail('This file is outside the selected report.');
-    if (!extensions.has(path.extname(filePath).toLowerCase())) fail('This file type is unavailable in report previews.');
+    else fail('此文件不属于所选报告。');
+    if (!extensions.has(path.extname(filePath).toLowerCase())) fail('报告预览不支持此文件类型。');
     const { file, info } = await realFile(root, filePath);
-    if (!info.isFile()) fail('File not found', 404);
+    if (!info.isFile()) fail('未找到文件', 404);
     const base = `${gateway.origin}/mobile/view/${match[1]}/`;
     // A report is an opaque sandbox with access only to this short-lived folder grant.
     // It has no same-origin privileges, desktop token, device cookie or mobile API access.

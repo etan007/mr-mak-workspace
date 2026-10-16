@@ -1,53 +1,41 @@
 ---
 name: gameplay-visual-review
-description: Verify a visual game change using controlled native captures, targeted behavioral checks and a reviewable evidence record. Use for animation, VFX, HUD or scene changes whose appearance must be judged in the actual game.
+description: 通过受控的原生截取、针对性的行为检查和可审查的证据记录来验证游戏视觉改动。适用于必须在实际游戏中判断外观的动画、特效（VFX）、HUD 或场景改动。
 ---
 
-# Gameplay visual review
+# 玩法视觉审查
 
-Read the requested change and its accepted baseline. Choose a short test that
-can reveal the difference. Preserve the current scene and unrelated systems;
-inspect editor state before taking control, and coordinate if another agent is
-already using the same editor. Do not restart an active tool merely for a capture.
+阅读所请求的改动及其已接受的基线。选择一个能暴露差异的简短测试。保留当前场景和无关
+系统；接管编辑器前先检查其状态，若已有其他代理在使用同一编辑器则先协调。不要仅为了
+截取而重启正在运行的工具。
 
-## Build a fair comparison
+## 构建公平对比
 
-Use the game's actual camera, lighting, materials and normal playback speed.
-Keep seed, subjects, route/action and framing comparable for OFF/ON or before/after
-captures. Record any unavoidable difference. A slow-motion close-up is useful
-diagnostic evidence, but it should not replace normal gameplay zoom.
+使用游戏实际的相机、光照、材质和正常播放速度。OFF/ON 或前后对比截取时，保持随机种子、
+对象、路线/动作和构图一致。记录无法避免的差异。慢动作特写是有用的诊断证据，但不应
+替代正常游戏缩放下的画面。
 
-A review lab should isolate the changed feature while retaining its production
-code path. Do not "fix" a comparison with a separate demonstration implementation.
-If synthetic input is needed, separate it from physical devices and restore
-the prior input settings afterward. Discard transient test orders rather than
-saving them into the authored scene.
+审查实验场景应隔离改动功能，同时保留其生产代码路径。不要用另一套演示实现来“修正”
+对比。若需要模拟输入，将其与物理设备分开，并在结束后恢复原输入设置。丢弃临时测试指令，
+不要保存进编辑好的场景。
 
-## Check appearance and behavior separately
+## 分别检查外观与行为
 
-For animation, inspect contact, seams, interrupted transitions and responsive
-controls. For VFX, inspect contrast, overlap, attachment and cleanup. For UI,
-inspect readability, overflow, input blocking and real state. For terrain,
-inspect scale, grounding, traversal and the gameplay camera.
+动画：检查接触、接缝、被打断的过渡和控制响应。特效：检查对比度、叠加、挂载和清理。
+UI：检查可读性、溢出、输入阻挡和真实状态。地形：检查比例、贴地、可通行性和游戏相机。
 
-Counters, hashes and saved values can prove wiring or unchanged inputs. They do
-not prove visual quality. A screenshot does not prove a timed transition, and a
-passing browser study does not prove native rendering cost. Measure the relevant
-system only, and keep unrelated sound/narration quiet during visual-only checks.
+计数器、哈希和保存的值可以证明接线正确或输入未变，但不能证明视觉质量。截图无法证明
+定时过渡，浏览器研究通过也无法证明原生渲染开销。只测量相关系统；纯视觉检查时让无关的
+声音/旁白保持静音。
 
-## Leave useful evidence
+## 留下有用的证据
 
-Record the source revision, saved configuration, exact scenario, capture type,
-observations and remaining issues. Label generated art, browser schematics,
-isolated engine previews and native gameplay clearly. A successful agent check
-does not imply the user accepted the result.
+记录源码版本、保存的配置、具体场景、截取类型、观察结果和遗留问题。清楚标注生成图、
+浏览器示意、隔离的引擎预览和原生游戏画面。代理检查通过并不意味着用户已接受结果。
 
-Provide short local loops or videos for motion and stills for detail. Keep the
-original capture and a lightweight review copy with provenance. Do not repeatedly
-recompress an already compressed delivery. Update the current specification when
-behavior changes; put chronological details in the development log.
+运动用简短的本地循环或视频，细节用静帧。保留原始截取和带来源信息的轻量审查副本。
+不要反复重新压缩已压缩的交付物。行为改变时更新当前规格；按时间顺序的细节写入开发日志。
 
-Example: compare a shield impact OFF/ON on dark and pale ground with identical
-gameplay. Deliver the visible comparison plus cancellation and cleanup results;
-leave final aesthetic acceptance explicit. Dependencies: native engine access
-and a local capture method; a report viewer is optional.
+示例：在暗色和浅色地面上、玩法完全相同的条件下对比护盾命中特效的 OFF/ON。交付可见的
+对比以及取消和清理结果；最终美术验收需明确留待确认。依赖：原生引擎访问和本地截取方法；
+报告查看器为可选。

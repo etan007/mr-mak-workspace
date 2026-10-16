@@ -1,5 +1,5 @@
 import type { WorkspaceEntity } from '../types'
-import { categoryIcon } from '../lib/categories'
+import { categoryIcon, categoryLabel } from '../lib/categories'
 import MakCard from './MakCard'
 import MakLogo from './MakLogo'
 
@@ -14,10 +14,10 @@ interface HomeGridProps {
 
 function greeting(): string {
   const h = new Date().getHours()
-  if (h < 5) return 'Burning the midnight oil, sir?'
-  if (h < 12) return 'Good morning, sir.'
-  if (h < 18) return 'Good day, sir.'
-  return 'Good evening, sir.'
+  if (h < 5) return '夜深了，还在忙？'
+  if (h < 12) return '早上好。'
+  if (h < 18) return '下午好。'
+  return '晚上好。'
 }
 
 export default function HomeGrid({
@@ -39,24 +39,24 @@ export default function HomeGrid({
         <div>
           <h1 className="home-title">{greeting()}</h1>
           <p className="home-sub">
-            <b>{activeCount}</b> active · <b>{entities.length}</b> entities ·{' '}
-            <b>{categoryCount}</b> categories
-            {offline && <span className="home-offline"> · workspace.json unreachable</span>}
+            <b>{activeCount}</b> 进行中 · <b>{entities.length}</b> 张卡片 ·{' '}
+            <b>{categoryCount}</b> 个分类
+            {offline && <span className="home-offline"> · 无法读取 workspace.json</span>}
           </p>
         </div>
       </header>
 
       {searching && (
         <p className="home-filter">
-          {shown === 0 ? 'No matches for' : `${shown} match${shown === 1 ? '' : 'es'} for`}{' '}
-          “{query.trim()}” — archive included
+          {shown === 0 ? '没有匹配' : `${shown} 项匹配`}{' '}
+          “{query.trim()}”（含归档）
         </p>
       )}
 
       {pinned.length > 0 && (
         <section className="home-section">
           <div className="section-head">
-            <span className="section-title">{'\u{1F4CC}'} pinned</span>
+            <span className="section-title">{'\u{1F4CC}'} 已置顶</span>
             <span className="section-count">{pinned.length}</span>
           </div>
           <div className="card-grid">
@@ -71,7 +71,7 @@ export default function HomeGrid({
         <section key={cat} className="home-section">
           <div className="section-head">
             <span className="section-title">
-              {categoryIcon(cat)} {cat.replace(/-/g, ' ')}
+              {categoryIcon(cat)} {categoryLabel(cat)}
             </span>
             <span className="section-count">{list.length}</span>
           </div>
@@ -86,8 +86,8 @@ export default function HomeGrid({
       {shown === 0 && !searching && (
         <div className="home-empty">
           {offline
-            ? 'Could not load workspace.json — is the public/workspace link in place? Run npm run dev again, sir.'
-            : 'Nothing here yet. New work will appear as cards, sir.'}
+            ? '无法加载 workspace.json — public/workspace 链接是否存在？请重新运行 npm run dev。'
+            : '这里还没有内容。新的工作会以卡片形式出现。'}
         </div>
       )}
     </div>

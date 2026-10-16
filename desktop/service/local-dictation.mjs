@@ -22,6 +22,6 @@ export async function localTranscribe(config, audio, extension, signal) {
     const { stdout } = await execute(config.python, [worker, '--model', config.model, '--audio', file], { signal, timeout: 240000, windowsHide: true, maxBuffer: 512 * 1024 });
     return JSON.parse(stdout);
   } catch {
-    throw Object.assign(new Error('Local transcription could not finish. Retry or record a shorter message.'), { status: 502 });
+    throw Object.assign(new Error('本地转写未能完成。请重试或录制更短的消息。'), { status: 502 });
   } finally { await rm(folder, { recursive: true, force: true }); }
 }

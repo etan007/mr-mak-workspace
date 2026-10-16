@@ -47,7 +47,7 @@ try {
   await page.route('**/workspace/test/step0.html*', async route => { if (route.request().method() === 'GET') await delayedReport; await route.continue(); });
   await page.getByRole('tab').nth(0).click();
   try {
-    await page.getByRole('status').filter({ hasText: 'Opening report' }).waitFor();
+    await page.getByRole('status').filter({ hasText: '正在打开报告' }).waitFor();
     assert.equal(await page.locator('iframe.report-frame').evaluate(element => getComputedStyle(element).visibility), 'hidden');
     assert.equal(await page.locator('.report-document').evaluate(element => getComputedStyle(element).backgroundColor), 'rgb(16, 17, 21)');
   } finally { releaseReport(); }
@@ -56,50 +56,50 @@ try {
   await page.unroute('**/workspace/test/step0.html*');
   await page.route('**/workspace/test/step1.html', route => route.request().method() === 'HEAD' ? route.fulfill({ status: 404 }) : route.continue());
   await page.getByRole('tab').nth(1).click();
-  await page.getByText('Page unavailable (404).', { exact: true }).waitFor();
+  await page.getByText('页面不可用（404）。', { exact: true }).waitFor();
   await page.unroute('**/workspace/test/step1.html');
   await page.getByRole('tab').nth(2).click();
   await page.locator('.report-document[aria-busy=false]').waitFor();
-  await page.getByRole('button', { name: 'Toggle files', exact: true }).click();
+  await page.getByRole('button', { name: '切换文件面板', exact: true }).click();
   await page.getByRole('treeitem', { name: /^knowledge$/ }).click();
   await page.getByRole('treeitem', { name: /^notes.md/ }).click();
   await page.getByRole('heading', { name: 'A useful document' }).waitFor(); assert.equal(await page.locator('.mak-markdown table').count(), 1);
-  await page.getByRole('button', { name: 'Edit', exact: true }).click();
-  await page.getByRole('textbox', { name: 'Edit notes.md' }).fill('# Edited document\n\nUnicode: русский 🐽\n');
-  await page.getByRole('textbox', { name: 'Edit notes.md' }).press('Control+s');
-  await page.getByText('Saved', { exact: true }).waitFor(); assert.match(await readFile(documentPath, 'utf8'), /русский 🐽/);
+  await page.getByRole('button', { name: '编辑', exact: true }).click();
+  await page.getByRole('textbox', { name: '编辑 notes.md' }).fill('# Edited document\n\nUnicode: русский 🐽\n');
+  await page.getByRole('textbox', { name: '编辑 notes.md' }).press('Control+s');
+  await page.getByText('已保存', { exact: true }).waitFor(); assert.match(await readFile(documentPath, 'utf8'), /русский 🐽/);
   await writeFile(documentPath, '# Changed by another agent\n');
-  await page.getByRole('textbox', { name: 'Edit notes.md' }).fill('# My unsaved draft\n');
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
-  await page.getByText(/This file changed on disk/).waitFor(); assert.match(await readFile(documentPath, 'utf8'), /another agent/);
-  await page.getByRole('button', { name: 'Close file preview' }).click();
+  await page.getByRole('textbox', { name: '编辑 notes.md' }).fill('# My unsaved draft\n');
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  await page.getByText(/此文件已在磁盘上被修改/).waitFor(); assert.match(await readFile(documentPath, 'utf8'), /another agent/);
+  await page.getByRole('button', { name: '关闭文件预览' }).click();
   await page.getByRole('treeitem', { name: /^notes.md/ }).click();
   await page.getByRole('heading', { name: 'My unsaved draft' }).waitFor();
-  await page.getByRole('button', { name: 'Discard', exact: true }).click();
+  await page.getByRole('button', { name: '放弃', exact: true }).click();
   await page.getByRole('heading', { name: 'Changed by another agent' }).waitFor();
-  await page.getByRole('button', { name: 'Close file preview' }).click();
-  await page.getByRole('button', { name: 'Toggle skills', exact: true }).click();
+  await page.getByRole('button', { name: '关闭文件预览' }).click();
+  await page.getByRole('button', { name: '切换技能面板', exact: true }).click();
   await page.getByRole('treeitem', { name: /^example$/ }).click(); await page.getByRole('treeitem', { name: /^SKILL.md/ }).click();
   await page.getByRole('heading', { name: 'Example skill' }).waitFor();
-  await page.getByRole('button', { name: 'Toggle mcp', exact: true }).click();
+  await page.getByRole('button', { name: '切换 MCP 面板', exact: true }).click();
   await page.getByRole('heading', { name: 'fixture-tools', exact: true }).waitFor();
   assert.equal((await page.locator('.mcp-panel').innerText()).includes('private-ui-fixture-token'), false);
-  await page.getByRole('button', { name: 'Check fixture-tools for Claude', exact: true }).click();
-  await page.locator('[data-mcp-id="claude:fixture-tools"]').getByText('7 tools', { exact: true }).waitFor();
-  await page.getByRole('combobox', { name: 'Filter MCP by agent' }).selectOption('codex');
+  await page.getByRole('button', { name: '为 Claude 检查 fixture-tools', exact: true }).click();
+  await page.locator('[data-mcp-id="claude:fixture-tools"]').getByText('7 个工具', { exact: true }).waitFor();
+  await page.getByRole('combobox', { name: '按代理筛选 MCP' }).selectOption('codex');
   await page.getByRole('heading', { name: 'global-tools', exact: true }).waitFor();
   assert.equal(await page.locator('.mcp-server').count(), 1);
-  await page.getByRole('combobox', { name: 'Filter MCP by scope' }).selectOption('project');
-  await page.getByText('No MCP servers match these filters.', { exact: true }).waitFor();
-  await page.getByRole('button', { name: 'Close MCP', exact: true }).click();
+  await page.getByRole('combobox', { name: '按范围筛选 MCP' }).selectOption('project');
+  await page.getByText('没有符合筛选条件的 MCP 服务器。', { exact: true }).waitFor();
+  await page.getByRole('button', { name: '关闭 MCP', exact: true }).click();
   await page.goto(service.urls.chats);
   async function setTerminalFontSize(size) {
-    await page.getByTitle('Chat options', { exact: true }).click();
+    await page.getByTitle('对话选项', { exact: true }).click();
     const control = page.locator('.font-control');
     const current = Number(await control.locator('span').last().innerText());
     const button = control.getByRole('button', { name: size > current ? '+' : '−', exact: true });
     for (let count = 0; count < Math.abs(size - current); count++) await button.click();
-    await page.getByTitle('Chat options', { exact: true }).click();
+    await page.getByTitle('对话选项', { exact: true }).click();
   }
   // Check the actual terminal rows, not just the host box: FitAddon can size
   // a grid into parent padding and silently clip the CLI's bottom status row.

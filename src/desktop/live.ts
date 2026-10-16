@@ -49,14 +49,14 @@ export class LiveVoice {
       this.microphone = microphone
       const peer = new RTCPeerConnection(); this.peer = peer
       peer.ontrack = event => { this.audio.srcObject = new MediaStream([event.track]); this.audio.play().catch(() => this.update({ audible: false })) }
-      peer.onconnectionstatechange = () => { if (generation === this.generation && ['failed', 'closed'].includes(peer.connectionState) && this.state.status !== 'off') this.fail('Voice connection ended. Press the nose to reconnect.') }
+      peer.onconnectionstatechange = () => { if (generation === this.generation && ['failed', 'closed'].includes(peer.connectionState) && this.state.status !== 'off') this.fail('语音连接已结束。点击鼻子重新连接。') }
       microphone.getAudioTracks().forEach(track => peer.addTrack(track, microphone))
       const channel = peer.createDataChannel('oai-events'); this.channel = channel
-      channel.onmessage = ({ data }) => { if (generation === this.generation) { try { this.receive(JSON.parse(data) as LiveEvent, generation) } catch { this.fail('Invalid voice event received.') } } }
-      channel.onclose = () => { if (generation === this.generation && this.state.status !== 'off') this.fail('Voice disconnected before final confirmation.') }
+      channel.onmessage = ({ data }) => { if (generation === this.generation) { try { this.receive(JSON.parse(data) as LiveEvent, generation) } catch { this.fail('收到无效的语音事件。') } } }
+      channel.onclose = () => { if (generation === this.generation && this.state.status !== 'off') this.fail('语音在最终确认前断开。') }
       await peer.setLocalDescription(await peer.createOffer())
       if (peer.iceGatheringState !== 'complete') await new Promise<void>((resolve, reject) => {
-        const timeout = window.setTimeout(() => { peer.removeEventListener('icegatheringstatechange', changed); reject(new Error('Microphone connection timed out')) }, 10000)
+        const timeout = window.setTimeout(() => { peer.removeEventListener('icegatheringstatechange', changed); reject(new Error('麦克风连接超时')) }, 10000)
         const changed = () => { if (peer.iceGatheringState === 'complete') { clearTimeout(timeout); peer.removeEventListener('icegatheringstatechange', changed); resolve() } }
         peer.addEventListener('icegatheringstatechange', changed); changed()
       })
@@ -64,7 +64,7 @@ export class LiveVoice {
       const result = await api<{ session: { id: string }; transport: { sdp: string } }>('/live/session', { sdp: peer.localDescription?.sdp, clientId, surface })
       if (generation !== this.generation) { await api('/live/release', { clientId }); return }
       this.sessionId = result.session.id
-      this.startTimer = window.setTimeout(() => this.fail('OpenAI did not start the voice session. Press the nose to try again.'), 25000)
+      this.startTimer = window.setTimeout(() => this.fail('OpenAI 未能启动语音会话。点击鼻子重试。'), 25000)
       await peer.setRemoteDescription({ type: 'answer', sdp: result.transport.sdp })
     } catch (error) { if (generation === this.generation) this.fail(error instanceof Error ? error.message : String(error)) }
   }
@@ -73,7 +73,7 @@ export class LiveVoice {
       clearTimeout(this.startTimer); this.ready = true
       this.update({ status: 'live', startedAt: Date.now() }); this.context()
     } else if (event.type === 'session.closed') { this.cleanup(); this.update({ status: 'off', startedAt: null }) }
-    else if (event.type === 'error' || event.type === 'session.error') this.fail(event.error?.message || event.message || 'Voice session error')
+    else if (event.type === 'error' || event.type === 'session.error') this.fail(event.error?.message || event.message || '语音会话出错')
     else if (event.type === 'session.input_transcript.delta' || event.type === 'session.output_transcript.delta') {
       const role = event.type.includes('input_transcript') ? 'user' : 'assistant'
       const delta = event.delta || ''
@@ -116,11 +116,11 @@ export class LiveVoice {
       this.update({ status: 'closing' })
       this.microphone?.getAudioTracks().forEach(track => { track.enabled = false })
       this.event({ type: 'session.close' })
-      this.closeTimer = window.setTimeout(() => this.fail('Voice stopped. Final session usage was not confirmed.'), 15000)
+      this.closeTimer = window.setTimeout(() => this.fail('语音已停止，未确认最终会话用量。'), 15000)
     } else { this.cleanup(); this.update({ status: 'off', startedAt: null }) }
   }
-  async enablePlayback() { try { await this.audio.play(); this.update({ audible: true }) } catch { this.update({ error: 'Select the window and try enabling audio again.' }) } }
-  disconnect() { if (['live', 'connecting'].includes(this.state.status)) { this.cleanup(); this.update({ status: 'error', error: 'Local connection lost. Voice has stopped; reconnect before giving another command.', startedAt: null }) } }
+  async enablePlayback() { try { await this.audio.play(); this.update({ audible: true }) } catch { this.update({ error: '请先选中窗口，再尝试启用声音。' }) } }
+  disconnect() { if (['live', 'connecting'].includes(this.state.status)) { this.cleanup(); this.update({ status: 'error', error: '本地连接已断开，语音已停止。请重新连接后再下达指令。', startedAt: null }) } }
   private fail(message: string) { this.cleanup(); this.update({ status: 'error', error: message, startedAt: null }) }
   private saveTranscript() {
     if (this.sessionId && this.state.captions.length) api('/live/transcript', { id: this.sessionId, captions: this.state.captions.slice(-50).map(item => ({ ...item, text: item.text.slice(0, 1000) })) }).catch(() => {})

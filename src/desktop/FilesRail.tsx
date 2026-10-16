@@ -11,21 +11,22 @@ import ReportFrame from '../components/ReportFrame'
 import { fileManager, trashName } from './platform'
 
 export function FilePreview({ file }: { file: Preview }) {
-  return <div className="file-preview"><header><span><Icon name="files" size={16} /><strong title={file.name}>{file.name}</strong><small>{Math.max(1, Math.round(file.size / 1024)).toLocaleString()} KB</small></span><div><button className="desk-icon" onClick={() => api('/reveal', { path: file.path }).catch(reportError)} title={`Show in ${fileManager}`}><Icon name="external" size={17} /></button><button className="desk-icon" onClick={() => setPreview(null)} title="Back to Workspace" aria-label="Close file preview"><Icon name="close" size={18} /></button></div></header><div className={`file-preview-body ${file.kind}`}>
+  return <div className="file-preview"><header><span><Icon name="files" size={16} /><strong title={file.name}>{file.name}</strong><small>{Math.max(1, Math.round(file.size / 1024)).toLocaleString()} KB</small></span><div><button className="desk-icon" onClick={() => api('/reveal', { path: file.path }).catch(reportError)} title={`在${fileManager}中显示`}><Icon name="external" size={17} /></button><button className="desk-icon" onClick={() => setPreview(null)} title="返回工作区" aria-label="关闭文件预览"><Icon name="close" size={18} /></button></div></header><div className={`file-preview-body ${file.kind}`}>
     {file.kind === 'text' && (/\.md$/i.test(file.name) ? <MarkdownDocument key={`${file.path}:${file.revision}`} file={file} /> : <pre>{file.text}</pre>)}
     {file.kind === 'document' && file.url && <ReportFrame url={file.url} title={file.name} sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads" />}
     {file.kind === 'image' && <ZoomImage src={file.url} alt={file.name} />}
     {file.kind === 'video' && <video src={file.url} controls />}
     {file.kind === 'audio' && <audio src={file.url} controls />}
-    {file.kind === 'unsupported' && <div className="file-unsupported"><Icon name="files" size={38} /><h2>{file.name}</h2><p>{file.reason}</p><button className="desk-secondary" onClick={() => api('/reveal', { path: file.path }).catch(reportError)}>Show in {fileManager}</button></div>}
+    {file.kind === 'unsupported' && <div className="file-unsupported"><Icon name="files" size={38} /><h2>{file.name}</h2><p>{file.reason}</p><button className="desk-secondary" onClick={() => api('/reveal', { path: file.path }).catch(reportError)}>在{fileManager}中显示</button></div>}
   </div></div>
 }
 
+const railLabels = { files: '文件', skills: '技能', mcp: 'MCP', settings: '设置' } as const
 const pathKey = (path: string) => path.replace(/\\/g, '/').replace(/\/$/, '').toLowerCase()
 const fileName = (path: string) => path.replace(/[\\/]$/, '').split(/[\\/]/).pop() || path
 const message = (error: unknown) => error instanceof Error ? error.message : String(error)
 function RevealFolder({ path, name }: { path: string; name: string }) {
-  return <button className="file-reveal" title={`Show ${name} in ${fileManager}`} aria-label={`Show ${name} in ${fileManager}`} onClick={event => { event.stopPropagation(); api('/reveal', { path }).catch(reportError) }}><Icon name="external" size={14} /></button>
+  return <button className="file-reveal" title={`在${fileManager}中显示 ${name}`} aria-label={`在${fileManager}中显示 ${name}`} onClick={event => { event.stopPropagation(); api('/reveal', { path }).catch(reportError) }}><Icon name="external" size={14} /></button>
 }
 type TreeControls = {
   expanded: Set<string>; selected: string; dropTarget: string; query: string; revision: number
@@ -52,9 +53,9 @@ function FolderBranch({ path, mode = 'all', depth = 1, ancestors = [], tree, onL
     return () => abort.abort()
   }, [path, mode, tree.revision, onLoad])
   if (error) return <p className="file-tree-note desk-error-inline">{error}</p>
-  if (!folder) return <p className="file-tree-note">Loading folder…</p>
-  if (ancestors.includes(pathKey(folder.path))) return <p className="file-tree-note">Linked folder already shown above.</p>
-  if (depth > 20) return <button className="file-tree-note" onClick={() => api('/reveal', { path }).catch(reportError)}>Open this deep folder in {fileManager}</button>
+  if (!folder) return <p className="file-tree-note">正在加载文件夹…</p>
+  if (ancestors.includes(pathKey(folder.path))) return <p className="file-tree-note">链接的文件夹已在上方显示。</p>
+  if (depth > 20) return <button className="file-tree-note" onClick={() => api('/reveal', { path }).catch(reportError)}>在{fileManager}中打开这个深层文件夹</button>
   const entries = folder.entries.filter(entry => entry.directory || entry.name.toLowerCase().includes(tree.query.toLowerCase()))
   return <div role="group" {...tree.dropProps(folder.path)}>{entries.map(entry => {
     const expanded = tree.expanded.has(pathKey(entry.path))
@@ -74,8 +75,8 @@ function FolderBranch({ path, mode = 'all', depth = 1, ancestors = [], tree, onL
       </div>
       {entry.directory && expanded && <FolderBranch path={entry.path} depth={depth + 1} ancestors={[...ancestors, pathKey(folder.path)]} tree={tree} />}
     </div>
-  })}{!entries.length && <p className="file-tree-note" style={{ paddingLeft: 22 + depth * 14 }}>{tree.query ? 'No matching files.' : 'Empty folder · drop files here'}</p>}
-    {folder.truncated && <p className="file-tree-note">First 1,500 entries shown. Open {fileManager} for the complete folder.</p>}
+  })}{!entries.length && <p className="file-tree-note" style={{ paddingLeft: 22 + depth * 14 }}>{tree.query ? '没有匹配的文件。' : '空文件夹 · 可将文件拖到这里'}</p>}
+    {folder.truncated && <p className="file-tree-note">仅显示前 1,500 项。打开{fileManager}查看完整文件夹。</p>}
   </div>
 }
 
@@ -137,7 +138,7 @@ export default function FilesRail() {
       const gesture = internalDrag.current
       window.setTimeout(() => {
         if (internalDrag.current !== gesture) return
-        if (!gesture?.handled) setStatus(result.dropped ? 'Path handed to the destination.' : '')
+        if (!gesture?.handled) setStatus(result.dropped ? '路径已交给目标位置。' : '')
         internalDrag.current = null
       }, 150)
     }
@@ -145,7 +146,7 @@ export default function FilesRail() {
       const result = (event as CustomEvent<{ path: string; recycled: boolean; error?: string }>).detail
       recycleLock.current = false
       if (result.error) { setError(result.error); setStatus(''); return }
-      setStatus(`${fileName(result.path)} moved to ${trashName}.`)
+      setStatus(`${fileName(result.path)} 已移到${trashName}。`)
       const preview = desktopState().preview
       if (preview && (pathKey(preview.path) === pathKey(result.path) || pathKey(preview.path).startsWith(pathKey(result.path) + '/'))) setPreview(null)
       const parent = result.path.replace(/[\\/][^\\/]+$/, '')
@@ -168,18 +169,18 @@ export default function FilesRail() {
   }
   const copy = useCallback(async (files: File[], folder: string) => {
     if (copyLock.current || !files.length) return
-    if (files.length > 100) { setError('Copy up to 100 files at a time.'); return }
-    if (files.some(file => file.size > 1024 * 1024 * 1024)) { setError('Choose files of 1 GB or less.'); return }
+    if (files.length > 100) { setError('一次最多复制 100 个文件。'); return }
+    if (files.some(file => file.size > 1024 * 1024 * 1024)) { setError('请选择不超过 1 GB 的文件。'); return }
     copyLock.current = true; setCopying(true); setError(''); setDropTarget('')
     let count = 0, renamed = 0
     try {
       for (const file of files) {
-        setStatus(`Copying ${count + 1} of ${files.length} to ${fileName(folder)}…`)
+        setStatus(`正在复制第 ${count + 1}/${files.length} 个文件到 ${fileName(folder)}…`)
         const result = await uploadFile(file, folder)
         count++; if (result.renamed) renamed++
       }
-      setStatus(`Copied ${count} ${count === 1 ? 'file' : 'files'} to ${fileName(folder)}.${renamed ? ' Existing files kept; copies renamed.' : ''}`)
-    } catch (error) { setError(message(error)); setStatus(count ? `Copied ${count} of ${files.length} files before the error.` : '') }
+      setStatus(`已复制 ${count} 个文件到 ${fileName(folder)}。${renamed ? '已保留原有文件，副本已重命名。' : ''}`)
+    } catch (error) { setError(message(error)); setStatus(count ? `出错前已复制 ${count}/${files.length} 个文件。` : '') }
     finally {
       copyLock.current = false; setCopying(false); setSelected(folder); setDestination(folder)
       setExpanded(current => new Set([...current, pathKey(folder)])); refresh()
@@ -190,18 +191,18 @@ export default function FilesRail() {
     const gesture = internalDrag.current
     if (gesture) {
       gesture.handled = true
-      if (gesture.directory) { setStatus(''); setError(`Drop folders into Chats to insert their paths. Use ${fileManager} to move folders.`); return }
+      if (gesture.directory) { setStatus(''); setError(`将文件夹拖入对话可插入其路径。移动文件夹请使用${fileManager}。`); return }
       if (copyLock.current) return
       copyLock.current = true; setCopying(true); setError('')
       try {
         const result = await api<{ path: string; moved: boolean }>('/files/move', { path: gesture.path, folder })
-        setStatus(result.moved ? `Moved ${fileName(result.path)} to ${fileName(folder)}.` : '')
+        setStatus(result.moved ? `已将 ${fileName(result.path)} 移到 ${fileName(folder)}。` : '')
         if (result.moved) { setSelected(result.path); setDestination(folder); setExpanded(current => new Set([...current, pathKey(folder)])) }
       } catch (error) { setError(message(error)); setStatus('') }
       finally { copyLock.current = false; setCopying(false); refresh() }
       return
     }
-    if (Array.from(event.dataTransfer.items).some(item => item.webkitGetAsEntry?.()?.isDirectory)) { setError(`Drop individual files into a folder. Folder transfers are available in ${fileManager}.`); return }
+    if (Array.from(event.dataTransfer.items).some(item => item.webkitGetAsEntry?.()?.isDirectory)) { setError(`请将单个文件拖入文件夹。传输整个文件夹请使用${fileManager}。`); return }
     await copy(Array.from(event.dataTransfer.files), folder)
   }, [copy, refresh])
   const deleteKey = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -209,7 +210,7 @@ export default function FilesRail() {
     event.preventDefault(); event.stopPropagation()
     const path = (event.target as HTMLElement).closest('[role="treeitem"]')?.getAttribute('data-path')
     if (event.repeat || !path || recycleLock.current || copyLock.current) return
-    recycleLock.current = true; setError(''); setStatus(`Moving ${fileName(path)} to ${trashName}…`)
+    recycleLock.current = true; setError(''); setStatus(`正在将 ${fileName(path)} 移到${trashName}…`)
     api('/files/recycle', { path }).catch(error => { recycleLock.current = false; setError(message(error)); setStatus('') })
   }
   const dropProps = (folder: string) => ({
@@ -231,29 +232,29 @@ export default function FilesRail() {
     preview: entry => { setSelected(entry.path); setDestination(entry.path.replace(/[\\/][^\\/]+$/, '')); api<Preview>(`/preview?path=${encodeURIComponent(entry.path)}`).then(setPreview).catch(reportError) },
     drag: (event, path, directory) => {
       // Hand the held mouse gesture to the OS (Windows OLE / macOS drag session) with real file paths.
-      event.preventDefault(); internalDrag.current = { path, directory, handled: false }; setError(''); setStatus(directory ? 'Drop into Chats to insert this folder path. Esc cancels.' : 'Drop into Chats to insert a path, or into another folder to move. Esc cancels.')
+      event.preventDefault(); internalDrag.current = { path, directory, handled: false }; setError(''); setStatus(directory ? '拖入对话可插入此文件夹路径。按 Esc 取消。' : '拖入对话可插入路径，拖入其他文件夹可移动。按 Esc 取消。')
       api('/files/drag', { paths: [path] }).catch(error => { internalDrag.current = null; setError(message(error)); setStatus('') })
     },
   }
   return <aside className={`files-container ${open ? 'expanded' : ''}`}>
     {open && panel === 'settings' && <WorkspaceSettings onClose={() => setOpen(false)} />}
     {open && panel === 'mcp' && <McpPanel onClose={() => setOpen(false)} />}
-    {open && (panel === 'files' || panel === 'skills') && <div className="files-panel"><header><h2>{panel === 'skills' ? 'Skills' : 'Files'}</h2><div>
-      <button className="desk-icon" disabled={copying} onClick={() => input.current?.click()} title={`Copy files into ${fileName(destination)}`} aria-label="Add files"><Icon name="plus" size={16} /></button>
-      <button className="desk-icon" onClick={refresh} title="Refresh files"><Icon name="refresh" size={15} /></button><button className="desk-icon" onClick={() => setOpen(false)} title="Collapse files"><Icon name="close" size={17} /></button>
+    {open && (panel === 'files' || panel === 'skills') && <div className="files-panel"><header><h2>{panel === 'skills' ? '技能' : '文件'}</h2><div>
+      <button className="desk-icon" disabled={copying} onClick={() => input.current?.click()} title={`复制文件到 ${fileName(destination)}`} aria-label="添加文件"><Icon name="plus" size={16} /></button>
+      <button className="desk-icon" onClick={refresh} title="刷新文件"><Icon name="refresh" size={15} /></button><button className="desk-icon" onClick={() => setOpen(false)} title="收起文件"><Icon name="close" size={17} /></button>
     </div></header>
       <input ref={input} type="file" multiple hidden onChange={event => { void copy(Array.from(event.target.files || []), destination); event.target.value = '' }} />
-      {panel === 'files' ? <><div className="file-mode"><button className={mode === 'main' ? 'selected' : ''} onClick={() => { setMode('main'); navigate(repo) }}>Main folders</button><button className={mode === 'all' ? 'selected' : ''} onClick={() => setMode('all')}>All files</button></div>
-      <div className="file-shortcuts">{['inbox', 'projects', 'workspace', 'knowledge', 'processes'].map(name => <button key={name} {...dropProps(`${repo}/${name}`)} className={dropTarget === pathKey(`${repo}/${name}`) ? 'drop-target' : ''} onClick={() => { navigate(repo); const path = `${repo}/${name}`; setExpanded(current => new Set([...current, pathKey(path)])); setSelected(path); setDestination(path) }}><Icon name="folder" size={14} />{name}</button>)}</div></> : <div className="skill-locations">{[['Claude', '.claude/skills'], ['Codex', '.agents/skills'], ['Knowledge', 'knowledge'], ['Processes', 'processes']].map(([label, path]) => <button key={path} aria-pressed={pathKey(root) === pathKey(`${repo}/${path}`)} onClick={() => { setMode('all'); navigate(`${repo}/${path}`) }}>{label}</button>)}<p>Project skills · open a SKILL.md to read or edit.</p></div>}
-      <form className="file-path" onSubmit={event => { event.preventDefault(); setMode('all'); navigate(typedPath) }}><button type="button" title="Parent folder" onClick={() => { setMode('all'); navigate(rootFolder?.parent || repo) }}><Icon name="up" size={15} /></button><input value={typedPath} onChange={event => setTypedPath(event.target.value)} spellCheck={false} aria-label="Folder path" /><button type="submit" title="Open folder"><Icon name="arrow" size={14} /></button></form>
-      <div className="file-filter"><Icon name="search" size={14} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Filter file names…" aria-label="Filter file names in expanded folders" /></div>
-      <div className={`file-list ${dropTarget === pathKey(destination) ? 'drop-area' : ''}`} role="tree" aria-label="Folder tree" onKeyDown={deleteKey} {...dropProps(destination)}>
+      {panel === 'files' ? <><div className="file-mode"><button className={mode === 'main' ? 'selected' : ''} onClick={() => { setMode('main'); navigate(repo) }}>主要文件夹</button><button className={mode === 'all' ? 'selected' : ''} onClick={() => setMode('all')}>全部文件</button></div>
+      <div className="file-shortcuts">{['inbox', 'projects', 'workspace', 'knowledge', 'processes'].map(name => <button key={name} {...dropProps(`${repo}/${name}`)} className={dropTarget === pathKey(`${repo}/${name}`) ? 'drop-target' : ''} onClick={() => { navigate(repo); const path = `${repo}/${name}`; setExpanded(current => new Set([...current, pathKey(path)])); setSelected(path); setDestination(path) }}><Icon name="folder" size={14} />{name}</button>)}</div></> : <div className="skill-locations">{[['Claude', '.claude/skills'], ['Codex', '.agents/skills'], ['知识', 'knowledge'], ['流程', 'processes']].map(([label, path]) => <button key={path} aria-pressed={pathKey(root) === pathKey(`${repo}/${path}`)} onClick={() => { setMode('all'); navigate(`${repo}/${path}`) }}>{label}</button>)}<p>项目技能 · 打开 SKILL.md 即可阅读或编辑。</p></div>}
+      <form className="file-path" onSubmit={event => { event.preventDefault(); setMode('all'); navigate(typedPath) }}><button type="button" title="上级文件夹" onClick={() => { setMode('all'); navigate(rootFolder?.parent || repo) }}><Icon name="up" size={15} /></button><input value={typedPath} onChange={event => setTypedPath(event.target.value)} spellCheck={false} aria-label="文件夹路径" /><button type="submit" title="打开文件夹"><Icon name="arrow" size={14} /></button></form>
+      <div className="file-filter"><Icon name="search" size={14} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="筛选文件名…" aria-label="在已展开的文件夹中筛选文件名" /></div>
+      <div className={`file-list ${dropTarget === pathKey(destination) ? 'drop-area' : ''}`} role="tree" aria-label="文件夹树" onKeyDown={deleteKey} {...dropProps(destination)}>
         <div role="none" className="file-entry has-reveal" {...dropProps(root)}><button role="treeitem" aria-level={1} aria-expanded="true" aria-selected={pathKey(selected) === pathKey(root)} className={`file-row file-root-row ${dropTarget === pathKey(root) ? 'drop-target' : ''}`} onClick={() => { setSelected(root); setDestination(root) }} {...dropProps(root)} title={root}><Icon name="arrow" size={11} style={{ transform: 'rotate(90deg)' }} /><Icon name="folder" size={15} /><span>{pathKey(root) === pathKey(repo) ? 'MR-MAK' : fileName(root)}</span></button><RevealFolder path={root} name={pathKey(root) === pathKey(repo) ? 'MR-MAK' : fileName(root)} /></div>
         <FolderBranch key={`${root}:${mode}`} path={root} mode={mode} tree={tree} onLoad={loaded} />
       </div>
-      <div className="file-transfer-status" aria-live="polite">{error && <p className="desk-error-inline">{error}</p>}{status && <p>{status}</p>}<small title={destination}>{copying ? 'Transferring files…' : `Drag to move · Delete to ${trashName}`}</small></div>
-      <footer><button onClick={() => navigate(repo)}>MR-MAK root</button></footer>
+      <div className="file-transfer-status" aria-live="polite">{error && <p className="desk-error-inline">{error}</p>}{status && <p>{status}</p>}<small title={destination}>{copying ? '正在传输文件…' : `拖动可移动 · 按 Delete 移到${trashName}`}</small></div>
+      <footer><button onClick={() => navigate(repo)}>MR-MAK 根目录</button></footer>
     </div>}
-    <div className="files-rail">{(['files', 'skills', 'mcp', 'settings'] as const).map(name => <button key={name} className={`rail-tool ${open && panel === name ? 'active' : ''}`} onClick={() => showPanel(name)} title={name === 'mcp' ? 'MCP' : name[0].toUpperCase() + name.slice(1)} aria-label={`Toggle ${name}`} aria-pressed={open && panel === name}><Icon name={name === 'files' ? 'folder' : name} size={18} /><span>{name === 'mcp' ? 'MCP' : name}</span></button>)}<button className="rail-tool" title="Workspace help" aria-label="Open Workspace help" onClick={() => api<Preview>('/preview?path=workspace%2F_shared%2Fhelp.md').then(setPreview).catch(reportError)}><Icon name="help" size={18} /><span>Help</span></button><div className="rail-spacer" /><button className="desk-icon" title="Show Chats" onClick={() => windowAction('chats')}><Icon name="chats" size={18} /></button></div>
+    <div className="files-rail">{(['files', 'skills', 'mcp', 'settings'] as const).map(name => <button key={name} className={`rail-tool ${open && panel === name ? 'active' : ''}`} onClick={() => showPanel(name)} title={railLabels[name]} aria-label={`切换${name === 'mcp' ? ' MCP ' : railLabels[name]}面板`} aria-pressed={open && panel === name}><Icon name={name === 'files' ? 'folder' : name} size={18} /><span>{railLabels[name]}</span></button>)}<button className="rail-tool" title="工作区帮助" aria-label="打开工作区帮助" onClick={() => api<Preview>('/preview?path=workspace%2F_shared%2Fhelp.md').then(setPreview).catch(reportError)}><Icon name="help" size={18} /><span>帮助</span></button><div className="rail-spacer" /><button className="desk-icon" title="显示对话" onClick={() => windowAction('chats')}><Icon name="chats" size={18} /></button></div>
   </aside>
 }

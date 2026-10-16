@@ -19,8 +19,8 @@ test('conversation IDs cannot be read as command-line options', () => {
   for (const id of ['--dangerously-skip-permissions', '-c', 'id --yolo', "id'; calc", '../../other', 'a'.repeat(129), 7, {}]) {
     assert.throws(() => nativeConversationId(id));
     for (const agent of ['codex', 'claude', 'antigravity', 'opencode', 'kimi']) {
-      assert.throws(() => terminalCommand(agent, { resumeId: id }), /conversation ID/);
-      assert.throws(() => terminalCommand(agent, { nativeId: id }), /conversation ID/);
+      assert.throws(() => terminalCommand(agent, { resumeId: id }), /对话 ID/);
+      assert.throws(() => terminalCommand(agent, { nativeId: id }), /对话 ID/);
     }
   }
 });
@@ -32,8 +32,8 @@ test('the coordinator cannot start a shell or pass a resume ID, and invalid IDs 
   const service = await createService({ repo, uiDir: repo, mcpOptions: { home: repo, env: {} } });
   const request = (route, data) => fetch(service.origin + '/api' + route, { method: 'POST', headers: { Authorization: `Bearer ${service.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
   try {
-    await assert.rejects(service.coordinator.execute('open_chat', { agent: 'shell', name: 'Local Shell' }, 'op-1', 'open a shell'), /Choose Codex/);
-    await assert.rejects(service.coordinator.execute('open_chat', { agent: 'codex', name: 'Resume Work', resumeId: '--dangerously-bypass-approvals-and-sandbox' }, 'op-2', 'resume'), /Unsupported chat option: resumeId/);
+    await assert.rejects(service.coordinator.execute('open_chat', { agent: 'shell', name: 'Local Shell' }, 'op-1', 'open a shell'), /请选择 Codex/);
+    await assert.rejects(service.coordinator.execute('open_chat', { agent: 'codex', name: 'Resume Work', resumeId: '--dangerously-bypass-approvals-and-sandbox' }, 'op-2', 'resume'), /不支持的对话选项: resumeId/);
     assert.equal((await request('/sessions', { agent: 'claude', name: 'Resume Work', resumeId: '--dangerously-skip-permissions' })).ok, false);
     assert.equal((await request('/history/import', { agent: 'claude', nativeId: '--dangerously-skip-permissions', name: 'Imported Work' })).ok, false);
     assert.deepEqual(service.sessions.list(), []);

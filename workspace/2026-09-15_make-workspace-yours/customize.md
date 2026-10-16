@@ -1,58 +1,51 @@
-# Make Workspace yours
+# 打造你的工作区
 
-## Change in Settings
+## 在设置中修改
 
-Use the right-hand Settings rail for the available display and behavior controls.
-Terminal text settings and tab colors live with Chats. The Win-key shortcut is
-optional: when enabled, a single Win press returns to hidden Mr. Mak windows;
-when they are already in view, it opens Start. Win combinations remain normal.
-The template leaves it disabled.
+使用右侧的“设置”侧栏调整可用的显示和行为选项。终端文字设置和标签页颜色位于
+“对话”中。Win 键快捷方式是可选的：启用后，单按 Win 键会唤回隐藏的 Mr. Mak 窗口；
+窗口已在视野中时则打开开始菜单。Win 组合键保持正常。模板默认关闭此功能。
 
-Choose chat permission bypass deliberately. Ordinary permissions are the default.
-Voice settings can adjust the voice profile, speed and conversation behavior.
-Some voice changes take effect on the next voice connection.
+请慎重选择对话的跳过权限确认。默认使用普通权限。语音设置可调整语音配置、语速和
+对话行为。部分语音更改会在下一次语音连接时生效。
 
-## Change with an agent
+## 让代理帮你修改
 
-| Ask for | Where it belongs |
+| 你可以说 | 对应位置 |
 | --- | --- |
-| “Remember how I want reports written.” | `context/preferences.md` |
-| “Save this reliable modeling method.” | A focused note in `knowledge/` |
-| “Make this repeatable.” | A workflow in `processes/` and, if useful, a project skill |
-| “Add a report tab to this project.” | The existing card's steps in `workspace/workspace.json` |
-| “Create a new research task.” | A dated Workspace folder and one registry entry |
-| “Change fonts, colors or spacing everywhere.” | Shared application and report styles |
-| “Add another main folder.” | Files rail defaults in the application source |
+| “记住我希望报告怎么写。” | `context/preferences.md` |
+| “保存这个可靠的建模方法。” | `knowledge/` 中一篇聚焦的笔记 |
+| “把这个做成可重复的。” | `processes/` 中的工作流，必要时再加一个项目技能 |
+| “给这个项目加一个报告标签页。” | `workspace/workspace.json` 中现有卡片的 steps |
+| “新建一个研究任务。” | 一个带日期的工作区文件夹和一条注册表条目 |
+| “全局修改字体、颜色或间距。” | 应用与报告的共享样式 |
+| “再加一个主要文件夹。” | 应用源码中“文件”侧栏的默认设置 |
 
-A useful instruction is: “Read AGENTS.md, propose a small change, implement it,
-verify the result, and prepare the update. Ask before restarting the desktop app.”
+一条实用的指令是：“阅读 AGENTS.md，提出一个小改动，实现它，验证结果，并准备好
+更新。重启桌面应用前先问我。”
 
-## A small project structure
+## 一个小型项目结构
 
-Keep one pinned project hub with Brief, Plan and Assets tabs. Put lasting source
-files under `projects/<project>/`; keep the pages you read under its Workspace
-folder. Add one card for an independent task, not one card per generated image.
-Related iterations become tabs in the same card. Mark superseded work archived.
+保留一个置顶的项目中心卡片，包含“简介”“计划”和“素材”标签页。长期保存的源文件放在
+`projects/<project>/` 下；供阅读的页面放在对应的工作区文件夹中。每个独立任务一张
+卡片，而不是每张生成的图片一张卡片。相关迭代作为同一卡片中的标签页。被取代的
+工作标记为归档。
 
-## Optional providers
+## 可选的服务商
 
-The template does not install MCP servers globally. Use the MCP panel to inspect
-project and global configuration, then follow the provider's current instructions.
-For this project, use `.mcp.json` for Claude and `.codex/config.toml` for Codex.
-Connection credentials remain local or in the provider's own login store.
-Follow the selected client's documented environment-secret support rather than
-placing a token directly in a tracked connection file.
+模板不会全局安装 MCP 服务器。用 MCP 面板查看项目和全局配置，再按服务商当前的
+说明操作。在本项目中，Claude 使用 `.mcp.json`，Codex 使用 `.codex/config.toml`。
+连接凭据保存在本地或服务商自己的登录存储中。请遵循所选客户端文档中支持的环境
+密钥方式，不要把令牌直接写进受版本跟踪的连接文件。
 
-For fal.ai, read the bundled `fal-ai-generation` skill, connect the MCP or use its
-Python helper, and set `FAL_KEY` in `.env`. Discover the exact model schema before
-starting a paid job. Higgsfield uses its own CLI setup and account.
+使用 fal.ai 时，先阅读随附的 `fal-ai-generation` 技能，连接 MCP 或使用其 Python
+辅助工具，并在 `.env` 中设置 `FAL_KEY`。启动付费任务前，先确认确切的模型 schema。
+Higgsfield 使用它自己的 CLI 配置和账号。
 
-## Design rules
+## 设计规则
 
-Use the shared dark report style, readable headings and consistent card spacing.
-Every report image must open at full size and offer a download. Keep wide tables
-scrollable inside the report, and test tabs at narrow window widths. Preserve
-the document surface while a tab loads so switching does not flash white.
+使用共享的深色报告样式、易读的标题和一致的卡片间距。每张报告图片都必须能以原尺寸
+打开并提供下载。宽表格要在报告内可滚动，并在窄窗口宽度下测试标签页。标签页加载时
+保持文档背景，避免切换时闪白。
 
-The Workspace authoring skill contains the maintained rules. If you change the
-design system, update that skill and the shared implementation together.
+工作区编写技能包含维护中的规则。如果修改了设计系统，请同时更新该技能和共享实现。

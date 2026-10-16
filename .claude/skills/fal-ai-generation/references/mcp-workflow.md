@@ -1,40 +1,38 @@
-# MCP workflow
+# MCP 工作流
 
-These are tool names exposed by the connected fal.ai server on September 15,
-2026. A host can prefix them with its connector name. Discover the available
-tools instead of depending on a particular host prefix.
+以下是 2026 年 9 月 15 日已连接的 fal.ai 服务器暴露的工具名。宿主可能会在前面
+加上连接器名称前缀。应发现可用工具，而不是依赖特定的宿主前缀。
 
-| Stage | Tool | Essential inputs |
+| 阶段 | 工具 | 必要输入 |
 | --- | --- | --- |
-| Choose a model when none was selected | `recommend_model` | `task` |
-| Find a named model or operation | `search_models` | Query/category supported by that connection |
-| Inspect inputs and outputs | `get_model_schema` | `endpoint_id` |
-| Estimate a batch | `get_pricing` | Endpoint and parameters accepted by its current schema |
-| Prepare a public reference | `upload_file` | `url`, or supported small inline upload |
-| Submit and briefly wait | `run_model` | `endpoint_id`, `input` |
-| Submit without waiting | `submit_job` | `endpoint_id`, `input` |
-| Inspect the same request | `check_job` | `endpoint_id`, `request_id`, returned `status_url` when available |
-| Retrieve the completed result | `get_job_result` | `endpoint_id`, `request_id`, returned `response_url` when available |
+| 未选定模型时选择模型 | `recommend_model` | `task` |
+| 查找指定模型或操作 | `search_models` | 该连接支持的查询/分类 |
+| 检查输入和输出 | `get_model_schema` | `endpoint_id` |
+| 估算批次费用 | `get_pricing` | 端点及其当前 schema 接受的参数 |
+| 准备公开参考 | `upload_file` | `url`，或支持的小型内联上传 |
+| 提交并短暂等待 | `run_model` | `endpoint_id`、`input` |
+| 提交但不等待 | `submit_job` | `endpoint_id`、`input` |
+| 检查同一请求 | `check_job` | `endpoint_id`、`request_id`，有则带上返回的 `status_url` |
+| 获取已完成的结果 | `get_job_result` | `endpoint_id`、`request_id`，有则带上返回的 `response_url` |
 
-## Other verified routes
+## 其他已验证的路径
 
-Read-only schema checks on September 15, 2026 also confirmed:
+2026 年 9 月 15 日的只读 schema 检查还确认了：
 
-- `fal-ai/patina/material`: text-driven material generation. The required field
-  is `prompt`; the schema includes `maps`, `image_size`, `tiling_mode` and
-  `output_format`. This differs from `fal-ai/patina`, which processes an image.
-- `tripo3d/h3.1/image-to-3d`: `image_url` is required. Geometry/texture quality,
-  PBR, orientation and face limit are separate controls. Its result can contain
-  a model mesh, alternative model URLs and a rendered image.
+- `fal-ai/patina/material`：文本驱动的材质生成。必填字段是 `prompt`；schema 包含
+  `maps`、`image_size`、`tiling_mode` 和 `output_format`。它不同于处理图像的
+  `fal-ai/patina`。
+- `tripo3d/h3.1/image-to-3d`：`image_url` 必填。几何/贴图质量、PBR、朝向和面数
+  上限是独立的控制项。其结果可包含模型网格、备选模型 URL 和渲染图。
 
-These routes illustrate why inputs must follow the actual operation. Model
-availability, price and parameter limits should be checked when the task runs.
+这些路径说明了为什么输入必须遵循实际操作。模型可用性、价格和参数限制应在任务
+运行时检查。
 
-## Example: one faithful image edit
+## 示例：一次忠实的图像编辑
 
-The user has explicitly chosen Nano Banana Pro and supplied an image. Inspect
-`fal-ai/nano-banana-pro/edit` with `get_model_schema`, upload that image, then use
-an input such as the following. Replace the example URL with your actual upload.
+用户已明确选择 Nano Banana Pro 并提供了图像。用 `get_model_schema` 检查
+`fal-ai/nano-banana-pro/edit`，上传该图像，然后使用如下输入。把示例 URL 替换为
+实际上传得到的 URL。
 
 ```json
 {
@@ -50,44 +48,39 @@ an input such as the following. Replace the example URL with your actual upload.
 }
 ```
 
-The input fields above were checked against the live schema. Recheck at the next
-use. They are an example for this endpoint, not a universal image API contract.
-Do not submit the placeholder URL. For a new concept, choose the corresponding
-text-to-image endpoint; do not accidentally omit references from an edit.
+上述输入字段已对照实时 schema 检查过，下次使用时请重新检查。它们是该端点的示例，
+不是通用的图像 API 契约。不要提交占位 URL。新概念应选择对应的文生图端点；编辑时
+不要意外遗漏参考图。
 
-## Local reference upload
+## 本地参考上传
 
-For the hosted server, `file_path` is not the agent's local filesystem. Use:
+对托管服务器而言，`file_path` 不是代理的本地文件系统。使用：
 
 ```text
 python scripts/fal_job.py --env /path/to/project/.env upload --file /path/to/reference.png --out /path/to/output/reference-upload.json
 ```
 
-This calls the official SDK's local-file uploader. Read the returned `url` from
-the saved JSON. Large base64 blobs waste conversation space; keep file bytes out
-of the chat. An existing public reference URL may be usable directly if the
-model accepts it and the host can fetch it. Localhost URLs are not public URLs.
+它调用官方 SDK 的本地文件上传器。从保存的 JSON 中读取返回的 `url`。大段 base64
+会浪费对话空间；不要把文件字节放进对话。如果模型接受且宿主能获取，已有的公开
+参考 URL 可以直接使用。localhost URL 不是公开 URL。
 
-## Recovery
+## 恢复
 
-Save `request_id`, endpoint and canonical queue URLs immediately. Poll at a
-reasonable interval while keeping the user updated. `IN_QUEUE`, `IN_PROGRESS`
-and a tool's `processing` response all mean continue the existing request.
-When status is `COMPLETED`, inspect the result for errors before declaring
-success. Check all expected outputs; a URL or a completed flag is not visual QA.
+立即保存 `request_id`、端点和规范队列 URL。以合理间隔轮询，并持续向用户更新进度。
+`IN_QUEUE`、`IN_PROGRESS` 以及工具返回的 `processing` 都表示继续跟进现有请求。
+状态为 `COMPLETED` 时，先检查结果中是否有错误，再宣布成功。检查所有预期输出；
+URL 或完成标记不等于视觉质检。
 
-A failed download can be retried using the same result. Do not regenerate the
-asset to repair a local download. If the original submission outcome is unknown,
-inspect the account history before starting another billable request. Cancellation
-is a separate user action; do not cancel a slow request without being asked.
+下载失败可用同一结果重试。不要为修复本地下载而重新生成资产。如果原始提交结果
+未知，先检查账号历史，再发起另一个计费请求。取消是单独的用户操作；未经要求不要
+取消缓慢的请求。
 
-## Account and output boundaries
+## 账号与输出边界
 
-fal's hosted MCP uses a Bearer authorization header. The REST model API uses
-`Authorization: Key ...`; the Python SDK reads `FAL_KEY`. Do not swap these
-header formats. MCP access does not share the chat application's subscription:
-generations use the recipient's fal account.
+fal 的托管 MCP 使用 Bearer 授权 header。REST 模型 API 使用
+`Authorization: Key ...`；Python SDK 读取 `FAL_KEY`。不要混用这些 header 格式。
+MCP 访问不共享对话应用的订阅：生成消耗的是接收方的 fal 账号。
 
-Sources: [official MCP setup](https://fal.ai/docs/documentation/setting-up/mcp),
-[queue API](https://fal.ai/docs/documentation/model-apis/inference/queue),
-[Python SDK](https://github.com/fal-ai/fal/tree/main/projects/fal_client).
+来源：[官方 MCP 设置](https://fal.ai/docs/documentation/setting-up/mcp)、
+[队列 API](https://fal.ai/docs/documentation/model-apis/inference/queue)、
+[Python SDK](https://github.com/fal-ai/fal/tree/main/projects/fal_client)。

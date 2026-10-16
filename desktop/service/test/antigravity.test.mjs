@@ -41,8 +41,8 @@ test('Antigravity command preserves permissions, explicit effort and an exact co
       assert.doesNotMatch(launch, /--continue|model_reasoning_effort|--session/);
       if (process.platform === 'win32') assert.ok(launch.includes("owner''s log.txt"));
     }
-    assert.throws(() => terminalCommand('antigravity', { resumeId: '--continue' }), /conversation ID/);
-    assert.throws(() => terminalCommand('antigravity', { resumeId: '../other' }), /conversation ID/);
+    assert.throws(() => terminalCommand('antigravity', { resumeId: '--continue' }), /对话 ID/);
+    assert.throws(() => terminalCommand('antigravity', { resumeId: '../other' }), /对话 ID/);
     assert.throws(() => terminalCommand('antigravity', { resumeId: 'wrong-but-not-an-option' }), /UUID/);
   } finally { if (previous === undefined) delete process.env.PATH; else process.env.PATH = previous; }
 });
@@ -53,7 +53,7 @@ test('Native ID discovery ignores echoed UUIDs, partial records and unrelated me
   assert.equal(antigravityConversation(line(idA) + `tool result ${idB}\n`), idA);
   assert.equal(antigravityConversation(line(idA) + line(idB, 'Resuming')), idB);
   assert.equal(antigravityConversation(line('not-a-uuid')), null);
-  assert.throws(() => antigravityLogPath(os.tmpdir(), '../secret'), /Invalid/);
+  assert.throws(() => antigravityLogPath(os.tmpdir(), '../secret'), /无效/);
 });
 
 test('Two same-folder chats recover separate native IDs after restart, including a log larger than the read window', async () => {
@@ -109,7 +109,7 @@ test('Login Enter does not invent a conversation, while missing known history ne
   try {
     await sessions.resume(item.id); assert.equal(launches, 1);
     item.hasConversation = true;
-    await assert.rejects(sessions.resume(item.id), /native conversation could not be located/);
+    await assert.rejects(sessions.resume(item.id), /找不到原生对话/);
     assert.equal(launches, 1);
   } finally { await sessions.close(); }
 });

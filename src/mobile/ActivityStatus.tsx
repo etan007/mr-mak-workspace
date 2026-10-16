@@ -4,7 +4,7 @@ import type { ChatSession } from '../desktop/types'
 
 export default function ActivityStatus({ session, connected }: { session: ChatSession; connected: boolean }) {
   const working = connected && session.status === 'running' && session.activity === 'working'
-  const label = connected ? chatActivityLabel(session) : 'Disconnected · reconnecting'
+  const label = connected ? chatActivityLabel(session) : '已断开 · 正在重新连接'
   const waiting = connected && session.activity === 'waiting'
   return <span className={`mobile-activity-status ${working ? 'working' : ''} ${waiting ? 'waiting' : ''}`} role="status" aria-label={label} title={label}>
     {working ? <svg width="34" height="28" viewBox="0 0 34 28" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

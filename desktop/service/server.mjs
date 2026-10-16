@@ -48,7 +48,7 @@ export async function createService({ repo, uiDir, stateDir, token = secret(), n
   if (await dictation.initializeProvider?.(settings, savedSettings !== null)) await saveJson(settingsPath, settings);
   dictation.providerChoice = () => settings.transcribeProvider || null;
   const chooseDictation = async provider => {
-    if (!['local', 'openai', 'openrouter', 'off'].includes(provider)) throw Object.assign(new Error('Choose a supported speech-to-text provider.'), { status: 400 });
+    if (!['local', 'openai', 'openrouter', 'off'].includes(provider)) throw Object.assign(new Error('请选择受支持的语音转文字提供方。'), { status: 400 });
     settings.transcribeProvider = provider; await saveSettings();
     const info = await dictation.status();
     broadcast('settings', { settings }); broadcast('dictation', { dictation: info });
@@ -101,7 +101,7 @@ export async function createService({ repo, uiDir, stateDir, token = secret(), n
         case 'pin_chat': return sessions.pin(args.id, args.pinned);
         case 'open_chat': {
           args = openChatArguments(args);
-          if (args.bypass === true && settings.defaultBypass !== true) throw new Error('To enable bypass, choose it yourself in New chat or Settings. Mr. Mak cannot raise the selected permission level.');
+          if (args.bypass === true && settings.defaultBypass !== true) throw new Error('如需跳过权限确认，请在新建对话或设置中自行选择。Mr. Mak 不能提升已选的权限级别。');
           const session = await sessions.create({ agent: args.agent, cwd: args.cwd, name: taskTitle(args.name), effort: taskEffort(latestRequest, args.effort), bypass: args.bypass === false ? false : settings.defaultBypass === true });
           focus(session.id); return session;
         }
@@ -116,7 +116,7 @@ export async function createService({ repo, uiDir, stateDir, token = secret(), n
         case 'workspace_activity': return workspace.activity(args.date);
         case 'update_workspace': return workspace.update(args.entityId, args);
         case 'show_workspace': {
-          if (args.entityId && !(await registry()).entities.some(item => item.id === args.entityId)) throw new Error('Workspace report does not exist');
+          if (args.entityId && !(await registry()).entities.some(item => item.id === args.entityId)) throw new Error('工作区报告不存在');
           workspaceRoute = args.entityId ? `#/${encodeURIComponent(args.entityId)}${Number.isInteger(args.step) ? '/' + args.step : ''}` : null;
           settings.workspaceRoute = workspaceRoute; scheduleSettings();
           show('workspace', { route: workspaceRoute }); return { shown: true, route: workspaceRoute };
@@ -127,14 +127,14 @@ export async function createService({ repo, uiDir, stateDir, token = secret(), n
         case 'read_context': return knowledge.read(args.path, args.offset);
         case 'list_skills': return knowledge.skills(args.query || '');
         case 'list_mcp': return mcp.list();
-        case 'get_app_settings': return { voice: settings.voiceName, style: settings.voiceStyle, model: coordinator.model || 'Codex default', effort: settings.coordinatorEffort, billing: 'Codex subscription for the coordinator; OpenAI API for voice' };
+        case 'get_app_settings': return { voice: settings.voiceName, style: settings.voiceStyle, model: coordinator.model || 'Codex 默认', effort: settings.coordinatorEffort, billing: '协调器使用 Codex 订阅；语音使用 OpenAI API' };
         case 'update_voice': {
           if (typeof args.style === 'string' && args.style.trim()) settings.voiceStyle = args.style.trim().slice(0, 1800);
           if (['cedar', 'marin'].includes(args.voice)) settings.voiceName = args.voice;
           await saveSettings(); broadcast('settings', { settings });
-          return { saved: true, voice: settings.voiceName, style: settings.voiceStyle, applies: 'Next voice connection. Reconnect to apply the saved voice and personality.' };
+          return { saved: true, voice: settings.voiceName, style: settings.voiceStyle, applies: '下次语音连接时生效。重新连接即可应用已保存的语音和人设。' };
         }
-        default: throw new Error('Unknown coordinator tool');
+        default: throw new Error('未知的协调器工具');
       }
     },
   }).init();
@@ -154,7 +154,7 @@ export async function createService({ repo, uiDir, stateDir, token = secret(), n
   sessions.on('output', output => {
     for (const ws of clients) {
       if (ws.sessionId !== output.id) continue;
-      if (ws.bufferedAmount > 2 * 1024 * 1024) { ws.close(1013, 'Reconnect to restore the terminal screen'); continue; }
+      if (ws.bufferedAmount > 2 * 1024 * 1024) { ws.close(1013, '重新连接以恢复终端画面'); continue; }
       send(ws, 'output', output);
     }
   });
@@ -162,27 +162,27 @@ export async function createService({ repo, uiDir, stateDir, token = secret(), n
 
   const contentServer = http.createServer(async (request, response) => {
     try {
-      if (request.headers.host !== new URL(files.origin).host || !['GET', 'HEAD'].includes(request.method)) throw Object.assign(new Error('Not allowed'), { status: 403 });
+      if (request.headers.host !== new URL(files.origin).host || !['GET', 'HEAD'].includes(request.method)) throw Object.assign(new Error('不允许'), { status: 403 });
       await files.content(request, response, new URL(request.url, files.origin));
     } catch (error) { if (!response.headersSent) json(response, error.status || 404, { error: publicError(error) }); }
   });
   files.origin = await listen(contentServer);
 
   function authorize(request) {
-    if (request.headers.host !== new URL(origin).host) throw Object.assign(new Error('Unexpected host'), { status: 403 });
-    if (request.headers.origin && request.headers.origin !== origin) throw Object.assign(new Error('Unexpected origin'), { status: 403 });
-    if (!equalSecret(request.headers.authorization, `Bearer ${token}`)) throw Object.assign(new Error('Open Mr. Mak from its desktop launcher'), { status: 401 });
+    if (request.headers.host !== new URL(origin).host) throw Object.assign(new Error('意外的 host'), { status: 403 });
+    if (request.headers.origin && request.headers.origin !== origin) throw Object.assign(new Error('意外的 origin'), { status: 403 });
+    if (!equalSecret(request.headers.authorization, `Bearer ${token}`)) throw Object.assign(new Error('请从桌面启动器打开 Mr. Mak'), { status: 401 });
   }
   const server = http.createServer(async (request, response) => {
     try {
       const url = new URL(request.url, origin);
-      if (request.headers.host !== new URL(origin).host) throw Object.assign(new Error('Unexpected host'), { status: 403 });
+      if (request.headers.host !== new URL(origin).host) throw Object.assign(new Error('意外的 host'), { status: 403 });
       if (url.pathname === '/health') return json(response, 200, { service: 'mrmak', version: '0.5.1' });
       if (url.pathname.startsWith('/api/')) {
         authorize(request);
         const method = request.method;
         if (method === 'POST' && url.pathname === '/api/files/import') {
-          if (Number(request.headers['content-length']) > MAX_FILE_BYTES) throw Object.assign(new Error('Choose files of 1 GB or less.'), { status: 413 });
+          if (Number(request.headers['content-length']) > MAX_FILE_BYTES) throw Object.assign(new Error('请选择不超过 1 GB 的文件。'), { status: 413 });
           const result = await importFile(request, url.searchParams.get('folder'), url.searchParams.get('name'));
           await integrations.publish('artifact', { kind: 'imported', ...result });
           broadcast('workspace-changed', {});
@@ -190,7 +190,7 @@ export async function createService({ repo, uiDir, stateDir, token = secret(), n
         }
         if (method === 'POST' && url.pathname === '/api/attachments') {
           const chunks = []; let length = 0;
-          for await (const chunk of request) { length += chunk.length; if (length > MAX_IMAGE_BYTES) throw Object.assign(new Error('Choose an image smaller than 25 MB.'), { status: 413 }); chunks.push(chunk); }
+          for await (const chunk of request) { length += chunk.length; if (length > MAX_IMAGE_BYTES) throw Object.assign(new Error('请选择小于 25 MB 的图片。'), { status: 413 }); chunks.push(chunk); }
           return json(response, 201, await attachments.save(Buffer.concat(chunks), decodeURIComponent(request.headers['x-file-name'] || 'Screenshot')));
         }
         if (method === 'GET' && url.pathname === '/api/dictation') return json(response, 200, await dictation.status());
@@ -233,7 +233,7 @@ export async function createService({ repo, uiDir, stateDir, token = secret(), n
         if (method === 'POST' && url.pathname === '/api/history/import') return json(response, 201, await sessions.importConversation(data));
         if (method === 'GET' && url.pathname === '/api/files') return json(response, 200, await files.list(url.searchParams.get('path') || repo, url.searchParams.get('mode') || 'main', url.searchParams.get('q') || ''));
         if (method === 'POST' && url.pathname === '/api/files/pick') {
-          if (typeof data.requestId !== 'string' || !/^[a-f\d-]{36}$/i.test(data.requestId)) throw new Error('Invalid file picker request.');
+          if (typeof data.requestId !== 'string' || !/^[a-f\d-]{36}$/i.test(data.requestId)) throw new Error('文件选择请求无效。');
           native({ type: 'pick-files', window: 'chats', requestId: data.requestId });
           return json(response, 200, { requested: true });
         }
@@ -283,7 +283,7 @@ export async function createService({ repo, uiDir, stateDir, token = secret(), n
           if (method === 'DELETE' && !action) return json(response, 200, await closeChat(id));
         }
         if (method === 'POST' && url.pathname === '/api/window') {
-          if (!['chats', 'workspace'].includes(data.window) || !['show', 'hide', 'minimize', 'pin'].includes(data.action)) throw new Error('Unknown window action');
+          if (!['chats', 'workspace'].includes(data.window) || !['show', 'hide', 'minimize', 'pin'].includes(data.action)) throw new Error('未知的窗口操作');
           native({ type: 'window', action: data.action, window: data.window, value: !!data.value }); return json(response, 200, { requested: true });
         }
         if (method === 'POST' && url.pathname === '/api/reveal') {
@@ -293,7 +293,7 @@ export async function createService({ repo, uiDir, stateDir, token = secret(), n
         if (method === 'POST' && url.pathname === '/api/coordinator') return json(response, 200, await askMak(data));
         if (method === 'POST' && url.pathname === '/api/coordinator/prepare') { await coordinator.start(); return json(response, 200, { ready: true, model: coordinator.model }); }
         if (method === 'POST' && url.pathname === '/api/live/transcript') {
-          if (typeof data.id !== 'string' || data.id.length > 200 || !Array.isArray(data.captions)) throw new Error('A voice session and captions are required.');
+          if (typeof data.id !== 'string' || data.id.length > 200 || !Array.isArray(data.captions)) throw new Error('需要语音会话和字幕。');
           const captions = data.captions.slice(-50).filter(item => ['user', 'assistant'].includes(item.role) && typeof item.text === 'string').map(item => ({ role: item.role, text: item.text.slice(0, 1000), start: Number(item.start) || 0, end: Number(item.end) || 0 }));
           const transcript = { id: data.id, at: new Date().toISOString(), captions };
           voiceHistory = [...voiceHistory.filter(item => item.id !== data.id), transcript].slice(-12);
@@ -306,11 +306,11 @@ export async function createService({ repo, uiDir, stateDir, token = secret(), n
           return json(response, 200, { released: true });
         }
         if (method === 'POST' && url.pathname === '/api/live/session') {
-          if (voiceOwner && voiceOwner.clientId !== data.clientId) throw new Error(`Voice is already active in the ${voiceOwner.surface} window`);
-          if (typeof data.sdp !== 'string' || !data.sdp.trim() || typeof data.clientId !== 'string') throw new Error('A microphone connection is required');
+          if (voiceOwner && voiceOwner.clientId !== data.clientId) throw new Error(`语音已在 ${voiceOwner.surface} 窗口中启用`);
+          if (typeof data.sdp !== 'string' || !data.sdp.trim() || typeof data.clientId !== 'string') throw new Error('需要麦克风连接');
           const keys = parseEnv(await readFile(path.join(repo, '.env'), 'utf8').catch(() => ''));
           const key = keys.OPENAI_API_KEY || keys.OPENAI_KEY || process.env.OPENAI_API_KEY;
-          if (!key) throw new Error('Add OPENAI_API_KEY to the repository .env, then press the nose again.');
+          if (!key) throw new Error('请将 OPENAI_API_KEY 添加到仓库 .env，然后再按一次鼻子。');
           voiceOwner = { clientId: data.clientId, surface: data.surface === 'chats' ? 'chats' : 'workspace' };
           broadcast('voice-owner', { owner: voiceOwner });
           try {
@@ -319,16 +319,16 @@ export async function createService({ repo, uiDir, stateDir, token = secret(), n
                 body: JSON.stringify({ session: voiceSession(settings), transport: { type: 'webrtc', sdp: data.sdp } }),
             });
             const value = await result.json().catch(() => ({}));
-            if (!result.ok) throw new Error(`OpenAI Live (${result.status}): ${value.error?.message || 'Session could not be started'}`);
+            if (!result.ok) throw new Error(`OpenAI Live (${result.status}): ${value.error?.message || '无法启动会话'}`);
             return json(response, 201, value);
           } catch (error) { voiceOwner = null; broadcast('voice-owner', { owner: null }); throw error; }
         }
-        throw Object.assign(new Error('Endpoint not found'), { status: 404 });
+        throw Object.assign(new Error('未找到接口'), { status: 404 });
       }
-      if (!['GET', 'HEAD'].includes(request.method)) throw Object.assign(new Error('Not allowed'), { status: 405 });
+      if (!['GET', 'HEAD'].includes(request.method)) throw Object.assign(new Error('不允许'), { status: 405 });
       const relative = url.pathname === '/' ? 'index.html' : decodeURIComponent(url.pathname.slice(1));
       const { file, info } = await realFile(uiDir, relative);
-      if (!info.isFile()) throw new Error('File not found');
+      if (!info.isFile()) throw new Error('未找到文件');
       await serveFile(request, response, file, info, {
         'Referrer-Policy': 'no-referrer', 'X-Frame-Options': 'DENY',
         'Content-Security-Policy': `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: ${files.origin}; media-src 'self' blob: ${files.origin}; connect-src 'self' ws://127.0.0.1:* ${files.origin}; frame-src ${files.origin}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'`,
@@ -346,12 +346,12 @@ export async function createService({ repo, uiDir, stateDir, token = secret(), n
   });
   wss.on('connection', ws => {
     ws.authenticated = false; ws.sessionId = null;
-    const authTimer = setTimeout(() => ws.close(1008, 'Authentication required'), 5000);
+    const authTimer = setTimeout(() => ws.close(1008, '需要身份验证'), 5000);
     ws.on('message', async raw => {
       try {
         const message = JSON.parse(raw.toString());
         if (!ws.authenticated) {
-          if (message.type !== 'auth' || !equalSecret(message.token, token)) return ws.close(1008, 'Authentication failed');
+          if (message.type !== 'auth' || !equalSecret(message.token, token)) return ws.close(1008, '身份验证失败');
           ws.authenticated = true; ws.clientId = message.clientId; ws.surface = message.surface; clients.add(ws); clearTimeout(authTimer);
           send(ws, 'connected', { sessions: sessions.list(), selectedId, coordinator: coordinator.state }); return;
         }

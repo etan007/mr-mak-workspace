@@ -45,7 +45,7 @@ try {
       }
       steps++;
     }
-    await page.getByRole('button', { name: 'Workspace', exact: true }).click();
+    await page.getByRole('button', { name: '工作区', exact: true }).click();
     await page.locator('.entity-card').first().waitFor();
   }
   assert.deepEqual(errors, []);
@@ -69,24 +69,24 @@ try {
   assert.equal(await page.getByRole('img', { name: 'Reference', exact: true }).getAttribute('src'), new URL('../reference.png', new URL(mdPath, url)).href);
   // The shared stylesheet must still style the app's image dialog after bundling.
   await page.getByRole('img', { name: 'Reference', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'Image preview', exact: true });
+  const dialog = page.getByRole('dialog', { name: '图片预览', exact: true });
   await dialog.waitFor();
   assert.equal(await dialog.evaluate(node => getComputedStyle(node).backgroundColor), 'rgb(12, 13, 17)');
   assert.equal(await dialog.evaluate(node => getComputedStyle(node).display), 'flex');
-  await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+  await dialog.getByRole('button', { name: '关闭', exact: true }).click();
   await dialog.waitFor({ state: 'hidden' });
   assert.deepEqual(errors, []);
 
   // Browser-only Settings use local storage and style embedded reports too.
-  await page.getByRole('button', { name: 'Workspace settings', exact: true }).click();
-  await page.getByLabel('Workspace theme', { exact: true }).selectOption('light');
-  await page.getByRole('button', { name: 'Workspace settings', exact: true }).click();
+  await page.getByRole('button', { name: '工作区设置', exact: true }).click();
+  await page.getByLabel('工作区主题', { exact: true }).selectOption('light');
+  await page.getByRole('button', { name: '工作区设置', exact: true }).click();
   assert.equal(await page.locator('html').getAttribute('data-workspace-theme'), 'light');
   assert.equal(await page.locator('.mak-markdown h1').evaluate(node => getComputedStyle(node).color), 'rgb(17, 21, 33)');
   await page.getByRole('img', { name: 'Reference', exact: true }).click();
   await dialog.waitFor();
   assert.equal(await dialog.evaluate(node => getComputedStyle(node).backgroundColor), 'rgb(242, 244, 247)');
-  await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+  await dialog.getByRole('button', { name: '关闭', exact: true }).click();
   await page.goto(`${url}#/creative-mcp/0`);
   await page.locator('.report-document[aria-busy=false]').waitFor();
   const report = page.frameLocator('iframe.report-frame');
@@ -105,13 +105,13 @@ try {
   await failed.goto(url);
   await failed.locator('.entity-card').first().click();
   await failed.getByRole('alert').waitFor();
-  assert.equal(await failed.getByRole('button', { name: 'Workspace', exact: true }).count(), 1);
-  await failed.getByRole('button', { name: 'Back to Workspace', exact: true }).click();
+  assert.equal(await failed.getByRole('button', { name: '工作区', exact: true }).count(), 1);
+  await failed.getByRole('button', { name: '返回工作区', exact: true }).click();
   await failed.locator('.entity-card').first().waitFor();
   await failed.locator('.entity-card').first().click();
   await failed.getByRole('alert').waitFor();
   await failed.unroute('**/src/components/ReportViewer.tsx*');
-  await failed.getByRole('button', { name: 'Reload page', exact: true }).click();
+  await failed.getByRole('button', { name: '重新加载页面', exact: true }).click();
   await failed.locator('.report-document[aria-busy=false]').waitFor();
   assert.equal(await failed.getByRole('alert').count(), 0);
   console.log(`Browser preview passed: ${entities.length} cards, ${steps} steps, game sections and failed-module recovery.`);

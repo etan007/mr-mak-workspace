@@ -1,44 +1,35 @@
 ---
 name: workspace-authoring
-description: Create or maintain Workspace cards, report tabs and Markdown deliverables with consistent styling, working media previews and clear project organization.
+description: 创建或维护工作区卡片、报告标签页和 Markdown 交付物，保持样式一致、媒体预览可用、项目组织清晰。
 ---
 
-# Workspace authoring
+# 工作区内容编写
 
-Read `AGENTS.md` and [the workflow](../../../processes/workspace-authoring.md).
-Keep authored content in English unless the user explicitly requests another
-language. Put related iterations in an existing card rather than creating
-several cards for one task. Do not reorganize unrelated projects.
+阅读 `AGENTS.md` 和[工作流说明](../../../processes/workspace-authoring.md)。
+除非用户明确要求使用其他语言，编写的内容默认使用简体中文。同一任务的相关迭代放在已有卡片中，
+不要为一个任务创建多张卡片。不要重新整理无关的项目。
 
-Use `workspace/_shared/report.css` and `report.js` in every HTML report, with
-`data-mak-report="document"` on the root element. Use the shared tokens and
-layout instead of inventing another visual theme. Basic cards and media grids
-can use the sample CSS in `workspace/_shared/examples.css`.
-Standard reports follow the reader's Dark, Light or System preference. Check
-both dark and light when adding custom styles. An intentionally independent
-design, such as a game demo, can keep its palette with `data-mak-theme="custom"`
-on the root element. Do not invert or recolor media to implement a theme.
+每个 HTML 报告都使用 `workspace/_shared/report.css` 和 `report.js`，并在根元素上设置
+`data-mak-report="document"`。使用共享的 token 和布局，不要另造一套视觉主题。基础卡片和
+媒体网格可以使用 `workspace/_shared/examples.css` 中的示例 CSS。
+标准报告跟随读者的深色、浅色或跟随系统偏好。添加自定义样式时，深色和浅色都要检查。
+有意独立的设计（如游戏演示）可以在根元素上设置 `data-mak-theme="custom"` 来保留自己的
+配色。不要为了实现主题而反转或重新着色媒体。
 
-Every image must be clickable, preview at full size and offer a download.
-Use local output paths, meaningful alt text and lazy loading. Keep motion
-studies playable with native video controls. Wide tables must scroll within
-the report. Never cover the document close button with the Files rail.
+每张图片都必须可点击、能以全尺寸预览并提供下载。使用本地输出路径、有意义的 alt 文本和
+懒加载。运动研究视频保持可用原生视频控件播放。宽表格必须在报告内部滚动。绝不能让文件
+侧栏遮住文档关闭按钮。
 
-Update `workspace/workspace.json` with a stable ID, category, folder, readable
-title, creation date, last updated date and steps. `sample: true` is reserved for
-starter examples; ordinary work uses normal archiving behavior.
+更新 `workspace/workspace.json`，写入稳定 ID、分类、文件夹、可读标题、创建日期、最后
+更新日期和步骤。`sample: true` 保留给入门示例；普通工作使用正常的归档行为。
 
-Open every changed tab at wide and narrow sizes. Check media and links, Markdown
-rendering and image close/download controls. Preserve the selected surface during
-loading. Report actual verification and any remaining limitations. Prepare
-desktop changes without restarting active sessions until the user permits it.
+在宽、窄两种尺寸下打开每个改动过的标签页。检查媒体和链接、Markdown 渲染以及图片的
+关闭/下载控件。加载期间保留当前选中的界面。报告实际完成的验证和仍存在的限制。准备桌面端
+改动时，在用户允许之前不要重启正在运行的会话。
 
-Mobile reports use the same HTML or Markdown as desktop. Include the viewport
-meta tag and shared styles; keep the reading order useful in a single column.
-Test at 390 px and 768 px as well as desktop width. Verify readable text without
-zooming, wrapping tab labels, reachable close/download buttons, and working
-image previews with touch. Confine horizontal scrolling to tables and code.
-Use relative assets inside the report folder or `workspace/_shared/`.
-Reports opened through Mobile Access run in an isolated, read-only preview:
-do not depend on the desktop control API, parent-window DOM, local storage or
-absolute localhost URLs. Keep a short result summary before lengthy details.
+手机端报告与桌面端使用同一份 HTML 或 Markdown。包含 viewport meta 标签和共享样式；
+单列显示时阅读顺序要合理。除桌面宽度外，还要在 390 px 和 768 px 下测试。确认无需缩放
+即可阅读文字、标签页标签可换行、关闭/下载按钮可触及，以及图片预览可触控操作。水平滚动
+仅限于表格和代码。在报告文件夹或 `workspace/_shared/` 内使用相对路径的资源。
+通过手机访问打开的报告运行在隔离的只读预览中：不要依赖桌面控制 API、父窗口 DOM、
+local storage 或绝对的 localhost URL。在冗长细节之前放一段简短的结果摘要。

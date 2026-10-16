@@ -1,14 +1,13 @@
-# Subdivision Surfaces
+# 细分曲面
 
-This is WS3. It adds an opt-in Catmull-Clark refinement pass so a coarse cage can
-become a smooth dense surface without leaving the code pipeline.
+这是 WS3。它添加一个可选启用的 Catmull-Clark 细化步骤，让粗糙的控制笼无需离开代码
+管线就能变成平滑、密集的曲面。
 
-Use it when the control cage is right but the surface still needs a cleaner read or
-more even density.
+当控制笼正确，但曲面仍需要更干净的观感或更均匀的密度时使用它。
 
-## Spec shape
+## spec 结构
 
-The spec uses `geometryDescriptor.subdivide.iterations`.
+规格（spec）使用 `geometryDescriptor.subdivide.iterations`。
 
 ```json
 {
@@ -18,29 +17,29 @@ The spec uses `geometryDescriptor.subdivide.iterations`.
 }
 ```
 
-`iterations` is optional. When it is missing, the generator does not emit the helper.
+`iterations` 可选。缺失时，生成器不会生成该辅助函数。
 
-## Limits
+## 限制
 
-- `iterations` must be an integer from 0 to 4.
-- The projected quad face count must stay at or below 100000.
-- Primitive paths that cannot be budgeted safely, such as open planes or implicit SDF output, are rejected.
+- `iterations` 必须是 0 到 4 的整数。
+- 预计的四边形面数必须不超过 100000。
+- 无法安全估算预算的基本体路径（如开放平面或隐式 SDF 输出）会被拒绝。
 
-## Generator behavior
+## 生成器行为
 
-The generator emits `subdivideCatmullClark`, applies the requested iteration count,
-and recomputes normals after each subdivision pass.
+生成器生成 `subdivideCatmullClark`，应用所请求的迭代次数，并在每次细分后重新计算
+法线。
 
-The helper is deterministic. The same input spec produces the same output source.
+该辅助函数是确定性的。相同的输入 spec 产生相同的输出源码。
 
-## Validation rules
+## 校验规则
 
-- `subdivide` cannot rescue a topology that is already invalid.
-- Non-manifold edges, open boundary edges, and disconnected face fans are rejected.
-- `implicit sdf` output does not use this path.
+- `subdivide` 无法挽救本身已无效的拓扑。
+- 非流形边、开放边界边和不相连的面扇会被拒绝。
+- `implicit sdf` 输出不使用这条路径。
 
-## Acceptance criteria
+## 验收标准
 
-- A valid cage gains the expected quad growth per iteration.
-- UV2 data stays in step with the subdivided surface.
-- The showcase TypeScript smoke stays clean after generation.
+- 有效的控制笼在每次迭代中获得预期的四边形增长。
+- UV2 数据与细分后的曲面保持同步。
+- 生成后 showcase TypeScript 冒烟测试保持干净。

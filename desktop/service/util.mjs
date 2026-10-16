@@ -28,10 +28,10 @@ export const within = (root, file) => {
 };
 export async function realFile(root, relative = '') {
   const file = path.resolve(root, relative);
-  if (!within(root, file)) throw Object.assign(new Error('Path is outside this location'), { status: 403 });
+  if (!within(root, file)) throw Object.assign(new Error('路径超出此位置'), { status: 403 });
   const actual = await realpath(file);
   // A configured folder may itself be a junction. Resolve that root as well.
-  if (!within(await realpath(root), actual)) throw Object.assign(new Error('Link leaves this location'), { status: 403 });
+  if (!within(await realpath(root), actual)) throw Object.assign(new Error('链接指向此位置之外'), { status: 403 });
   return { file: actual, info: await stat(actual) };
 }
 export function json(response, status, value) {
@@ -43,13 +43,13 @@ export async function body(request, limit = 256 * 1024) {
   const chunks = [];
   for await (const chunk of request) {
     length += chunk.length;
-    if (length > limit) throw Object.assign(new Error('Request is too large'), { status: 413 });
+    if (length > limit) throw Object.assign(new Error('请求过大'), { status: 413 });
     chunks.push(chunk);
   }
   try { return JSON.parse(Buffer.concat(chunks).toString() || '{}'); }
-  catch { throw Object.assign(new Error('Invalid JSON'), { status: 400 }); }
+  catch { throw Object.assign(new Error('JSON 无效'), { status: 400 }); }
 }
 export function publicError(error) {
   // Errors from HTTP providers must never include request headers or environment values.
-  return String(error?.message || 'Unexpected error').slice(0, 1500);
+  return String(error?.message || '意外错误').slice(0, 1500);
 }

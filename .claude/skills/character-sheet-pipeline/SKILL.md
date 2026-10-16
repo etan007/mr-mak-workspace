@@ -1,46 +1,39 @@
 ---
 name: character-sheet-pipeline
-description: Prepare strict-front character sheets, isolated parts and optional multiview references for 3D modeling from an approved image.
+description: 从已认可的图像出发，为 3D 建模准备严格正视角色设定图、拆分部件及可选的多视图参考。
 ---
 
-# Character sheets and isolated parts
+# 角色设定图与拆分部件
 
-Create a consistent reference pack from the user's supplied character. This is
-an agent-guided workflow with prompts and visual inspection; it does not bundle
-a standalone classifier or an automatic mesh-generation service.
+根据用户提供的角色制作一套一致的参考包。这是由代理引导的工作流，依靠提示词和
+人工视觉检查；不附带独立的分类器，也不附带自动网格生成服务。
 
-Use the supplied design as authority. Establish the relevant parts, symmetry,
-pose and downstream use. Preserve already approved scope; do not ask again for
-an approval the user has given. Optional views and videos are separate scope.
+以用户提供的设计为准。确定相关部件、对称性、姿势和下游用途。保留已认可的范围；
+用户已经给出的认可不要再问一遍。可选视图和视频属于单独的范围。
 
-1. Inspect the reference and propose the useful body/accessory inventory.
-2. Prepare a strict-front A-pose sheet using [01a](prompts/01a_apose_front.md).
-   Match the character's anatomy; keep feet and hands visible, lighting flat and
-   the background neutral. Check identity and pose before extracting parts.
-3. A supplementary multiview sheet can help communicate the whole design:
-   [01b](prompts/01b_character_sheet.md). It does not replace the approved front
-   source for extraction.
-4. Extract approved parts from the same source: [body](prompts/02_parts_body.md),
-   [paired items](prompts/03_parts_paired.md), [accessories](prompts/04_parts_accessory.md)
-   and [hair](prompts/05_parts_hair.md). Keep the front camera and original pose.
-   Do not turn isolated props into hero shots or add new equipment.
-5. Inspect every image with the host's image tools or an explicitly configured
-   vision service. [08](prompts/08_3q_classifier.md) supplies the front-view
-   rubric. Record pass, soft failure or hard failure with reasons. Retry a failed
-   criterion within the task budget; repeated failure is a decision to surface,
-   not a reason for an unlimited paid loop.
-6. If requested, add [side/back views](prompts/06_multiview.md) for selected parts.
-   If requested and budgeted, add [turntables](prompts/07_360_video.md), with a
-   locked camera and rotating subject. Do not create optional video by default.
-7. Deliver an inventory with prompt, provider/model, source hash, local files
-   and review verdicts. Label which source is approved and which outputs still
-   need a decision. Keep texture, rigging and mesh generation as later tasks.
+1. 检查参考图，提出有用的身体/配饰部件清单。
+2. 用 [01a](prompts/01a_apose_front.md) 制作严格正视的 A-pose 设定图。
+   匹配角色的身体结构；手脚保持可见，光照平、背景中性。提取部件前先核对
+   角色一致性和姿势。
+3. 补充用的多视图设定图有助于传达整体设计：
+   [01b](prompts/01b_character_sheet.md)。它不能替代用于提取的已认可正视源图。
+4. 从同一张源图提取已认可的部件：[身体](prompts/02_parts_body.md)、
+   [成对部件](prompts/03_parts_paired.md)、[配饰](prompts/04_parts_accessory.md)
+   和 [头发](prompts/05_parts_hair.md)。保持正面机位和原始姿势。
+   不要把拆分出的道具变成展示大片，也不要添加新装备。
+5. 用宿主的图像工具或明确配置的视觉服务检查每张图。
+   [08](prompts/08_3q_classifier.md) 提供正视评分标准。记录通过、软失败或
+   硬失败及原因。在任务预算内重试未通过的项；反复失败应作为待决事项上报，
+   而不是无限付费循环的理由。
+6. 如有要求，为选定部件补充 [侧视/背视图](prompts/06_multiview.md)。
+   如有要求且有预算，补充 [转台视频](prompts/07_360_video.md)：机位锁定、
+   主体旋转。默认不制作可选视频。
+7. 交付清单：提示词、服务商/模型、源图哈希、本地文件和审查结论。标明哪张源图
+   已认可、哪些输出仍待决定。贴图、绑定和网格生成留作后续任务。
 
-Nano Banana Pro front/part edits and GPT Image supplementary sheets are useful
-routes from the source workflow, not restrictions on a user's explicit choice.
-Verify current endpoint IDs and schemas via the selected provider. The included
-[fal module](../fal-ai-generation/SKILL.md) handles fal execution and job recovery.
+Nano Banana Pro 的正视/部件编辑和 GPT Image 的补充设定图是源工作流中好用的路线，
+不限制用户的明确选择。通过所选服务商核实当前 endpoint ID 和 schema。附带的
+[fal 模块](../fal-ai-generation/SKILL.md) 负责 fal 执行和任务恢复。
 
-Example: a robot with three feet and one telescope. Extract the body, telescope
-and foot set from the approved front reference. Acceptance means matching shape,
-pose and lighting, with no missing foot and no new perspective drift.
+示例：一个有三只脚和一个望远镜的机器人。从已认可的正视参考图中提取机身、
+望远镜和整组脚。验收标准：形状、姿势和光照一致，不缺脚，没有新的透视偏移。

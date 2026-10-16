@@ -1,4 +1,4 @@
-# About the owner
+# 关于所有者
 
-Optional. Add only the background you want agents working in this project to know.
-There is no personal profile bundled with the template.
+可选。只填写你希望在本项目中工作的代理知道的背景。
+模板不附带任何个人档案。

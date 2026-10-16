@@ -43,19 +43,19 @@ try {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto(service.urls.chats);
   for (const [i, chat] of chats.entries()) {
-    await page.getByRole('button', { name: 'History', exact: true }).click();
+    await page.getByRole('button', { name: '历史', exact: true }).click();
     await page.locator('.history-open').filter({ hasText: chat.name }).click();
     await page.locator('.xterm-rows').filter({ hasText: ids[i] }).waitFor();
     assert.equal(service.sessions.get(chat.id).nativeId, ids[i]);
     assert.equal(await page.locator('.desktop-error').count(), 0);
   }
-  await page.getByRole('button', { name: 'History', exact: true }).click();
+  await page.getByRole('button', { name: '历史', exact: true }).click();
   await page.locator('.history-filters').getByRole('button', { name: 'OpenCode', exact: true }).click();
   assert.equal(await page.locator('.history-item').count(), 1);
   await page.locator('.history-open').filter({ hasText: chats[2].name }).click();
   // Close and reopen through the same controls the user uses.
-  await page.getByRole('button', { name: `Close ${chats[1].name}`, exact: true }).click();
-  await page.getByRole('button', { name: 'History', exact: true }).click();
+  await page.getByRole('button', { name: `关闭 ${chats[1].name}`, exact: true }).click();
+  await page.getByRole('button', { name: '历史', exact: true }).click();
   await page.locator('.history-open').filter({ hasText: chats[1].name }).click();
   await page.locator('.xterm-rows').filter({ hasText: ids[1] }).waitFor();
   await service.sessions.persist();

@@ -1,64 +1,58 @@
 ---
 name: img2threejs
-description: Turn an object or character reference image into a quality-gated, animation-ready procedural Three.js model built in code. Use for image-to-3D reconstruction, detail-accurate object rebuilds, stylized/likeness-maximized human characters, sculpt specs, and staged code generation.
+description: 将物体或角色参考图转换为用代码构建、经过质量门禁、可直接用于动画的程序化 Three.js 模型。用于图像转 3D 重建、细节精确的物体重建、风格化/相似度最大化的人物角色、sculpt spec 以及分阶段代码生成。
 license: Apache-2.0
 metadata:
   upstream-version: 2.0.0
 ---
 
-# img2threejs — Image to procedural Three.js
+# img2threejs——图像转程序化 Three.js
 
-Rebuild the object visible in a reference image as a **code-only** procedural Three.js model,
-gated by a staged sculpting pipeline and an AI-vision self-correction loop. This is
-reconstruction-by-code, **not** photogrammetry, mesh extraction, or downloaded art packs. That
-promise governs how the model is *built* — it says nothing about which file formats it can
-subsequently be *exported* to; an explicitly-selected emission target (`--target <kind>`) is a
-terminal, whole-artifact transform of the already-built model, verified to its own stated limit,
-never a second way to build one.
+把参考图中可见的物体重建为一个**纯代码**的程序化 Three.js 模型，由分阶段雕刻流水线和 AI
+视觉自我修正循环把关。这是"用代码重建"，**不是**摄影测量、网格提取或下载美术资源包。这一承诺
+约束的是模型如何被*构建*——它并不限定模型之后可以被*导出*为哪些文件格式；显式选择的输出目标
+（`--target <kind>`）是对已构建模型的一次终端性、整体产物级的转换，按其自身声明的限度验证，
+绝不是另一种构建模型的途径。
 
-Agent-agnostic: works under Claude Code, Codex, or OpenCode. Wherever this doc says "agent
-vision" or "agent browser tool", use whatever the host provides — native image reading, a
-browser MCP (playwright/chrome-devtools), the project preview, or a user-supplied screenshot.
+与代理无关：可在 Claude Code、Codex 或 OpenCode 下运行。本文凡提到"代理视觉"或"代理浏览器
+工具"，都使用宿主提供的任何能力——原生图像读取、浏览器 MCP（playwright/chrome-devtools）、
+项目预览，或用户提供的截图。
 
-This file is the always-loaded router: it holds the order of operations and every hard rule as one
-line. The full contract behind each rule lives in the `grimoire/` or `docs/` file that rule names —
-read the named file at the moment you reach that stage, not before.
+本文件是始终加载的路由器：它给出操作顺序，并把每条硬性规则写成一行。每条规则背后的完整契约
+位于该规则所指的 `grimoire/` 或 `docs/` 文件中——在到达对应阶段时再读所指文件，不要提前读。
 
-## Installation
+## 安装
 
-This is the complete Apache-2.0 upstream implementation included in the workflow
-pack. Resolve scripts and references against this directory. Install it in the
-recipient's project; the pack installer can add a second agent entry pointing to
-the same canonical copy. Optional domain plugins and integrations are separate
-dependencies described by the relevant upstream workflow.
+这是工作流包中收录的完整 Apache-2.0 上游实现。脚本和参考资料都以本目录为根解析。将其安装到
+接收方的项目中；包安装器可以额外添加第二个代理入口，指向同一份权威副本。可选的领域插件和
+集成是独立的依赖，由相应的上游工作流说明。
 
-## When To Use
+## 何时使用
 
-The user attaches/points to an object image and wants a procedural Three.js model, a
-reconstruction/animation/destruction plan, a sculpt spec, or code. Also for material studies,
-action-ready props, game objects, botanical/mechanical parts, and stylized reconstructions.
+用户附上/指向一张物体图片，想要一个程序化 Three.js 模型、一份重建/动画/破坏方案、一份
+sculpt spec 或代码。也适用于材质研究、可直接用于动作的道具、游戏物体、植物/机械部件以及
+风格化重建。
 
-## Core Promise
+## 核心承诺
 
-Sculpt from a photo, in order — never one-shot a mesh:
-1. **Run `python3 forge/next.py --state .img2threejs/state.json [<spec>]` first**, at every start,
-   resume, and before every correction iteration. It reports the ordered checklist, exact next
-   command, evidence status, and bounded correction-loop status; it never replaces the spec/pass
-   gates. Obey a hard stop; never continue from memory.
-2. **Validate** the image is a suitable 3D target (`grimoire/intake/validation_rubric.md`).
-3. **Assess** object class + complexity, then write a `qualityContract` before any code.
-4. **Spec** it: component hierarchy, materials, lighting, pivots, sockets, action anchors.
-5. **Build pass-by-pass** from blockout → structure → form → material → lighting → interaction → optimization.
-6. **Verify** each pass with a screenshot compared against the reference; fail a pass if an
-   identity-defining feature is wrong even when the global score looks fine.
+从照片开始按顺序雕刻——绝不一次性生成网格：
+1. **先运行 `python3 forge/next.py --state .img2threejs/state.json [<spec>]`**，每次开始、
+   恢复以及每次修正迭代之前都要运行。它报告有序检查清单、确切的下一条命令、证据状态以及有界
+   修正循环的状态；它绝不取代 spec/pass 门禁。遇到硬停止必须服从；绝不凭记忆继续。
+2. **验证**该图像是否适合作为 3D 目标（`grimoire/intake/validation_rubric.md`）。
+3. **评估**物体类别和复杂度，然后在写任何代码之前写出 `qualityContract`。
+4. 写出 **Spec**：组件层级、材质、光照、枢轴点、挂点、动作锚点。
+5. **逐 pass 构建**：blockout → structure → form → material → lighting → interaction → optimization。
+6. 每个 pass 都用截图与参考图对比来**验证**；即使全局分数看起来不错，只要某个决定身份的特征
+   错了，该 pass 就判为失败。
 
-State explicitly when output is approximate/stylized/low-poly. A single image cannot reveal
-hidden sides or guarantee exact geometry — say so instead of faking confidence.
+输出是近似/风格化/低多边形时要明确说明。单张图片无法揭示被遮挡的面，也无法保证几何精确——
+要如实说出来，而不是假装有把握。
 
-## Mandatory Local State Gate
+## 强制本地状态门禁
 
-Conversation context is disposable; `.img2threejs/state.json` is the local checklist authority.
-Initialize once per reconstruction, then gate every step through it:
+对话上下文是可丢弃的；`.img2threejs/state.json` 才是本地检查清单的权威来源。每次重建初始化
+一次，之后每一步都经它把关：
 
 ```bash
 python3 forge/state.py init --state .img2threejs/state.json --reference <img> --profile <generic|character|installed-domain> --spec object-sculpt-spec.json
@@ -66,326 +60,288 @@ python3 forge/next.py --state .img2threejs/state.json [object-sculpt-spec.json]
 python3 forge/state.py mark <step-id> --state .img2threejs/state.json --evidence <path>
 ```
 
-- `next.py` prints the current step, pass, incomplete mandatory steps, exact next command, and
-  `loop/max`. Exit code 3 or `status=stopped` is a hard stop: report the reason and request input.
-  Never bypass it by reconstructing progress from chat history.
-- Every completed step needs evidence; mark a non-applicable step `skipped` only with `--reason` —
-  silent omission is forbidden. Loop counts derive from `reviewHistory` actions
-  (`refine-spec`/`refine-code`), not agent memory. Defaults: 3 corrections per pass, 6 total.
-- A domain profile's steps, gates and reference material come from the **registry**: in-repo
-  modules (`character`) and installed plugins (`cs2`, `animated-character` from plugin-character) register identically, and
-  `forge/state.py init` names what is available. A profile adds mandatory gates without changing
-  the core order -- a domain plugin typically requires an authoritative classification, an intake
-  manifest, and a machine-readable domain review before AI review; `character` requires the
-  character contracts and landmark evidence; `animated-character` (requires the installed plugin-character) adds all of `character` plus the
-  nine Stage R steps (`grimoire/readiness/animation_contract.md`). Pick it whenever the rig must
-  MOVE — on `character` the Stage R gates are absent and the build completes without ever running
-  them, which is how animation used to ship broken. Its order is load-bearing: repair the mesh,
-  freeze it, bind additively, then verify parity. Every profile records suitability, projection
-  applicability, and
-  material-evidence applicability. The state file is a resumability index, not visual evidence:
-  renders, specs, review history, and deterministic gates remain the authoritative artifacts.
+- `next.py` 打印当前步骤、pass、未完成的强制步骤、确切的下一条命令以及 `loop/max`。退出码 3
+  或 `status=stopped` 是硬停止：报告原因并请求输入。绝不通过从对话历史重建进度来绕过它。
+- 每个已完成的步骤都需要证据；不适用的步骤只能带 `--reason` 标记为 `skipped`——禁止静默省略。
+  循环计数来自 `reviewHistory` 中的动作（`refine-spec`/`refine-code`），而不是代理的记忆。
+  默认：每个 pass 3 次修正，总计 6 次。
+- 领域 profile 的步骤、门禁和参考资料来自**注册表**：仓内模块（`character`）和已安装插件
+  （`cs2`，以及来自 plugin-character 的 `animated-character`）以相同方式注册，`forge/state.py init`
+  会列出可用项。profile 只增加强制门禁，不改变核心顺序——领域插件通常要求在 AI 评审之前提供
+  权威分类、intake manifest 以及机器可读的领域评审；`character` 要求角色契约和关键点证据；
+  `animated-character`（需要已安装 plugin-character）包含 `character` 的全部内容，再加上九个
+  Stage R 步骤（`grimoire/readiness/animation_contract.md`）。只要绑定必须能**动**，就选它——在
+  `character` 上没有 Stage R 门禁，构建会在从未运行它们的情况下完成，动画过去就是这样带着问题
+  发布的。它的顺序是承重的：先修复网格，再冻结，再以叠加方式绑定，最后验证一致性。每个 profile
+  都会记录适用性、投影适用性以及材质证据适用性。状态文件是用于恢复的索引，不是视觉证据：渲染图、
+  spec、评审历史和确定性门禁仍是权威产物。
 
-## Required Inputs
+## 必需输入
 
-- one image path / screenshot / URL / attached image (if missing or unreadable, ask)
-- intended use: prop, game object, hero render, playable/destructible object, animation rig
-  (default: real-time browser prop with interactive performance)
-- when a domain plugin serves the item, whatever authoritative record its intake step requires, or
-  an explicit request for the user/vision provider to supply one; heuristic detection alone is not
-  enough to select a geometry adapter
+- 一个图片路径 / 截图 / URL / 附带的图片（缺失或无法读取时询问用户）
+- 预期用途：道具、游戏物体、主视觉渲染、可玩/可破坏物体、动画绑定
+  （默认：具有交互性能的实时浏览器道具）
+- 当某个领域插件服务该物品时，提供其 intake 步骤要求的权威记录，或明确请求用户/视觉提供方
+  提供一份；仅靠启发式检测不足以选择几何适配器
 
-## The Loop (scripts do enforcement; agent vision does judgment)
+## 循环（脚本负责强制执行；代理视觉负责判断）
 
-Run scripts from the skill root (`forge/...`). Pure Python 3.10+ stdlib, no pip installs.
-Full flags: `grimoire/scripts.md`. Never let a script *score* visuals — that is the agent's job.
+在技能根目录运行脚本（`forge/...`）。纯 Python 3.10+ 标准库，无需 pip 安装。完整参数：
+`grimoire/scripts.md`。绝不让脚本对视觉效果*打分*——那是代理的工作。
 
-1. **Analyze the image first** (agent vision, before any script): work the layered observation
-   protocol in `grimoire/intake/image_analysis.md` — identify/classify, decompose macro→meso→micro,
-   map part relationships, name materials in PBR terms, list identity-defining features, and flag
-   what the single view hides. Observation before inference; controlled 3D vocabulary; 3D
-   object-space not 2D image-space. Then probe local images:
-   `forge/stage1_intake/probe_image.py <image>` (metadata only, not a visual check).
-1a. **Local Spec Search** — after image analysis, before writing or refining a spec, pull local
-    domain evidence (anatomy/PBR/wear/geometry/runtime/physics) rather than inventing it:
+1. **先分析图像**（代理视觉，在运行任何脚本之前）：按 `grimoire/intake/image_analysis.md` 中的
+   分层观察协议执行——识别/分类、按宏观→中观→微观分解、梳理部件关系、用 PBR 术语命名材质、
+   列出决定身份的特征，并标记单一视角遮挡的内容。先观察后推断；使用受控的 3D 词汇；使用 3D
+   物体空间而非 2D 图像空间。然后探查本地图像：
+   `forge/stage1_intake/probe_image.py <image>`（只读元数据，不是视觉检查）。
+1a. **本地 Spec 检索**——在图像分析之后、编写或改进 spec 之前，拉取本地领域证据
+    （解剖/PBR/磨损/几何/运行时/物理），而不是凭空编造：
     `python3 forge/stage2_spec/new_pre_spec_assessment.py "Name" --image <img> --out assessment.json`
-    (auto-runs BM25 over the `core_3d` collection, or the collection a declared domain contributes
-    -- the collection is NEVER guessed from the target name; writes a `localSpecSearch` bundle that
-    `new_sculpt_spec.py --assessment` carries into the spec). Full query-expansion recipe
-    (bilingual terms, focused `search_specs.py` retrieval, cache rules):
-    `grimoire/intake/local_spec_search.md`. MUST read it before retrying an incomplete or
-    domain-specific query.
-1b. **Domain intake** — when a domain plugin serves the item, complete its intake steps before
-    pre-spec authoring (admission, heuristic signal, classification, family/route resolution).
-    MUST read the contract its step names, completely, before creating the manifest or
-    running pre-spec assessment.
-1c. **Optional fidelity evidence adapters** — only when they improve an observed weak point; the
-    stdlib core remains authoritative. Thin/complex masks → local SAM2; character face/pose →
-    MediaPipe; weak front/back cues → Depth Anything V2
-    (`forge/stage1_intake/run_vision_adapter.py <segment|landmarks|depth> ...`; every adapter emits
-    provenance; monocular depth is relative only). **MCP-only scene mutations never count as
-    implementation** — write the proven change back to the spec or TypeScript, rebuild, recapture.
-    Full adapter + MCP routing and authority boundaries:
-    `docs/integrations/reference_fidelity_tooling.md`.
-2. **Pre-Spec Assessment Gate** — classify + score complexity + write the quality contract:
-   `forge/stage2_spec/new_pre_spec_assessment.py "Name" --image <img> --complexity <simple|moderate|complex|ultra-complex> --out assessment.json`. Rules: `grimoire/intake/quality_contract.md`.
-   Set `objectClass.primaryDomain` (`object` | `character` | `hybrid`) and fill the seeded
-   `detailInventory` (its `targetMinDetails` scales with complexity). A domain plugin may **raise**
-   these floors through its augmentation -- the merge clamps, so a plugin can never lower one
-   (a skin's finish/wear/hardware IS the item, so such a domain is held to the
-   top fidelity bar. Author procedural GEOMETRY but route the FINISH through the projection path in
-   step 2c — a procedural finish for a patterned skin (Doppler/Gamma/Marble/Fade) reads visibly
-   wrong against the reference. A domain plugin ships its own finish rulebook and texture-acquisition
-   guide; read what its checklist steps name.
-2b. **Detail inventory** (do not skip for detailed subjects) — scan zones and enumerate every
-   identity-defining small detail (gloss, bevel, fasteners, linework, contours, stains):
-   `forge/stage1_intake/build_detail_inventory.py <image> --mode grid-3x3 --out-dir <dir> --out di.json`.
-   Each detail MUST map to a `component.localFeatures` or `material.localOverrides` entry — never
-   prose only. Taxonomy + 3D-term recipes: `grimoire/intake/detail_inventory.md`.
-2c. **Projection-first fidelity** (characters AND reference-matched surfaces — painted skins,
-   decals, painted patterns) — when the goal is matching a specific reference's surface, put the
-   photo's own pixels on the mesh instead of approximating them procedurally. This is the single
-   biggest fidelity lever; a procedural material for a patterned surface is the #1 reconstruction
-   failure. Recipe (`grimoire/character/likeness_maximization.md` — its two levers generalize past
-   characters): solve the camera (`stage1_intake/solve_camera_pose.py` → `referenceCamera`),
-   **de-light** the reference (`stage1_intake/delight_albedo.py`, hard requirement — de-lighting is
-   what makes projection safe), then project the de-lit crop and bake it into UVs
-   (`stage3_build/bake_projected_texture.py --mesh-id <id>`). For a painted skin the projected de-lit
-   crop IS the finish — no procedural Doppler material. For characters, first capture landmarks
-   (`stage1_intake/extract_landmarks.py --out anatomy.json`), fill `preSpecAssessment.anatomy`,
-   route `grimoire/character/reconstruction.md`. A single view cannot show hidden sides — report
-   per-region confidence and request more views when it matters.
-   Character sub-routes, in order — decide what parts exist before shaping any, and shape the head
-   before the hair that sits on it:
-   - **Parts** — `grimoire/character/structure_decomposition.md`
-   - **Head** — `grimoire/character/head_construction.md` (what the likeness gate reads against)
-   - **Hair** — `grimoire/character/stylized_hair_threejs.md` + parameter contract in
-     `grimoire/character/threejs_hair_parameter_contract.json`. Lock topology only after the
-     silhouette review passes: material tuning cannot repair wrong lock topology.
-2d. **Reference-free humanoid** — a generic figure with no reference image has nothing to measure,
-   so fill anatomy from public canon:
-   `forge/stage2_spec/humanoid_proportions.py <spec> --style-heads 8 --in-place`. It writes
-   `anatomy.source: "canon-table"` so canon is never mistaken for measurement, refuses to run when
-   the spec names a reference image, and names anything the corpus does not supply rather than
-   interpolating it.
-3. Author the spec from the assessment:
-   `forge/stage2_spec/new_sculpt_spec.py "Name" --image <img> --assessment assessment.json --augmentation spec-augmentation.json --domain <profile> --out object-sculpt-spec.json` (the checklist step carries the resolved flags).
-   Replace generic starter `featureReviewTargets` with the object's real identity-defining
-   systems (≤5 critical, ≤3 important per pass); for characters add `anatomy-proportion`,
-   `face-landmark-placement`, `pose-silhouette`, `outfit-and-palette`. Use 3D-graphics terms only
-   (`grimoire/glossary/3d_vocabulary.md`), never "nice/smooth/shiny". Classify every component's
-   `topologyClass`/`topologyRationale` per `grimoire/intake/surface_topology.md` before picking a
-   `primitive` — this is what prevents a continuous organic form from being picked as a box.
-4. When material fidelity matters and a source image exists, analyze each material's **finish** then
-   extract reference PBR evidence, both per crop (verify the crop is on the part you think it is):
+    （会自动在 `core_3d` 集合或已声明领域贡献的集合上运行 BM25——集合**绝不**根据目标名称
+    猜测；写出一个 `localSpecSearch` 包，由 `new_sculpt_spec.py --assessment` 带入 spec）。
+    完整的查询扩展配方（双语术语、聚焦的 `search_specs.py` 检索、缓存规则）：
+    `grimoire/intake/local_spec_search.md`。在重试不完整或领域特定的查询之前，MUST 阅读它。
+1b. **领域 intake**——当某个领域插件服务该物品时，先完成它的 intake 步骤，再编写 pre-spec
+    （准入、启发式信号、分类、家族/路线解析）。
+    MUST read the contract its step names, completely（必须完整阅读该步骤所指的契约），然后才能
+    创建 manifest 或运行 pre-spec 评估。
+1c. **可选的保真度证据适配器**——仅在它们能改善已观察到的薄弱点时使用；标准库核心仍是权威。
+    细长/复杂遮罩 → 本地 SAM2；角色面部/姿态 → MediaPipe；前后线索薄弱 → Depth Anything V2
+    （`forge/stage1_intake/run_vision_adapter.py <segment|landmarks|depth> ...`；每个适配器都会输出
+    来源记录；单目深度只是相对值）。**仅通过 MCP 做的场景改动永远不算实现**——要把已证实的
+    改动写回 spec 或 TypeScript，重新构建，重新截图。完整的适配器 + MCP 路由及权限边界：
+    `docs/integrations/reference_fidelity_tooling.md`。
+2. **Pre-Spec 评估门禁**——分类 + 复杂度评分 + 写出质量契约：
+   `forge/stage2_spec/new_pre_spec_assessment.py "Name" --image <img> --complexity <simple|moderate|complex|ultra-complex> --out assessment.json`。规则：`grimoire/intake/quality_contract.md`。
+   设置 `objectClass.primaryDomain`（`object` | `character` | `hybrid`），并填写预置的
+   `detailInventory`（其 `targetMinDetails` 随复杂度缩放）。领域插件可以通过其 augmentation
+   **提高**这些下限——合并时会钳制，所以插件永远无法降低任何一项（皮肤的表面处理/磨损/五金件
+   本身就是物品，因此此类领域要满足最高保真度标准。几何用程序化方式编写，但表面处理要走步骤
+   2c 的投影路径——对带图案的皮肤（Doppler/Gamma/Marble/Fade）使用程序化表面处理，与参考图对比时
+   会明显不对。领域插件自带表面处理规则手册和纹理获取指南；阅读其检查清单步骤所指的内容。
+2b. **细节清单**（细节丰富的对象不要跳过）——按区域扫描并列举每一个决定身份的小细节（光泽、
+   倒角、紧固件、线条、轮廓、污渍）：
+   `forge/stage1_intake/build_detail_inventory.py <image> --mode grid-3x3 --out-dir <dir> --out di.json`。
+   每个细节 MUST 映射到一个 `component.localFeatures` 或 `material.localOverrides` 条目——绝不能
+   只是文字描述。分类体系 + 3D 术语配方：`grimoire/intake/detail_inventory.md`。
+2c. **投影优先的保真度**（角色以及需要匹配参考的表面——涂装皮肤、贴花、手绘图案）——当目标是
+   匹配某张特定参考图的表面时，把照片自身的像素贴到网格上，而不是用程序化方式去近似。这是最大的
+   单项保真度杠杆；对带图案的表面使用程序化材质是排名第一的重建失败原因。配方
+   （`grimoire/character/likeness_maximization.md`——其中两个杠杆也适用于角色以外的对象）：
+   求解相机（`stage1_intake/solve_camera_pose.py` → `referenceCamera`），对参考图做**去光照**
+   （`stage1_intake/delight_albedo.py`，硬性要求——去光照是投影安全的前提），然后投影去光照后的
+   裁切图并烘焙到 UV（`stage3_build/bake_projected_texture.py --mesh-id <id>`）。对涂装皮肤而言，
+   投影的去光照裁切图本身就是表面处理——不要用程序化 Doppler 材质。对角色，先捕获关键点
+   （`stage1_intake/extract_landmarks.py --out anatomy.json`），填写 `preSpecAssessment.anatomy`，
+   路由到 `grimoire/character/reconstruction.md`。单一视角无法显示被遮挡的面——按区域报告置信度，
+   并在必要时请求更多视角。
+   角色子路线，按顺序——先确定有哪些部件再去塑形，先塑造头部再塑造长在头上的头发：
+   - **部件**——`grimoire/character/structure_decomposition.md`
+   - **头部**——`grimoire/character/head_construction.md`（相似度门禁对照的依据）
+   - **头发**——`grimoire/character/stylized_hair_threejs.md` + 参数契约
+     `grimoire/character/threejs_hair_parameter_contract.json`。只有在轮廓评审通过后才锁定发束
+     拓扑：材质调整无法修复错误的发束拓扑。
+2d. **无参考的人形**——没有参考图的通用人物没有可测量的东西，因此用公开的标准比例填充解剖数据：
+   `forge/stage2_spec/humanoid_proportions.py <spec> --style-heads 8 --in-place`。它会写入
+   `anatomy.source: "canon-table"`，确保标准比例永远不会被误当作测量值；当 spec 指定了参考图时它
+   会拒绝运行；对于语料库未提供的数据，它会明确指出，而不是插值补出。
+3. 根据评估编写 spec：
+   `forge/stage2_spec/new_sculpt_spec.py "Name" --image <img> --assessment assessment.json --augmentation spec-augmentation.json --domain <profile> --out object-sculpt-spec.json`（检查清单步骤会携带已解析的参数）。
+   用该物体真实的、决定身份的系统替换通用的初始 `featureReviewTargets`（每个 pass ≤5 个
+   critical、≤3 个 important）；对角色添加 `anatomy-proportion`、`face-landmark-placement`、
+   `pose-silhouette`、`outfit-and-palette`。只使用 3D 图形学术语（`grimoire/glossary/3d_vocabulary.md`），
+   绝不用"好看/光滑/亮"之类。在选择 `primitive` 之前，按 `grimoire/intake/surface_topology.md`
+   为每个组件确定 `topologyClass`/`topologyRationale`——这能防止把连续的有机形体选成一个盒子。
+4. 当材质保真度重要且存在源图像时，先分析每种材质的**表面处理**，再提取参考 PBR 证据，两者都
+   按裁切图进行（确认裁切图确实落在你以为的部件上）：
    - `forge/stage1_intake/analyze_texture.py <crop> --spec spec.json --material-id <id> --in-place`
-     classifies the finish, extracts the gradient palette, and writes doc-grounded
-     MeshPhysicalMaterial scalars onto the material. Recipes + Three.js texture/PBR rules:
-     `grimoire/build/threejs_texture_reference.md`. Rule of thumb: **solid albedo for flat paint,
-     real reference crop for patterned finishes**.
-   - `forge/stage1_intake/extract_pbr_evidence.py <crop> --out-dir <dir> --material-id <id> --target-threshold 0.7`.
-     Confidence < 0.7 is a stop/refine-input signal, not a pass. It is inference, not inverse rendering.
-   - For multiple named regions: `forge/stage1_intake/material_region_analysis.py --manifest regions.json --out-dir material-evidence --out material-analysis.json`,
-     resolve each assignment from `docs/materials/material-reference.json`, wire it in with
-     `forge/stage2_spec/apply_material_analysis.py`.
-   - Emit the controlled material camera/crop contract (`forge/stage4_review/material_views.py`),
-     compare visible-footprint crops (`material_comparator.py`), apply only bounded material-scoped
-     corrections (`material_feedback.py`), and record the blocking result (`material_gate.py`).
-5. Validate, then strict-validate before generating code:
-   `forge/stage2_spec/validate_sculpt_spec.py object-sculpt-spec.json` then `--strict-quality`.
-   Strict blocks shallow specs (a complex object with one root, no repetition systems, no
-   local overrides, no micro groups is NOT implementation-ready even if JSON validates).
-6. **Locked build passes** — only touch the currently unlocked pass:
+     对表面处理分类，提取渐变调色板，并把有文档依据的 MeshPhysicalMaterial 标量写到材质上。配方
+     + Three.js 纹理/PBR 规则：`grimoire/build/threejs_texture_reference.md`。经验法则：**solid albedo for flat paint,
+     real reference crop for patterned finishes**（纯色漆面用纯色 albedo，带图案的表面处理用真实
+     参考裁切图）。
+   - `forge/stage1_intake/extract_pbr_evidence.py <crop> --out-dir <dir> --material-id <id> --target-threshold 0.7`。
+     置信度 < 0.7 是停止/改进输入的信号，不是通过。这是推断，不是逆向渲染。
+   - 多个命名区域时：`forge/stage1_intake/material_region_analysis.py --manifest regions.json --out-dir material-evidence --out material-analysis.json`，
+     根据 `docs/materials/material-reference.json` 解析每项分配，再用
+     `forge/stage2_spec/apply_material_analysis.py` 接入。
+   - 输出受控的材质相机/裁切契约（`forge/stage4_review/material_views.py`），比较可见足迹裁切图
+     （`material_comparator.py`），只应用限定在材质范围内的有界修正（`material_feedback.py`），
+     并记录阻断性结果（`material_gate.py`）。
+5. 生成代码前先校验，再做严格校验：
+   `forge/stage2_spec/validate_sculpt_spec.py object-sculpt-spec.json`，然后加 `--strict-quality`。
+   严格模式会阻止浅薄的 spec（一个只有单个根节点、没有重复系统、没有局部覆盖、没有微观分组的
+   复杂物体，即使 JSON 校验通过也**不**具备实现条件）。
+6. **锁定的构建 pass**——只修改当前已解锁的 pass：
    `forge/stage3_build/orchestrate_passes.py status object-sculpt-spec.json`
    `forge/stage3_build/generate_threejs_factory.py object-sculpt-spec.json --out src/createObjectModel.ts`
-   The generator is fail-closed: `strict-quality` must pass before it writes any factory, and a
-   future `--pass-id` fails until prior passes are reviewed `continue`. If blocked, preserve the
-   `BLOCKED` artifact and refine the subject-specific spec; do not substitute a generic template.
-   The local state adds `--force` only for a new pass or `refine-spec`; `refine-code` edits the
-   current artifact without regenerating it. Before overwriting, carry valid hand refinement back
-   into the spec; generated code must not be the only copy of reconstruction decisions.
-6a. **Hitting a triangle budget.** `performanceBudget.targetTriangles` selects a tessellation tier
-   for every primitive with segment counts (low ≤6k, standard ≤60k, else hero) and caps
-   implicit-surface sampling grids. Where a tier is not precise enough, add
-   `geometryDescriptor.decimate: {"targetRatio": 0.4}` to that component — a quadric collapse in
-   the generated factory, run **before** skin binding so weights are computed on surviving
-   vertices. It keeps `position` only (normals recomputed), so it is refused on an
-   authored/unwrapped `uvStrategy`. Offline LOD tiers:
-   `forge/stage3_build/decimate.py <mesh.json> --ratio <r> --json`.
-7. Render the current pass in a browser/preview, capture a screenshot at a review viewpoint.
-7a. **Off-axis and placement gates — a single review viewpoint is not evidence about the model.**
-   Capture a turntable, not one frame, and run all three; each catches a defect class the older
-   gates pass by construction (a hole through a skull, a hat at hip height and a floating charm all
-   survived eight front-only review rounds):
+   生成器是失败即关闭的：`strict-quality` 必须通过它才会写出任何 factory，而未来的 `--pass-id`
+   会一直失败，直到之前的 pass 都被评审为 `continue`。若被阻断，保留 `BLOCKED` 产物并改进针对该
+   对象的 spec；不要用通用模板替代。本地状态只在新 pass 或 `refine-spec` 时追加 `--force`；
+   `refine-code` 直接编辑当前产物而不重新生成。覆盖之前，先把有效的手工改进同步回 spec；生成的
+   代码不能是重建决策的唯一副本。
+6a. **达成三角形预算。** `performanceBudget.targetTriangles` 为每个带分段数的基元选择一个细分
+   档位（low ≤6k、standard ≤60k，否则为 hero），并限制隐式曲面的采样网格上限。档位不够精确时，
+   给该组件添加 `geometryDescriptor.decimate: {"targetRatio": 0.4}`——这是生成的 factory 中的一次
+   二次误差塌缩，在蒙皮绑定**之前**运行，以便权重基于保留下来的顶点计算。它只保留 `position`
+   （法线重新计算），因此对已编写/已展开的 `uvStrategy` 会拒绝执行。离线 LOD 档位：
+   `forge/stage3_build/decimate.py <mesh.json> --ratio <r> --json`。
+7. 在浏览器/预览中渲染当前 pass，在评审视角截图。
+7a. **离轴与放置门禁——单一评审视角不能作为关于模型的证据。**
+   要截取转台序列而不是单帧，并运行全部三项；每一项都能捕获旧门禁在构造上必然放过的一类缺陷
+   （头骨上的穿孔、挂在臀部高度的帽子、悬空的挂饰，都曾在八轮只看正面的评审中存活下来）：
    `forge/stage4_review/turntable_gate.py --capture 0=front.png --capture 90=right.png --capture 180=rear.png --capture 270=left.png --json`
-   `node runtime/scripts/export_mesh_geometry.mjs --url <preview> --out meshes.json` then
+   `node runtime/scripts/export_mesh_geometry.mjs --url <preview> --out meshes.json`，然后
    `forge/stage4_review/self_intersection.py meshes.json --json`
    `forge/stage4_review/attachment_anchor.py object-sculpt-spec.json --measured measured.json --json`
-   All three exit `0` clean / `1` gate failure / `2` error. A failure blocks `continue` even when
-   the global fidelity score passes. Read `sampledVertexCount` / `unmeasuredAttachments` /
-   `missingAzimuths` before believing a clean verdict: each names what the gate did not look at.
-8. **Run deterministic gates before AI vision.** MUST read
-   `grimoire/review/gates_reference.md` and `grimoire/review/self_correction.md` completely. Run
-   `forge/stage4_review/diagnose_render.py` and record the passing Tier 1 result with
-   `--spec object-sculpt-spec.json --pass-id <pass> --in-place`; for non-planar forms also run
-   `forge/stage4_review/diagnose_render_multi_angle.py` with the fixed view and at least two
-   meaningful orbit views. Then run
-   `forge/stage3_build/orchestrate_passes.py check object-sculpt-spec.json --pass-id <pass>`.
-9. Package one side-by-side sheet, then inspect it with agent vision:
-   `forge/stage4_review/make_comparison_sheet.py --reference <img> --render <shot> --out cmp.png --json`.
-10. Record the review (overall + per-layer + per-feature scores + decision):
-    `forge/stage4_review/append_review.py object-sculpt-spec.json --pass-id <pass> --fidelity <0-1> --action <continue|refine-spec|refine-code|request-input|stop> --summary "..." --render-screenshot <shot> --comparison-image cmp.png --ai-vision-score <0-1> --layer-scores-json '{...}' --feature-reviews-json <f.json> --in-place`.
-    When a domain plugin contributes a review gate, produce its versioned report first with
-    the command that plugin's review step names, then attach it with
-    `--domain-review-json <report>.json --review-scene-json <the plugin's scene fixture>`. The
-    checklist step carries the resolved paths.
-    A failed family, painted-region, projection-coverage, critical-detail, or orbit gate blocks
-    `continue` even when the global score passes. See the plugin's own review-gate documentation.
-11. Sync pipeline state after manual review edits, record checklist evidence, then re-run the local
-    state gate before another correction or pass:
+   三者的退出码都是：`0` 干净 / `1` 门禁失败 / `2` 错误。失败会阻断 `continue`，即使全局保真度
+   分数通过。在相信一个干净的结论之前，先读 `sampledVertexCount` / `unmeasuredAttachments` /
+   `missingAzimuths`：它们分别指出门禁没有检查到的内容。
+8. **在 AI 视觉之前运行确定性门禁。** MUST read
+   `grimoire/review/gates_reference.md` 和 `grimoire/review/self_correction.md`，且必须完整阅读。
+   运行 `forge/stage4_review/diagnose_render.py`，并用
+   `--spec object-sculpt-spec.json --pass-id <pass> --in-place` 记录通过的 Tier 1 结果；对非平面
+   形体还要用固定视角和至少两个有意义的环绕视角运行
+   `forge/stage4_review/diagnose_render_multi_angle.py`。然后运行
+   `forge/stage3_build/orchestrate_passes.py check object-sculpt-spec.json --pass-id <pass>`。
+9. 打包一张并排对比图，然后用代理视觉检查它：
+   `forge/stage4_review/make_comparison_sheet.py --reference <img> --render <shot> --out cmp.png --json`。
+10. 记录评审（总体 + 分层 + 分特征分数 + 决策）：
+    `forge/stage4_review/append_review.py object-sculpt-spec.json --pass-id <pass> --fidelity <0-1> --action <continue|refine-spec|refine-code|request-input|stop> --summary "..." --render-screenshot <shot> --comparison-image cmp.png --ai-vision-score <0-1> --layer-scores-json '{...}' --feature-reviews-json <f.json> --in-place`。
+    当某个领域插件贡献了评审门禁时，先用该插件评审步骤所指的命令生成带版本号的报告，再用
+    `--domain-review-json <report>.json --review-scene-json <the plugin's scene fixture>` 附加。
+    检查清单步骤会携带已解析的路径。
+    家族、涂装区域、投影覆盖、关键细节或环绕门禁中任一失败都会阻断 `continue`，即使全局分数
+    通过。参见插件自己的评审门禁文档。
+11. 手动编辑评审之后同步流水线状态，记录检查清单证据，然后在进行下一次修正或 pass 之前重新运行
+    本地状态门禁：
     `forge/stage3_build/orchestrate_passes.py sync object-sculpt-spec.json --in-place`
-    `python3 forge/next.py --state .img2threejs/state.json object-sculpt-spec.json`.
-12. Before declaring completion, run
+    `python3 forge/next.py --state .img2threejs/state.json object-sculpt-spec.json`。
+12. 宣告完成之前，运行
     `forge/stage4_review/check_part_coverage.py --spec object-sculpt-spec.json --manifest parts.json`
-    and verify the action-ready hierarchy. Mark `part-coverage` and `action-ready` only with evidence.
+    并验证可用于动作的层级。只有拿到证据才能标记 `part-coverage` 和 `action-ready`。
 
-## GLB-mediated v2 render-fidelity track (1.5 alpha)
+## 以 GLB 为中介的 v2 渲染保真度路线（1.5 alpha）
 
-When the user supplies a GLB as an intermediate reference, the browser-rendered GLB is the
-structural and visual baseline for an independently authored procedural factory. The raw GLB is
-never pixel evidence and its topology/materials are never copied into the factory. Before any
-factory edit — full contract in `grimoire/build/python_threejs_render_bridge.md`, machine-readable
-schema in `docs/specs/render-profile.v2.schema.json` (+ example; fail-closed validation):
+当用户提供 GLB 作为中间参考时，浏览器渲染出的 GLB 是一个独立编写的程序化 factory 的结构与视觉
+基线。原始 GLB 永远不是像素证据，其拓扑/材质也永远不会被复制进 factory。在任何 factory 编辑之前——
+完整契约见 `grimoire/build/python_threejs_render_bridge.md`，机器可读 schema 见
+`docs/specs/render-profile.v2.schema.json`（含示例；失败即关闭的校验）：
 
-1. `forge/stage1_intake/probe_glb.py` first. A merged one-node/one-mesh asset is `insufficient`
-   for semantic labels; request a multipart GLB or a browser semantic-ID pass before claiming
-   exact regions.
-2. Author ONE shared `render-profile.v2` (`forge/stage4_review/validate_render_profile.py`) used by
-   both the GLB and procedural routes. Region IDs are subject-specific, never inherited from the
-   example profile; declare the required set in `extensions.requiredSemanticRegions` so omission is
-   a hard validation error.
-3. Capture six passes per admitted view (`beauty`, `alpha-silhouette`, `semantic-id`, `depth`,
-   `normal`, `roughness-material-id`); score with `forge/stage4_review/compare_region_passes.py`.
-   Missing semantic-ID data blocks per-region confidence rather than falling back to whole-image
-   scores.
-4. Use region-specific continuous geometry — never replace a face/head volume, cloth shell, or tail
-   with floating primitives when the region's silhouette requires a continuous surface.
-5. Run ONE correction group per loop, in order: `camera → silhouette → face → clothing → accessory
-   → materials → lighting`; recapture the full pass set after each group and record the changed
-   group, hashes and score. Never combine groups when diagnosing improvement.
+1. 先运行 `forge/stage1_intake/probe_glb.py`。合并成单节点/单网格的资产对语义标签而言是
+   `insufficient`；在声称精确区域之前，请求多部件 GLB 或浏览器语义 ID pass。
+2. 编写**一份**共享的 `render-profile.v2`（`forge/stage4_review/validate_render_profile.py`），GLB
+   路线与程序化路线共用。区域 ID 针对具体对象，绝不从示例 profile 继承；在
+   `extensions.requiredSemanticRegions` 中声明必需集合，使遗漏成为硬性校验错误。
+3. 每个被采纳的视角截取六个 pass（`beauty`、`alpha-silhouette`、`semantic-id`、`depth`、
+   `normal`、`roughness-material-id`）；用 `forge/stage4_review/compare_region_passes.py` 评分。
+   缺少语义 ID 数据会阻断分区域置信度，而不是退回到整图分数。
+4. 使用针对区域的连续几何——当某区域的轮廓需要连续曲面时，绝不用漂浮的基元替代面部/头部体块、
+   布料外壳或尾巴。
+5. 每个循环只运行**一个**修正组，按顺序：`camera → silhouette → face → clothing → accessory
+   → materials → lighting`；每组之后重新截取完整 pass 集合，并记录改动的组、哈希和分数。诊断
+   改进时绝不合并多个组。
 
-## Gates (do not skip)
+## 门禁（不可跳过）
 
-Before any visual review or `continue` decision, MUST read the full gate-by-gate contract in
-`grimoire/review/gates_reference.md` (Divine Eye, VLM rescue, multi-angle, interior difference,
-chirality, hair, domain review, bounded correction, Divine Eye fitting, screenshot feedback, assembly,
-attachment, material, detail inventory, rig payload, character track). In short:
+在任何视觉评审或 `continue` 决策之前，MUST 阅读 `grimoire/review/gates_reference.md` 中逐项门禁的
+完整契约（Divine Eye、VLM 补救、多角度、内部差异、手性、头发、领域评审、有界修正、Divine Eye
+拟合、截图反馈、装配、附着、材质、细节清单、绑定载荷、角色路线）。简而言之：
 
-- Validate references first (`grimoire/intake/validation_rubric.md`, `check_reference_admission.py`).
-- `divine_eye.py` is deterministic-first; the VLM (`vlm_gate.py`) is a gated last layer, never
-  consulted on a hard-gate failure.
-- A non-planar form must hold from ≥2 angles (`diagnose_render_multi_angle.py`).
-- Measure INSIDE the silhouette every visual pass (`interior_difference.py`). Silhouette IoU reads
-  ~11% of figure cells: a model with its face deleted scored the same 0.8803 as the finished face.
-- Every `-l`/`-r` pair is a MIRROR, not a rotation — hard at spec time (`validate_chirality`). A pair
-  wrong the same way on both sides still passes, and needs `medial_lateral_bias` vs a reference.
-- Hair subjects: `scalp_exposure.py` is HARD and runs on geometry before any render; `hair_gate.py`
-  is soft and subordinate to it. A coverage shortfall never authorises widening the masses.
-- Flat colour regions with hard boundaries (blaze/bib/socks, livery stripe, painted marking) are an
-  identity feature, so their boundaries are gated on geometry: `vertex_region_gate.py`. Never a
-  texture — this pipeline emits code; the shape predicates live in `_shared/vertex_paint.py`.
-- A curve claim ("curled into a hook, not a straight cone") needs `swept_arc_gate.py`: silhouette IoU
-  passes a straight cone occupying roughly the right cells.
-- Character builds validate the rig payload (`stage5_rig/validate_rig_payload.py`) before binding a
-  `THREE.Skeleton`; it proves payload integrity only, never pose stress or likeness.
-- A rig that must MOVE runs the animation gates too (`grimoire/readiness/animation_contract.md`;
-  the checklist steps and gate come from the installed plugin-character -- `stage5_rig/` remains in
-  this repo as the emitter's library, not the checklist authority). A clip that exists is not a
-  clip that plays: only G1
-  (`maxSampledBindingDelta <= 2^-23`) separates the two, and a gate whose input is missing reports
-  `unevaluated`, never a pass. Bind at IDENTITY in attached mode and take the display offset from
-  the mesh bounds alone; loop is decided by `poseReturn`, never by travel.
-- A domain plugin's review gate also runs against its versioned scene fixture.
-- Local state enforces 3 corrections per pass and 6 total by default; reaching either limit is a
-  hard stop. `correction_loop.py` may stop earlier on repeated defects, oscillation, or plateau.
-- `continue` requires a render + comparison sheet + AI-vision score ≥ threshold, every critical
-  feature ≥ its own threshold (`grimoire/feedback/render_capture.md`).
-- Every model ships explodable AND clickable — a structure gate, not pixels
-  (`check_part_coverage.py`, `grimoire/build/geometry_patterns.md`).
-- Action-ready, attachment, material/lighting, detail inventory, and character-track requirements:
-  `grimoire/readiness/action_rigging.md`, `grimoire/readiness/joint_attachment.md`,
-  `grimoire/feedback/shading_realism.md`, `grimoire/intake/quality_contract.md`,
-  `grimoire/intake/validation_rubric.md`.
+- 先验证参考图（`grimoire/intake/validation_rubric.md`、`check_reference_admission.py`）。
+- `divine_eye.py` 以确定性检查优先；VLM（`vlm_gate.py`）是受门禁控制的最后一层，硬门禁失败时
+  绝不咨询它。
+- 非平面形体必须在 ≥2 个角度下成立（`diagnose_render_multi_angle.py`）。
+- 每个视觉 pass 都要测量轮廓**内部**（`interior_difference.py`）。轮廓 IoU 只读取约 11% 的人物
+  单元格：一个删掉了脸的模型与完成脸部的模型得到了相同的 0.8803 分。
+- 每一对 `-l`/`-r` 都是**镜像**，不是旋转——在 spec 阶段即为硬性要求（`validate_chirality`）。
+  两侧以同样方式出错的一对仍会通过，需要用 `medial_lateral_bias` 与参考图对比。
+- 头发对象：`scalp_exposure.py` 是**硬**门禁，在任何渲染之前对几何运行；`hair_gate.py` 是软门禁，
+  从属于前者。覆盖不足绝不能成为加宽发团的理由。
+- 带硬边界的平涂色区域（白斑/胸斑/白袜、涂装条纹、涂绘标记）是身份特征，因此其边界在几何上
+  把关：`vertex_region_gate.py`。绝不用纹理——本流水线输出的是代码；形状谓词位于
+  `_shared/vertex_paint.py`。
+- 关于曲线的声明（"卷成钩状，而不是直的圆锥"）需要 `swept_arc_gate.py`：轮廓 IoU 会放过一个
+  大致占据正确单元格的直圆锥。
+- 角色构建在绑定 `THREE.Skeleton` 之前先校验绑定载荷（`stage5_rig/validate_rig_payload.py`）；
+  它只证明载荷完整性，绝不证明姿态压力或相似度。
+- 必须能**动**的绑定还要运行动画门禁（`grimoire/readiness/animation_contract.md`；检查清单步骤和
+  门禁来自已安装的 plugin-character——`stage5_rig/` 仍保留在本仓库中作为发射器的库，而不是检查
+  清单的权威）。存在的动画片段不等于能播放的动画片段：只有 G1
+  （`maxSampledBindingDelta <= 2^-23`）能区分两者，而输入缺失的门禁会报告 `unevaluated`，绝不是
+  通过。在附着模式下以 IDENTITY 绑定，显示偏移只从网格包围盒获取；是否循环由 `poseReturn`
+  决定，绝不由位移决定。
+- 领域插件的评审门禁还会针对其带版本号的场景夹具运行。
+- 本地状态默认强制每个 pass 3 次修正、总计 6 次；达到任一上限即为硬停止。`correction_loop.py`
+  可能在重复缺陷、振荡或平台期时更早停止。
+- `continue` 需要渲染图 + 对比图 + AI 视觉分数 ≥ 阈值，且每个 critical 特征 ≥ 其自身阈值
+  （`grimoire/feedback/render_capture.md`）。
+- 每个模型都必须既可爆炸拆分**又**可点击——这是结构门禁，不是像素门禁
+  （`check_part_coverage.py`、`grimoire/build/geometry_patterns.md`）。
+- 可用于动作、附着、材质/光照、细节清单以及角色路线的要求：
+  `grimoire/readiness/action_rigging.md`、`grimoire/readiness/joint_attachment.md`、
+  `grimoire/feedback/shading_realism.md`、`grimoire/intake/quality_contract.md`、
+  `grimoire/intake/validation_rubric.md`。
 
-## Self-Correction
+## 自我修正
 
-After every pass, decide exactly one: `continue | refine-spec | refine-code | request-input | stop`.
-`refine-spec` fixes a wrong/missing/shallow spec (re-validate, don't patch code around it);
-`refine-code` fixes geometry/material/lighting that doesn't match a sound spec. Before making the
-decision, MUST read the root-cause guide + fidelity scale in `grimoire/review/self_correction.md`,
-record the decision, and re-run the local state gate.
+每个 pass 之后，恰好选择一项：`continue | refine-spec | refine-code | request-input | stop`。
+`refine-spec` 修正错误/缺失/浅薄的 spec（重新校验，不要在代码里绕过它打补丁）；
+`refine-code` 修正与可靠 spec 不符的几何/材质/光照。做决定之前，MUST 阅读
+`grimoire/review/self_correction.md` 中的根因指南 + 保真度量表，记录决定，并重新运行本地状态门禁。
 
-**Small features need a different instrument.** Divine Eye's SSIM/tonal/edge signals run on a 64×64
-luma grid, so a detail a few pixels wide is absent before any comparison happens. When fidelity
-depends on individual tears, spars, fangs or eyes, use the four-tier microscope:
-`grimoire/review/divine_eye_microscope.md`. Two empirically established rules from it: measure
-fidelity on a component's **visible footprint** (full frame minus a component-hidden frame), never
-on an isolation render; and never colour-gate a **concave** feature, where a dark ratio captures
-cavity shading rather than material.
+**小特征需要不同的仪器。** Divine Eye 的 SSIM/色调/边缘信号运行在 64×64 亮度网格上，所以几个
+像素宽的细节在任何比较发生之前就已经消失了。当保真度取决于单个撕口、翼梁、獠牙或眼睛时，使用
+四级显微镜：`grimoire/review/divine_eye_microscope.md`。其中两条经实证确立的规则：在组件的
+**可见足迹**上测量保真度（完整帧减去隐藏该组件的帧），绝不在隔离渲染上测量；绝不对**凹陷**特征
+做颜色门禁，因为暗部比例捕获的是凹腔阴影而不是材质。
 
-## Transparency and Process Debugging
+## 透明度与过程调试
 
-Report what changed each pass with evidence (exact values/coordinates), name what still doesn't
-match, and never claim "done" when only "improved". A passing gate is not proof of 3D realism.
-Full rule + examples: `grimoire/review/self_correction.md`.
+每个 pass 都要附证据（确切数值/坐标）报告改了什么，指出仍不匹配的地方，在只是"有改进"时绝不
+宣称"完成"。通过门禁并不证明 3D 真实感。完整规则 + 示例：`grimoire/review/self_correction.md`。
 
-## Left and right
+## 左与右
 
-A left/right pair is a **reflection**, never a rotation: negate the lateral axis and nothing else,
-`(x, y, z) → (-x, y, z)`. With `forward: +Z`, Y up and a right-handed frame, the character's own
-left is **+X**. The convention lives as code in `forge/_shared/chirality.py`
-(`CHARACTER_LEFT_SIGN`), with two different gates for the two defects that shipped from getting it
-wrong: `validate_chirality` catches a rotation-mistaken-for-reflection at spec time, and
-`medial_lateral_bias` vs a reference catches a pair that is wrong the same way on both sides.
-Reflecting also inverts triangle winding — flip it back on the mirrored side or `flatShading`
-lights the limb as though lit from behind. Full write-up with the measured defects:
-`grimoire/scripts.md` ("Left and right").
+左右成对是**反射**，绝不是旋转：只对横向轴取反，其他不变，`(x, y, z) → (-x, y, z)`。在
+`forward: +Z`、Y 轴向上的右手坐标系中，角色自身的左侧是 **+X**。该约定以代码形式存在于
+`forge/_shared/chirality.py`（`CHARACTER_LEFT_SIGN`），并针对搞错它而发布出去的两类缺陷设有两个
+不同的门禁：`validate_chirality` 在 spec 阶段捕获把旋转当作反射的错误，`medial_lateral_bias` 与
+参考图对比可捕获两侧以同样方式出错的一对。反射还会反转三角形绕序——在镜像一侧把它翻回来，否则
+`flatShading` 会把肢体照成像是从背后打光。包含实测缺陷的完整说明：`grimoire/scripts.md`
+（"Left and right" 一节）。
 
-## Hair
+## 头发
 
-Hair has its own subsystem because it has failure modes no other gate can see. Full contract,
-measurements and non-goals: `docs/HAIR_PIPELINE.md`. The hard rules:
+头发有自己的子系统，因为它有其他门禁看不到的失败模式。完整契约、测量数据和非目标：
+`docs/HAIR_PIPELINE.md`。硬性规则：
 
-- Roots bind to the scalp as `(u, v)`, never absolute positions (hard validation error).
-- `standProud` is enforced by the generator, not advisory.
-- `scalp_exposure.py` is a HARD gate on geometry before any render; a coverage shortfall never on
-  its own authorises widening the masses.
-- Default representation tier is `shell`, not locks; strand impression comes from faceting and
-  material (`hair.human.code-only`), since this skill emits no textures.
-- `plane-card` is rejected for hair (needs an alpha texture this skill cannot emit).
-- Hair is rigidly parented, never smooth-skinned (the geodesic field runs through the skull).
+- 发根以 `(u, v)` 绑定到头皮，绝不使用绝对位置（硬性校验错误）。
+- `standProud` 由生成器强制执行，不是建议。
+- `scalp_exposure.py` 是在任何渲染之前对几何运行的**硬**门禁；覆盖不足本身绝不能成为加宽发团的
+  理由。
+- 默认表示档位是 `shell`，不是发束；发丝感来自分面与材质（`hair.human.code-only`），因为本技能
+  不输出纹理。
+- 头发拒绝使用 `plane-card`（它需要本技能无法输出的 alpha 纹理）。
+- 头发采用刚性父子关系，绝不平滑蒙皮（测地场会穿过头骨）。
 
-## Domain plugins
+## 领域插件（Domain plugins）
 
-A domain plugin makes a run exact where this pipeline would otherwise infer. It contributes its own
-checklist steps and gates, and publishes a `spec-augmentation.json` that this pipeline pulls at
-`spec-authoring`. With no plugin serving the item, nothing here changes: author the skeleton and
-infer the shape from the reference, as for any other object.
+领域插件让本流水线原本需要推断的地方变得精确。它贡献自己的检查清单步骤和门禁，并发布一个
+`spec-augmentation.json`，本流水线在 `spec-authoring` 时拉取。没有插件服务该物品时，这里什么都
+不变：编写骨架，并像对待其他任何物体一样从参考图推断形状。
 
-- The steps a plugin contributes appear in the checklist with their own ids and resolved paths. Read
-  what each step names -- a plugin ships its own contract, and it governs its own domain.
-- A plugin may **raise** this pipeline's quality floors and can never lower one; the merge clamps.
-- A plugin that does not serve an item publishes no augmentation. That is not an error and not a
-  blocked run: it is the generic path, and the reconstruction proceeds by inference.
-- This pipeline names no domain. If a rule is domain-specific, it lives in that domain's plugin.
+- 插件贡献的步骤以其自己的 id 和已解析路径出现在检查清单中。阅读每个步骤所指的内容——插件自带
+  契约，并由它管辖自己的领域。
+- 插件可以**提高**本流水线的质量下限，永远不能降低任何一项；合并时会钳制。
+- 不服务某物品的插件不发布 augmentation。这既不是错误也不是被阻断的运行：这就是通用路径，重建
+  按推断进行。
+- 本流水线不指名任何领域。若某条规则是领域特定的，它就位于该领域的插件中。
 
-### The img2 harness
+### img2 harness
 
-Plugins are installed and managed by the `img2` harness
-([img2threejs/img2](https://github.com/img2threejs/img2)), a separate dependency-free CLI (Node
-launcher, Python core). This skill
-never installs anything itself: when `state.py init` names a profile as unavailable, name the
-`img2 add` command that installs it and stop — never vendor domain logic instead.
+插件由 `img2` harness（[img2threejs/img2](https://github.com/img2threejs/img2)）安装和管理，这是
+一个独立的零依赖 CLI（Node 启动器，Python 核心）。本技能自身从不安装任何东西：当 `state.py init`
+报告某个 profile 不可用时，给出安装它的 `img2 add` 命令并停止——绝不改为内置领域逻辑。
 
 ```bash
 img2 add img2threejs/plugin-<id> --ref <tag>      # install a plugin at a tag (e.g. plugin-cs2)
@@ -393,14 +349,13 @@ img2 doctor                                       # what each host resolves: bas
 img2 capabilities --from-kind image --to-kind glb # which installed plugin serves an edge
 ```
 
-Setup and the full CLI reference live in the README quick-start and the harness repo's docs.
+安装设置与完整 CLI 参考见 README 快速开始以及 harness 仓库的文档。
 
-## Forge Runtime Contracts
+## Forge 运行时契约
 
-Subdivision runtime tests compile generated TypeScript against the showcase checkout. Set
-`IMG2THREEJS_SHOWCASE_ROOT` to that checkout; without it, local runtime-only tests skip with an
-actionable message while static contracts still run. CI should set `IMG2THREEJS_REQUIRE_SHOWCASE=1`
-to turn a missing showcase checkout into a test failure.
+细分运行时测试会针对 showcase checkout 编译生成的 TypeScript。把 `IMG2THREEJS_SHOWCASE_ROOT`
+设为该 checkout；未设置时，仅限运行时的本地测试会跳过并给出可操作的提示，而静态契约仍会运行。
+CI 应设置 `IMG2THREEJS_REQUIRE_SHOWCASE=1`，把缺少 showcase checkout 变为测试失败。
 
 ```bash
 IMG2THREEJS_SHOWCASE_ROOT=/path/to/img2threejs-showcase python3 forge/tests/test_subdivision.py
@@ -408,39 +363,35 @@ IMG2THREEJS_SHOWCASE_ROOT=/path/to/img2threejs-showcase python3 -m unittest disc
 IMG2THREEJS_SHOWCASE_ROOT=/path/to/img2threejs-showcase python3 forge/tests/test_showcase_tsc_smoke.py
 ```
 
-## Implementation Rules (brief)
+## 实现规则（简要）
 
-TypeScript + plain Three.js unless the project uses a wrapper. `Group` factory
-`createObjectNameModel(spec, options)`, reconstruction data kept separate from renderer objects,
-deterministic seeds for all procedural noise. Prefer primitives / `Shape` extrude / curve+tube /
-instancing / displacement / generated canvas textures before any external art. Full geometry &
-material recipes + hard-won failure patterns: `grimoire/build/geometry_patterns.md`.
+使用 TypeScript + 原生 Three.js，除非项目使用了封装层。`Group` factory
+`createObjectNameModel(spec, options)`，重建数据与渲染器对象分开保存，所有程序化噪声使用确定性
+种子。在使用任何外部美术资源之前，优先使用基元 / `Shape` 挤出 / 曲线+管 / 实例化 / 置换 / 生成的
+canvas 纹理。完整的几何与材质配方 + 来之不易的失败模式：`grimoire/build/geometry_patterns.md`。
 
-### Optional Python ↔ Three.js render bridge
+### 可选的 Python ↔ Three.js 渲染桥
 
-When Python is requested for character rendering, use it as a deterministic job/evidence layer
-around the browser Three.js runtime: camera-batch manifests, source/output hashes, readiness and
-settle checks, screenshot persistence, masks, diagnostics, and comparison packaging. The target
-Three.js browser route remains the rendering authority. Do not silently replace the procedural
-TypeScript factory with Blender/VRM/GLB output. Full routing, manifest fields, and failure rules:
-`grimoire/build/python_threejs_render_bridge.md`.
+当要求用 Python 做角色渲染时，把它用作包裹浏览器 Three.js 运行时的确定性作业/证据层：相机批次
+manifest、源/输出哈希、就绪与稳定检查、截图持久化、遮罩、诊断以及对比打包。目标 Three.js 浏览器
+路线仍是渲染的权威。不要用 Blender/VRM/GLB 输出静默替换程序化 TypeScript factory。完整的路由、
+manifest 字段和失败规则：`grimoire/build/python_threejs_render_bridge.md`。
 
-### Standard character pipeline (merged 1.5 beta + alpha)
+### 标准角色流水线（合并 1.5 beta + alpha）
 
-Use `grimoire/readiness/standard_character_pipeline.md` for character work. Beta owns the
-strict sculpt/build/review gates; alpha owns deterministic camera manifests, browser screenshot
-evidence and UniRig-shaped rig validation. CharacterGen, Tripo, VRM and other neural/asset
-systems are opt-in adapters with source, checkpoint, license, coordinate conversion and output
-hashes. They never silently replace the procedural TypeScript factory. Image-to-mesh systems emit a
-static mesh with no skeleton, so their output is never animation-ready however good it looks.
-Executable entry points: `forge/stage4_review/render_bridge.py` and
-`scripts/capture_threejs_playwright.py` (`init → browser capture → validate → diagnose`; capture
-must operate on the real showcase/browser route and leave readable PNGs in the workspace).
+角色工作使用 `grimoire/readiness/standard_character_pipeline.md`。beta 负责严格的雕刻/构建/评审
+门禁；alpha 负责确定性相机 manifest、浏览器截图证据以及 UniRig 形态的绑定校验。CharacterGen、
+Tripo、VRM 以及其他神经网络/资产系统是需主动开启的适配器，需记录来源、checkpoint、许可证、坐标
+转换和输出哈希。它们绝不静默替换程序化 TypeScript factory。图像转网格系统输出的是没有骨骼的
+静态网格，所以无论看起来多好，其输出都永远不能直接用于动画。可执行入口：
+`forge/stage4_review/render_bridge.py` 和 `scripts/capture_threejs_playwright.py`
+（`init → browser capture → validate → diagnose`；截取必须在真实的 showcase/浏览器路线上进行，并在
+工作区中留下可读的 PNG）。
 
-## Output
+## 输出
 
-- **Analysis-only**: suitability verdict + scores, object extraction, macro→micro hierarchy,
-  geometry strategy, material/lighting recipe, animation/destruction feasibility, plan + risks.
-- **Implementation**: the above briefly, then edit code; verify with typecheck/build + a screenshot.
-- **Not feasible**: name the blocker, ask for more views / cleaner image / accepted stylization /
-  a narrower target. "This cannot reach the requested fidelity from this image" is a valid result.
+- **仅分析**：适用性结论 + 分数、物体提取、宏观→微观层级、几何策略、材质/光照配方、
+  动画/破坏可行性、方案 + 风险。
+- **实现**：简要给出上述内容，然后编辑代码；用 typecheck/build + 截图验证。
+- **不可行**：指出阻碍因素，请求更多视角 / 更干净的图片 / 接受风格化 / 更窄的目标。
+  "无法从这张图片达到所要求的保真度"是一个有效的结果。

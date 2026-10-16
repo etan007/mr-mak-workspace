@@ -1,27 +1,20 @@
-# Creative production loop
+# 创意生产循环
 
-Read the brief and inspect references. Decide which result the user needs now:
-an exploration, a faithful edit, a modeling reference, a mesh, a material or a
-motion study. Use `3d-production-routing` to select the relevant skill.
+阅读简介并检查参考资料。判断用户现在需要哪种结果：探索、忠实修改、建模参考、
+网格、材质还是动作研究。用 `3d-production-routing` 选择相关技能。
 
-Choose the exact provider and model from the task and current capabilities.
-Inspect the live input schema before submission. Save the job receipt locally,
-recover that job after a timeout and download the result once it completes.
-Avoid duplicate paid submissions and preserve the accepted source image.
+根据任务和当前能力选择确切的提供方和模型。提交前检查实时输入 schema。把任务回执
+保存在本地，超时后恢复该任务，完成后下载结果。避免重复的付费提交，并保留已认可的
+源图。
 
-Review at full size. Keep successful execution separate from visual acceptance.
-Explain a rejection with concrete evidence, such as a missing limb, a changed
-face, an unwanted camera move or sliding foot contact. Make the smallest useful
-revision instead of restarting the entire design without a reason.
+以原尺寸审查。执行成功和视觉认可要分开。拒绝时用具体证据说明，例如缺失肢体、脸部
+变化、多余的镜头移动或脚部滑步。做最小的有效修订，没有理由不要推倒整个设计重来。
 
-Present selected and rejected takes in the task's Workspace card with clear
-labels and usable media previews. Retain enough prompt and version information
-to reproduce the work, while excluding tokens and signed provider links from
-public exports. End with a precise next step or the verified final artifact.
+在任务的工作区卡片中展示选中和被拒的版本，配上清晰标注和可用的媒体预览。保留足够
+的提示词和版本信息以便复现，同时在公开导出中排除令牌和带签名的提供方链接。最后
+给出明确的下一步，或经过验证的最终产物。
 
-For game work, continue into the relevant production skill: VFX, UI, animation
-integration, level design or game audio. Carry the accepted concept and real
-gameplay event markers into the implementation. Keep proposals, implemented
-behavior, agent verification and user acceptance distinct. Use
-`gameplay-visual-review` for evidence from the actual engine; a browser study or
-generated clip cannot establish that an effect works in the game.
+对于游戏工作，继续进入相关的生产技能：特效（VFX）、UI、动画集成、关卡设计或游戏
+音频。把已认可的概念和真实的玩法事件标记带入实现。方案、已实现行为、代理验证和
+用户认可要彼此区分。用 `gameplay-visual-review` 从实际引擎中取证；浏览器中的研究
+或生成的动画片段无法证明某个特效在游戏中有效。

@@ -1,46 +1,41 @@
-# Procedural rigging contract — 1.5-alpha
+# 程序化绑定契约——1.5-alpha
 
-The implementation-facing rig contract: what the payload owns, and what it deliberately does not.
+面向实现的绑定契约：payload 负责什么，以及有意不负责什么。
 
-## Payload ownership
+## Payload 职责划分
 
-The procedural TypeScript factory owns geometry and authored rig data. Python owns
-deterministic validation and evidence packaging. The browser owns bone updates, skinning,
-pose application, dynamic bounds, and final pixels.
+程序化 TypeScript 工厂负责几何体和制作的绑定数据。Python 负责确定性校验和证据打包。浏览器负责
+骨骼更新、蒙皮、姿势应用、动态包围盒和最终像素。
 
-| Layer | Required output | Failure action |
+| 层 | 必需输出 | 失败时的动作 |
 | --- | --- | --- |
-| Spec | named joints, parent map, rest pose, sockets, pose probes | `refine-spec` |
-| Forge | validated payload report and coverage warnings | block build |
-| Three.js bind | one hierarchy, one skeleton, matching skin attributes | static fallback + `refine-code` |
-| Deformation smoke | neutral plus stress poses, no NaN/Inf, bounded stretch/collapse | block likeness review |
-| Browser evidence | fixed, orbit, profile and close-up screenshots | `request-input` or `refine-code` |
+| Spec | 具名关节、父级映射、静止姿势、socket、姿势探针 | `refine-spec` |
+| Forge | 已校验的 payload 报告和覆盖率警告 | 阻止构建 |
+| Three.js 绑定 | 一个层级、一个骨架、匹配的蒙皮属性 | 静态回退 + `refine-code` |
+| 形变冒烟测试 | 中性姿势加压力姿势，无 NaN/Inf，拉伸/塌陷在限度内 | 阻止相似度评审 |
+| 浏览器证据 | 固定、环绕、侧面和特写截图 | `request-input` 或 `refine-code` |
 
-## Runtime invariants
+## 运行时不变量
 
-- Use one shared `THREE.Skeleton` for all skinned meshes that share the character rig.
-- Bind in rest pose before applying animation; do not treat a posed mesh as the bind pose.
-- Update `skeleton.update()`/world matrices before measuring bounds or capturing a pose.
-- Keep `skinIndex` and `skinWeight` attributes aligned with the geometry vertex count.
-- Recompute or conservatively expand bounds after bone motion; a static load-time box may
-  cull an animated limb or hair mass.
-- Use semantic aliases only through an explicit map (`mixamo:LeftArm` → local joint id);
-  never infer a joint from a string suffix alone.
-- Keep auxiliary joints (ribbon, hair, skirt) explicitly tagged; their lack of direct
-  surface influence is a warning, not an accidental missing bone.
+- 共享同一角色绑定的所有蒙皮网格使用同一个 `THREE.Skeleton`。
+- 在应用动画之前以静止姿势绑定；不要把已摆姿势的网格当作绑定姿势。
+- 在测量包围盒或截取姿势之前，先调用 `skeleton.update()`/更新世界矩阵。
+- 保持 `skinIndex` 和 `skinWeight` 属性与几何体顶点数一致。
+- 骨骼运动后重新计算或保守地扩大包围盒；加载时的静态包围盒可能会剔除正在动的肢体或发束。
+- 只通过显式映射使用语义别名（`mixamo:LeftArm` → 本地关节 id）；绝不要仅凭字符串后缀推断关节。
+- 辅助关节（飘带、头发、裙摆）要显式标记；它们对表面没有直接影响是一条警告，而不是意外缺失的骨骼。
 
-## Pose probes before likeness
+## 先做姿势探针，再谈相似度
 
-The first browser smoke set is intentionally mechanical:
+第一组浏览器冒烟测试有意是机械性的：
 
-- neutral rest pose;
-- elbow flexion and shoulder abduction;
-- hip/knee bend;
-- wrist/ankle and hand/foot end-effector reach;
-- head turn and spine bend;
-- stylized hair/ribbon attachment check;
-- `+35°`, `-35°`, profile and rear camera views.
+- 中性静止姿势；
+- 肘部屈曲和肩部外展；
+- 髋/膝弯曲；
+- 腕/踝以及手/脚末端执行器的伸展；
+- 转头和脊柱弯曲；
+- 风格化头发/飘带的挂接检查；
+- `+35°`、`-35°`、侧面和背面相机视角。
 
-These probes are deformation and attachment evidence, not reference likeness scores. A
-rig must pass the deterministic payload gate and produce readable screenshots before
-`diagnose_render.py`, comparison sheets, semantic scoring, or confidence claims.
+这些探针是形变和挂接的证据，而不是参考相似度分数。绑定必须先通过确定性 payload 门禁并产出可读
+的截图，然后才能进行 `diagnose_render.py`、对比图、语义评分或置信度声明。

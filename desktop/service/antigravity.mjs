@@ -6,7 +6,7 @@ const nativeLine = new RegExp(`^[IWEF]\\d{4} \\d{2}:\\d{2}:\\d{2}\\.\\d+\\s+\\d+
 export const validAntigravityId = value => typeof value === 'string' && new RegExp(`^${uuid}$`, 'i').test(value);
 
 export function antigravityLogPath(stateDir, chatId) {
-  if (!validAntigravityId(chatId)) throw new Error('Invalid Antigravity chat ID.');
+  if (!validAntigravityId(chatId)) throw new Error('Antigravity 对话 ID 无效。');
   return path.join(stateDir, 'antigravity', `${chatId}.log`);
 }
 

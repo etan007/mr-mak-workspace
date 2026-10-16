@@ -3,37 +3,37 @@
 set -euo pipefail
 mode="${1:-check}"
 cd "$(dirname "$0")"
-[ -f workspace/workspace.json ] || { echo "Run setup.sh from the complete repository folder." >&2; exit 1; }
+[ -f workspace/workspace.json ] || { echo "请在完整的仓库文件夹中运行 setup.sh。" >&2; exit 1; }
 has() { command -v "$1" >/dev/null 2>&1 && echo true || echo false; }
-echo "Mr. Mak Workspace setup"
-echo "Node: $(has node) | npm: $(has npm) | Rust (desktop source build only): $(has cargo)"
+echo "Mr. Mak Workspace 安装检查"
+echo "Node: $(has node) | npm: $(has npm) | Rust（仅源码构建桌面版需要）: $(has cargo)"
 echo "Codex CLI: $(has codex) | Claude Code CLI: $(has claude) | OpenCode: $(has opencode)"
 if ! command -v codex >/dev/null && ! command -v claude >/dev/null && ! command -v opencode >/dev/null; then
-  echo "Install and configure Codex CLI, Claude Code CLI or OpenCode first. See docs/getting-started.md." >&2; exit 1
+  echo "请先安装并配置 Codex CLI、Claude Code CLI 或 OpenCode。参见 docs/getting-started.md。" >&2; exit 1
 fi
 case "$mode" in
   check)
-    echo "Source preview: ./setup.sh preview"
-    echo "Source desktop build: ./setup.sh desktop"; exit 0 ;;
+    echo "源码预览：./setup.sh preview"
+    echo "源码构建桌面版：./setup.sh desktop"; exit 0 ;;
   preview|desktop) ;;
-  *) echo "Usage: ./setup.sh [check|preview|desktop]" >&2; exit 1 ;;
+  *) echo "用法：./setup.sh [check|preview|desktop]" >&2; exit 1 ;;
 esac
-command -v node >/dev/null && command -v npm >/dev/null || { echo "Install Node.js 22.20 or newer." >&2; exit 1; }
+command -v node >/dev/null && command -v npm >/dev/null || { echo "请安装 Node.js 22.20 或更新版本。" >&2; exit 1; }
 node -e "const p=process.versions.node.split('.').map(Number);if(p[0]<22||(p[0]===22&&p[1]<20))process.exit(1)" \
-  || { echo "Node.js 22.20 or newer is required." >&2; exit 1; }
+  || { echo "需要 Node.js 22.20 或更新版本。" >&2; exit 1; }
 if [ "$mode" = desktop ] && ! command -v cargo >/dev/null; then
-  echo "Install stable Rust (https://rustup.rs) and, on macOS, the Xcode Command Line Tools (xcode-select --install)." >&2; exit 1
+  echo "请安装稳定版 Rust（https://rustup.rs）；macOS 上还需安装 Xcode Command Line Tools（xcode-select --install）。" >&2; exit 1
 fi
 npm ci
 if [ "$mode" = preview ]; then
-  echo "Opening the report preview. Full terminal and voice features use the desktop app."
+  echo "正在打开报告预览。完整的终端和语音功能请使用桌面应用。"
   exec npm run dev
 fi
 if [ "$(uname)" = Darwin ]; then
   npm run desktop:build -- --bundles app dmg
-  echo "App ready in src-tauri/target/release/bundle/macos (disk image in bundle/dmg)."
-  echo "Drag Mr. Mak Workspace.app to Applications, then double-click 'Start Mr. Mak.command'."
+  echo "应用已生成于 src-tauri/target/release/bundle/macos（磁盘映像位于 bundle/dmg）。"
+  echo "将 Mr. Mak Workspace.app 拖到“应用程序”，然后双击 'Start Mr. Mak.command'。"
 else
   npm run desktop:build:appimage
-  echo "AppImage ready in src-tauri/target/release/bundle/appimage."
+  echo "AppImage 已生成于 src-tauri/target/release/bundle/appimage。"
 fi

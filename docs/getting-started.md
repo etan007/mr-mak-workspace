@@ -1,191 +1,166 @@
-# Getting started
+# 快速开始
 
-Mr. Mak is a local desktop workspace for working with several agents. Its files
-are ordinary project files, and its chats are ordinary CLI sessions. You can
-keep using the same agents outside the app.
+Mr. Mak 是一个用于协同多个代理工作的本地桌面工作区。它的文件就是普通的项目文件，
+它的对话就是普通的 CLI 会话。你可以在应用之外继续使用同样的代理。
 
-**Required before setup: Codex CLI, Claude Code CLI or OpenCode, installed and
-configured with your own account.** Use at least one to guide the setup below.
-The optional voice coordinator requires Codex specifically; Kimi is another
-available terminal integration.
+**配置前必需：已安装 Codex CLI、Claude Code CLI 或 OpenCode，并用你自己的账号
+完成配置。** 至少用其中一个来引导下面的配置。可选的语音协调器必须使用 Codex；
+Kimi 是另一个可用的终端集成。
 
-## Choose a folder
+## 选择文件夹
 
-Create a repository from the GitHub template and clone your copy. The selected
-folder must contain `workspace/workspace.json`. Keep the application source and
-your project content together at first; this makes setup and agent handoffs easy.
-The template has no previous owner's projects, accounts or conversation history.
+用 GitHub 模板创建仓库，并克隆你自己的副本。所选文件夹必须包含
+`workspace/workspace.json`。起初请将应用源码和项目内容放在一起；这样配置和
+代理交接都更简单。模板中不含前任所有者的项目、账号或对话历史。
 
-## Install the desktop app
+## 安装桌面应用
 
-On Windows x64, use the installer in GitHub Releases. It bundles the Node
-runtime and local service and installs for the current Windows user. WebView2
-is installed by its bootstrapper if needed. No administrator terminal is needed
-for ordinary app use.
+在 Windows x64 上，使用 GitHub Releases（发布版本）中的安装程序。它内置 Node
+运行时和本地服务，并为当前 Windows 用户安装。如有需要，其引导程序会安装 WebView2。
+日常使用应用不需要管理员终端。
 
-Run **Start Mr. Mak.cmd** from the cloned folder. The app remembers the selected
-repository. It opens Workspace and Chats as separate windows with separate
-taskbar identities. Closing a chat saves it to History; restoring its full
-conversation also relies on that CLI's native session files.
+在克隆的文件夹中运行 **Start Mr. Mak.cmd**。应用会记住所选仓库。
+它会以两个独立窗口打开工作区和对话，在任务栏中也是两个独立项。关闭对话会将其
+保存到历史；恢复完整对话还依赖该 CLI 的原生会话文件。
 
-## Connect one agent
+## 连接一个代理
 
-Install at least one required CLI using its current official Windows instructions:
+按各 CLI 当前的 Windows 官方说明，至少安装一个必需的 CLI：
 
 - [Codex CLI](https://developers.openai.com/codex/cli)
 - [Claude Code](https://code.claude.com/docs/en/setup)
 - [OpenCode](https://opencode.ai/docs/)
 
-[Kimi Code CLI](https://moonshotai.github.io/kimi-cli/en/) is available as an
-additional terminal integration after the base setup.
+[Kimi Code CLI](https://moonshotai.github.io/kimi-cli/en/) 可在基础配置完成后作为
+额外的终端集成使用。
 
-Finish the CLI's sign-in flow with your own account. In Chats, press **+**, choose
-the provider and a descriptive English title. Start with a task such as
-`Dream Game Plan`. Choose the repository as the working folder. The normal CLI
-permission flow is enabled by default; bypass is a deliberate per-chat choice.
+用你自己的账号完成 CLI 的登录流程。在对话窗口中按 **+**，选择服务商并填写一个
+描述性的英文标题。可以从 `Dream Game Plan` 这样的任务开始。将仓库选为工作文件夹。
+默认启用 CLI 的常规权限确认流程；跳过权限确认需要在每个对话中单独主动选择。
 
-New Codex and Claude chats default to `xhigh` reasoning effort. Saved effort
-choices stay with existing chats. Web links in terminal output open in your
-default browser with a click.
+新建的 Codex 和 Claude 对话默认使用 `xhigh` 推理强度。已保存的推理强度选择
+保留在已有对话中。终端输出中的网页链接点击即可在默认浏览器中打开。
 
-Try: “Read the My Dream Game example and turn it into a small project plan for
-my game. Ask me for the missing game idea before replacing the example.”
+可以试试：“阅读‘我的梦想游戏’示例，把它改写成我这款游戏的小型项目计划。
+在替换示例之前，先问我缺少的游戏创意。”
 
-## Subscriptions, API keys and OpenCode
+## 订阅、API key 与 OpenCode
 
-Claude Code can use a Claude Pro or Max login. Codex can use an eligible ChatGPT
-subscription login. You do not need to add an API key to Mr. Mak for those chats:
-it starts the real installed CLI and keeps its normal authentication and limits.
-See [Claude authentication](https://code.claude.com/docs/en/authentication) and
-[Codex authentication](https://developers.openai.com/codex/auth).
+Claude Code 可以使用 Claude Pro 或 Max 登录。Codex 可以使用符合条件的 ChatGPT
+订阅登录。这些对话无需在 Mr. Mak 中添加 API key：它启动的是真实安装的 CLI，
+沿用其常规认证和额度限制。参见 [Claude 认证](https://code.claude.com/docs/en/authentication) 和
+[Codex 认证](https://developers.openai.com/codex/auth)。
 
-For OpenCode, install and configure it first using its own provider setup. Check
-that `opencode` runs from a terminal, then choose **+ > OpenCode** in Mr. Mak.
-Your chosen provider determines authentication and billing. A native Claude Code
-subscription does not automatically provide access through third-party clients.
+对于 OpenCode，请先按其自身的服务商配置完成安装和配置。确认 `opencode`
+能在终端中运行，然后在 Mr. Mak 中选择 **+ > OpenCode**。认证和计费由你选择的
+服务商决定。原生 Claude Code 订阅不会自动授权第三方客户端访问。
 
-OpenCode chats support History, pinned tabs, files and clipboard screenshots.
-The app observes native session events to keep the correct conversation ID;
-your native OpenCode data must remain available for resume. Keep one conversation
-per Mr. Mak tab. Use a new tab for a new task. OpenCode controls its model and
-reasoning settings. Auto-approve is off by default, and explicit deny rules still
-apply when it is enabled.
+OpenCode 对话支持历史、置顶标签页、文件和剪贴板截图。应用通过监听原生会话事件
+来保持正确的对话 ID；你的原生 OpenCode 数据必须保留，才能继续对话。每个
+Mr. Mak 标签页只保留一个对话。新任务请用新标签页。OpenCode 自行控制模型和
+推理设置。自动批准默认关闭，启用后显式的拒绝规则仍然有效。
 
-OpenCode 1.x and 2.x use different plugin APIs. Mr. Mak selects the corresponding
-small session observer at launch, without writing global configuration. OpenCode
-2.x runs a private server for each terminal so tab histories stay separate.
-The MCP inspector currently lists Claude, Codex, Kimi and Cursor configurations;
-use OpenCode's native MCP controls to inspect its own connections.
+OpenCode 1.x 和 2.x 使用不同的插件 API。Mr. Mak 在启动时选择对应的小型会话观察器，
+不会写入全局配置。OpenCode 2.x 为每个终端运行一个私有服务器，使各标签页的历史互不干扰。
+MCP 检查器目前列出 Claude、Codex、Kimi 和 Cursor 的配置；
+OpenCode 自己的连接请用其原生 MCP 控件查看。
 
-## Explore the examples
+## 浏览示例
 
-The pinned game card is a project hub. Research is a readable report with source
-links. Dev contains this guide and customization ideas. Image Gen shows the
-Arachne design iterations and motion references. All are marked as samples so
-they do not vanish into the time-based archive. Archive them when you no longer
-need them. Archive changes metadata; it does not delete their media files.
+置顶的游戏卡片是项目中心。Research 是一份带来源链接的可读报告。Dev 包含本指南
+和自定义思路。Image Gen 展示 Arachne 的设计迭代和动作参考。它们都被标记为示例，
+不会被按时间自动归档。不再需要时可手动归档。归档只修改元数据，不会删除其媒体文件。
 
-Use Files to inspect `projects`, `inbox`, `knowledge`, `processes` and the skill
-folders. A Markdown file opens in Preview; switch to Edit and Save to change it.
-The Help button opens a quick guide without creating a new chat.
+用“文件”查看 `projects`、`inbox`、`knowledge`、`processes` 和技能文件夹。
+Markdown 文件会以预览模式打开；切换到“编辑”并“保存”即可修改。
+“帮助”按钮会打开快速指南，不会新建对话。
 
-## Optional voice
+## 可选语音
 
-Copy `.env.example` to `.env` and add your own `OPENAI_API_KEY` to enable the
-OpenAI Live connection. Never commit that file. Sign in to Codex for the
-coordinator. Its model follows your account configuration; an optional
-`MRMAK_COORDINATOR_MODEL` overrides it. Model access depends on your account.
+将 `.env.example` 复制为 `.env`，填入你自己的 `OPENAI_API_KEY`，即可启用
+OpenAI Live 连接。切勿提交该文件。语音协调器需要登录 Codex。其模型跟随你的
+账号配置；可选的 `MRMAK_COORDINATOR_MODEL` 可覆盖它。可用模型取决于你的账号。
 
-Voice requests can focus a chat, inspect a report, update a card or hand a larger
-task to a worker. Direct actions stay quick; a visible worker handles deliverables.
-Task-specific voice requests can use medium, high or xhigh effort. A direct
-request to open a new chat uses the same `xhigh` default as the **+** button.
-Max requires an explicit request. The app reports tool results before calling
-an action complete.
+语音请求可以聚焦某个对话、查看报告、更新卡片，或将较大的任务交给工作代理。
+直接操作响应迅速；交付物由一个可见的工作代理处理。针对具体任务的语音请求可使用
+medium、high 或 xhigh 推理强度。直接请求新建对话时，使用与 **+** 按钮相同的
+`xhigh` 默认值。Max 需要明确要求。应用会先报告工具结果，再宣布操作完成。
 
-CLI account billing and OpenAI voice API billing are separate. No API generation
-is needed to browse the samples or use a signed-in CLI. Optional dictation into
-terminals is described in [voice dictation](../knowledge/voice-dictation.md).
+CLI 账号计费与 OpenAI 语音 API 计费相互独立。浏览示例或使用已登录的 CLI 不需要
+调用 API 生成。向终端进行可选语音听写的说明见[语音听写](../knowledge/voice-dictation.md)。
 
 ## macOS
 
-There is no prebuilt Mac download; build the app once from source (about five
-minutes). Install Node.js 22.20+, [Rust](https://rustup.rs) and the Xcode
-Command Line Tools (`xcode-select --install`), then run:
+没有预构建的 Mac 下载包；需从源码构建一次（约五分钟）。安装 Node.js 22.20+、
+[Rust](https://rustup.rs) 和 Xcode Command Line Tools（`xcode-select --install`），
+然后运行：
 
 ```bash
 ./setup.sh check      # report prerequisites
 ./setup.sh desktop    # build Mr. Mak Workspace.app and a .dmg
 ```
 
-Drag `src-tauri/target/release/bundle/macos/Mr. Mak Workspace.app` to
-Applications and double-click **Start Mr. Mak.command** in the cloned folder.
-The build bundles a self-contained Node runtime, so a Homebrew Node is fine.
-The app is not signed: the first time, right-click it and choose Open.
+将 `src-tauri/target/release/bundle/macos/Mr. Mak Workspace.app` 拖到
+“应用程序”，然后在克隆的文件夹中双击 **Start Mr. Mak.command**。
+构建产物内置独立的 Node 运行时，因此使用 Homebrew 安装的 Node 也没问题。
+应用未签名：首次打开时，右键点击它并选择“打开”。
 
-Differences from Windows:
+与 Windows 的差异：
 
-- Shortcuts use ⌘ instead of Ctrl (⌘⇧T new chat, ⌘⇧P find, ⌘⇧H history,
-  ⌘1–9 switch chats, also in the Chats menu; Ctrl+Tab still cycles). In terminals ⌘C/⌘V copy and paste,
-  and Ctrl+C reaches the CLI as in Terminal.app.
-- Settings > Shortcut: **⌃⌥Space** brings back the windows from any app (the
-  Win-key equivalent). Clicking the Dock icon also restores closed windows.
-- Both windows share one Dock icon; the menu-bar icon offers Show Workspace,
-  Show Chats and Quit.
-- The first voice recording asks for microphone access.
-- `./scripts/check-macos-native.sh` checks the native parts (menus, shortcuts,
-  Dock reopen, ⌃⌥Space) through Accessibility; it needs the screen for ~30 s.
+- 快捷键用 ⌘ 代替 Ctrl（⌘⇧T 新建对话，⌘⇧P 查找，⌘⇧H 历史，
+  ⌘1–9 切换对话，也可在“对话”菜单中找到；Ctrl+Tab 仍可循环切换）。在终端中 ⌘C/⌘V 复制和粘贴，
+  Ctrl+C 会像在 Terminal.app 中一样传给 CLI。
+- 设置 > 快捷键：**⌃⌥Space** 可从任意应用唤回窗口（相当于 Windows 上的
+  Win 键组合）。点击 Dock 图标也会恢复已关闭的窗口。
+- 两个窗口共用一个 Dock 图标；菜单栏图标提供“显示工作区”、“显示对话”和“退出”。
+- 首次录音时会请求麦克风权限。
+- `./scripts/check-macos-native.sh` 通过辅助功能检查原生部分（菜单、快捷键、
+  Dock 重新打开、⌃⌥Space）；运行期间约 30 秒需要占用屏幕。
 
-Details of the port, verification and known limits: [macOS notes](macos.md).
+移植细节、验证方式和已知限制见 [macOS 说明](macos.md)。
 
-## Build from source
+## 从源码构建
 
-From a fresh clone, `npm ci` installs both the frontend and local desktop
-service dependencies. Then `npm test` runs the service checks; no separate
-service install is needed. If you disable npm lifecycle scripts, run
-`npm --prefix desktop/service ci` explicitly before tests or the service.
+在全新克隆中，`npm ci` 会同时安装前端和本地桌面服务的依赖。之后运行 `npm test`
+执行服务检查；无需单独安装服务。如果禁用了 npm 生命周期脚本，请在运行测试或服务前
+显式执行 `npm --prefix desktop/service ci`。
 
-Install [Node.js](https://nodejs.org/en/download), Rust's MSVC toolchain and
-[Tauri's Windows prerequisites](https://v2.tauri.app/start/prerequisites/#windows):
-Microsoft C++ Build Tools and WebView2. Node.js 22.20+ is required by this template.
+安装 [Node.js](https://nodejs.org/en/download)、Rust 的 MSVC 工具链和
+[Tauri 的 Windows 前置依赖](https://v2.tauri.app/start/prerequisites/#windows)：
+Microsoft C++ Build Tools 和 WebView2。本模板要求 Node.js 22.20+。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Setup.ps1 -Mode Check
 powershell -ExecutionPolicy Bypass -File .\Setup.ps1 -Mode Desktop
 ```
 
-Check only reports prerequisites. Desktop installs project dependencies and
-builds an installer in `src-tauri/target/release/bundle/nsis`. It does not install
-or restart the app for you. An agent should prepare updates, then ask before
-interrupting active chats with an install or restart.
+Check 只报告前置依赖情况。Desktop 安装项目依赖，并在
+`src-tauri/target/release/bundle/nsis` 中构建安装程序。它不会替你安装或重启应用。
+代理应先准备好更新，然后在通过安装或重启打断进行中的对话前征得同意。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Setup.ps1 -Mode Update
 ```
 
-Run Update in a separate Windows PowerShell window opened from Start, outside
-Mr. Mak. An updater inside a managed chat would stop when you quit the app;
-Setup detects that case before building. Update waits for you to quit from the
-tray, checks that the bundled service has exited, installs the build silently
-and opens the same repository again. Finish active chats before quitting.
-The registered installation folder is reused. Pass `-InstallDirectory 'D:\Apps\Mr. Mak Workspace'`
-if you need to choose it explicitly. The update never terminates your chats itself.
+请在 Mr. Mak 之外、从“开始”菜单打开的独立 Windows PowerShell 窗口中运行 Update。
+在受管对话中运行的更新程序会在你退出应用时被终止；Setup 会在构建前检测这种情况。
+Update 会等待你从托盘退出，确认内置服务已退出，静默安装新版本，然后重新打开同一个仓库。
+退出前请先完成进行中的对话。已注册的安装文件夹会被复用。如需显式指定，可传入
+`-InstallDirectory 'D:\Apps\Mr. Mak Workspace'`。更新本身永远不会终止你的对话。
 
-For a report-only browser preview, only Node.js 22.20+ and npm are needed beyond
-the CLI prerequisite above. **Rust, Cargo and C++ Build Tools are not required
-for Preview or the downloaded Windows installer.** They are needed only to
-compile the desktop app from source.
+如果只需要在浏览器中预览报告，除上述 CLI 前置条件外，只需 Node.js 22.20+ 和 npm。
+**Preview 模式和下载的 Windows 安装程序都不需要 Rust、Cargo 和 C++ Build Tools。**
+它们只用于从源码编译桌面应用。
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Setup.ps1 -Mode Preview
 ```
 
-That starts Vite and links `public/workspace` to the real Workspace folder.
-It does not start managed terminals or the voice service.
+这会启动 Vite，并将 `public/workspace` 链接到真实的 Workspace 文件夹。
+它不会启动受管终端或语音服务。
 
-## On another computer
+## 在另一台电脑上
 
-Clone your own repository, install the app, select the folder and sign in to
-your CLIs again. Recreate `.env` locally. Content travels through Git; credentials,
-local app state and native CLI histories do not. A fresh clone cannot recover
-conversations whose native history exists only on the previous computer.
+克隆你自己的仓库，安装应用，选择文件夹，并重新登录各个 CLI。在本地重新创建 `.env`。
+内容通过 Git 同步；凭据、本地应用状态和原生 CLI 历史不会同步。全新克隆无法恢复
+原生历史只存在于之前那台电脑上的对话。

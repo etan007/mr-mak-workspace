@@ -1,382 +1,347 @@
-# Procedural Three.js Object Patterns
+# 程序化 Three.js 物体模式
 
-Use this reference only when implementing a model.
+仅在实现模型时使用此参考。
 
-## Geometry Choices
+## 几何体选择
 
-- box: flat machinery, furniture, panels, blockout masses
-- sphere/ellipsoid: fruit, knobs, organic joints, rounded stones
-- cylinder/cone/capsule: trunks, pipes, limbs, handles, bottles, rockets
-- torus: rings, tires, loops, trim, cable coils
-- shape extrude: logos, flat ornamental plates, blades, keys, leaves
-- lathe: vases, bottles, bowls, lamps, wheels
-- tube along curve: cables, roots, branches, straps, hoses — constant radius, so never for anything
-  that must come to a point
-- tapered-sweep: hair locks, horns, tails, claws, blade tips — anything with a curved spine that
-  narrows to a real point. `rx`/`rz` vary per station and framing uses parallel transport, because
-  `extrudePath`'s Frenet frames flip 180° at an inflection. Prefer this over `tube` whenever the
-  cross-section changes: a lock that does not taper reads as a noodle, and the validator warns when
-  authored stations do not actually taper.
-- instanced mesh: screws, rivets, leaves, needles, scales, pebbles, repeated ornaments
-- plane cards: thin leaves, feathers, labels, cloth strips, decals — needs an alpha texture to read
-  as anything but an opaque rectangle, and this pipeline emits no textures. Rejected outright for
-  hair.
+- box：平面机械、家具、面板、白模体块
+- sphere/ellipsoid：水果、旋钮、有机关节、圆石
+- cylinder/cone/capsule：树干、管道、肢体、把手、瓶子、火箭
+- torus：环、轮胎、圈、装饰边、线缆盘绕
+- shape extrude：标志、扁平装饰板、刀刃、钥匙、叶片
+- lathe：花瓶、瓶子、碗、灯、轮子
+- tube along curve：线缆、根、枝条、带子、软管——半径恒定，因此绝不要用于任何必须收成
+  尖端的东西
+- tapered-sweep：发束、角、尾巴、爪、刀尖——任何带弯曲脊线且收成真正尖端的东西。`rx`/`rz`
+  按截面站点变化，框架使用平行传输，因为 `extrudePath` 的 Frenet 框架会在拐点处翻转 180°。
+  只要横截面会变化，就优先用它而不是 `tube`：不收窄的发束看起来像面条，且当编写的站点并未
+  真正收窄时校验器会发出警告。
+- instanced mesh：螺丝、铆钉、叶子、针叶、鳞片、卵石、重复装饰
+- plane cards：薄叶片、羽毛、标签、布条、贴花——需要 alpha 贴图才不会看起来像不透明的矩形，
+  而本管线不生成贴图。头发直接拒绝使用。
 
-## Material Recipes
+## 材质配方
 
-- wood: brown base, vertical grain normal, roughness variation, darker creases, lighter worn edges
-- stone: mottled albedo, high roughness, bump/normal noise, lichen/dirt patches
-- metal: lower roughness, metalness, edge scratches, anisotropic-looking streaks via texture
-- plastic: controlled roughness, subtle color variation, bevels to catch highlights
-- leaf/plant: alpha cards or thin shape geometry, green hue variation, central vein, translucent-ish bright rim
-- water/glass: transparent material only if needed; add environment/reflection cues or it reads as a flat sheet
+- wood：棕色底色、竖向木纹法线、粗糙度变化、较暗的褶皱、较亮的磨损边缘
+- stone：斑驳的反照率、高粗糙度、凹凸/法线噪声、地衣/污垢斑块
+- metal：较低粗糙度、金属度、边缘划痕、通过贴图实现类似各向异性的条纹
+- plastic：受控的粗糙度、细微的颜色变化、用倒角捕捉高光
+- leaf/plant：alpha 卡片或薄形状几何体、绿色色相变化、中央叶脉、略带透光感的明亮边缘
+- water/glass：仅在需要时使用透明材质；添加环境/反射线索，否则看起来像一张平板
 
-## Material Layer Fields
+## 材质层字段
 
-For each material, prefer a layered description:
+每种材质优先采用分层描述：
 
-- `baseColor`: dominant sampled color.
-- `colorVariation`: palette, mottling pattern, amplitude, regional masks.
-- `roughness`: base value, variation amount, map/pattern source.
-- `metalness`: base value and local changes.
-- `normal`: procedural pattern, strength, scale.
-- `bump`: amplitude and scale for small tactile relief.
-- `displacement`: only for silhouette-visible or close-up relief.
-- `wear`: edge wear, scratches, chips, polish, exposed underlayer.
-- `dirt`: amount, cavity bias, color, vertical streaking, contact staining.
-- `localOverrides`: named regions where color/roughness/bump differs from the base.
+- `baseColor`：采样得到的主色。
+- `colorVariation`：调色板、斑驳图案、幅度、区域遮罩。
+- `roughness`：基础值、变化量、贴图/图案来源。
+- `metalness`：基础值与局部变化。
+- `normal`：程序化图案、强度、尺度。
+- `bump`：小型触感浮雕的幅度与尺度。
+- `displacement`：仅用于在轮廓上可见或近景的浮雕。
+- `wear`：边缘磨损、划痕、崩口、抛光、露出的底层。
+- `dirt`：量、凹陷偏向、颜色、竖向流痕、接触污渍。
+- `localOverrides`：颜色/粗糙度/凹凸与基础不同的命名区域。
 
-Local overrides should answer: where, what changes, how strong, and which image evidence supports it.
+局部覆盖应回答：在哪里、改变什么、多强，以及有哪些图像证据支持。
 
-## Local Feature Types
+## 局部特征类型
 
-Use `component.localFeatures` for details that matter to recognizability:
+对影响可辨识度的细节使用 `component.localFeatures`：
 
-- raised ridge
-- recessed groove
-- seam line
-- screw or rivet
-- chip or dent
-- scratch cluster
-- stain or dirt patch
-- decal or label area
-- hole or socket
-- bevel highlight
-- fabric stitch
-- leaf vein or serrated edge
+- 凸起的棱
+- 凹陷的槽
+- 接缝线
+- 螺丝或铆钉
+- 崩口或凹痕
+- 划痕簇
+- 污渍或脏斑
+- 贴花或标签区域
+- 孔或插口
+- 倒角高光
+- 织物缝线
+- 叶脉或锯齿边缘
 
-Each feature should include placement, approximate size, orientation, material effect, geometry effect, and confidence.
+每个特征都应包含位置、近似尺寸、朝向、材质效果、几何效果和置信度。
 
-## Detail Recipes
+## 细节配方
 
-Concrete Three.js material/geometry approach per `detailInventory` kind. Cross-reference
-`grimoire/intake/detail_inventory.md` for the full taxonomy and the evidence/mapping rule.
+按 `detailInventory` 类别给出的具体 Three.js 材质/几何做法。完整分类以及证据/映射规则见
+`grimoire/intake/detail_inventory.md`。
 
-- gloss: `MeshPhysicalMaterial` with a low-`roughness` localOverride (0.05-0.2) sized to the
-  hotspot region; use `clearcoat`/`clearcoatRoughness` for a lacquer layer over a rougher
-  base, `anisotropy`/`anisotropyRotation` for brushed/streaked highlights.
-- bevel: real geometry, not a normal map - `edgeTreatment.type = chamfer`, `bevelRadius`
-  object-relative (0.02-0.08), `segments` 2-4 for a soft catch-light rim, 1 for a hard edge.
-- fastener: `InstancedMesh` for the repeated part; `count` + spacing pattern (linear, radial,
-  grid) + head shape (hemisphere/flat/hex) + recess (raised vs countersunk); low-roughness
-  metal material on the head crown.
-- linework: pick engraved groove (real recessed geometry along a path, catches shadow),
-  painted line/decal (canvas-texture localOverride, color contrast only, no relief), or
-  panel-line (thin dark AO/roughness localOverride along a seam, no depth) - match whichever
-  the reference evidence shows; do not default to decal for something that casts a shadow.
-- stain: `material.localOverrides` region with `dirtAmount`, `cavityBias` (concentrate in
-  crevices), `streak` (directional, usually gravity-down), `patinaColor` for oxidation hue
-  shift, or a `fadedMask` (lighter, desaturated) for sun-bleaching - the inverse of dirt.
+- gloss：使用 `MeshPhysicalMaterial`，配合按高光区域大小设置的低 `roughness` localOverride
+  （0.05-0.2）；在较粗糙底层上的漆面层用 `clearcoat`/`clearcoatRoughness`，拉丝/条纹高光用
+  `anisotropy`/`anisotropyRotation`。
+- bevel：用真实几何体，而不是法线贴图——`edgeTreatment.type = chamfer`，`bevelRadius`
+  相对物体尺寸（0.02-0.08），柔和的受光边缘用 `segments` 2-4，硬边用 1。
+- fastener：重复部件用 `InstancedMesh`；`count` + 间距模式（线性、径向、网格）+ 头部形状
+  （半球/平头/六角）+ 凹陷方式（凸起 vs 沉头）；头部顶面用低粗糙度金属材质。
+- linework：在雕刻槽（沿路径的真实凹陷几何，会接收阴影）、绘制线条/贴花（canvas 贴图
+  localOverride，只有颜色对比，没有浮雕）或面板线（沿接缝的细暗 AO/粗糙度 localOverride，
+  没有深度）中选择——与参考证据所示的一致；不要把会投下阴影的东西默认做成贴花。
+- stain：`material.localOverrides` 区域，配合 `dirtAmount`、`cavityBias`（集中在缝隙中）、
+  `streak`（有方向，通常沿重力向下）、用于氧化色相偏移的 `patinaColor`，或用于日晒褪色的
+  `fadedMask`（更亮、去饱和）——即污垢的反面。
 
-## Character Geometry And Material Recipes
+## 角色几何与材质配方
 
-Use these when `objectClass.primaryDomain` is `character` or `hybrid`. Pair with
-`grimoire/character/reconstruction.md` for proportion/landmark data.
+当 `objectClass.primaryDomain` 为 `character` 或 `hybrid` 时使用这些配方。比例/特征点数据
+配合 `grimoire/character/reconstruction.md` 使用。
 
-- head: sphere or ellipsoid scaled to the measured head-unit, then displaced/tapered toward
-  the reference face shape (jaw width, chin point, cheek fullness) rather than left spherical.
-- limbs: capsule or tapered cylinder per segment (upper arm, forearm, thigh, shin); taper
-  ratio and length come from `anatomy.proportions`; capsules keep joints visually continuous.
-- hands: simplified capsule-cluster (palm block + finger capsules) at low segment count;
-  do not attempt per-knuckle detail unless the reference is close-up and complexity is ultra.
-- hair: hair cards (alpha-mapped planes layered in clumps) for stylized/low-complexity, or a
-  tube-along-curve per lock for wavy/flowing hair with visible strand structure; prefer cards
-  by default - hair is the classic single-image failure mode, so favor legible clumps over
-  many thin strands that swim or alias.
-- face feature placement: position eyes, brows, nose, mouth using `anatomy.faceLandmarks`
-  normalized coordinates (eyeLine, eyeSpacing, noseBase, mouthLine, hairline); never eyeball
-  placement freehand once landmarks exist.
-- eyes: glossy sphere (low roughness, slight clearcoat) plus an iris decal/texture; a correct
-  catchlight (small bright localOverride matching the key light) sells more realism than
-  extra geometry.
-- clothing: extrude or plane panels per garment piece, with fold normals (a normal-map or
-  displacement pattern following expected gravity/pose creases) rather than a flat shell;
-  reuse Track A detail machinery (seam, stitch, decal, stain) for prints, buttons, wear.
-- skin: approximate subsurface scattering, not true SSS - warm base albedo, soft/lower
-  roughness variation (skin is not uniformly matte), and a rim or backlight to fake light
-  passing through thin tissue (ears, nose edge). Avoid pure-Lambertian flat skin.
+- head：将 sphere 或 ellipsoid 缩放到测得的头部单位，然后朝参考脸型（下颌宽度、下巴尖、
+  脸颊饱满度）进行置换/收窄，而不是保持球形。
+- limbs：每段（上臂、前臂、大腿、小腿）用 capsule 或渐细的 cylinder；收窄比例和长度来自
+  `anatomy.proportions`；capsule 能让关节在视觉上保持连续。
+- hands：低段数的简化胶囊簇（掌块 + 手指胶囊）；除非参考是近景且复杂度为 ultra，否则不要
+  尝试做每个指关节的细节。
+- hair：风格化/低复杂度用发片（分簇叠放的 alpha 贴图平面），有可见发丝结构的波浪/飘逸头发
+  每束用 tube-along-curve；默认优先发片——头发是单图重建的典型失败点，因此宁可用清晰可读的
+  发簇，也不要用大量会游动或产生锯齿的细发丝。
+- 面部特征定位：使用 `anatomy.faceLandmarks` 的归一化坐标（eyeLine、eyeSpacing、noseBase、
+  mouthLine、hairline）放置眼睛、眉毛、鼻子、嘴；一旦有了特征点，就绝不要凭目测徒手放置。
+- eyes：光亮球体（低粗糙度、少量 clearcoat）加虹膜贴花/贴图；正确的眼神光（与主光匹配的
+  小块明亮 localOverride）比额外几何更能提升真实感。
+- clothing：每块衣片用 extrude 或平面面板，带褶皱法线（沿预期重力/姿态折痕的法线贴图或
+  置换图案），而不是平板外壳；印花、纽扣、磨损复用 Track A 的细节机制（seam、stitch、decal、
+  stain）。
+- skin：近似次表面散射，而非真正的 SSS——温暖的底色反照率、柔和/较低的粗糙度变化（皮肤并非
+  均匀哑光），以及边缘光或背光来模拟光线穿过薄组织（耳朵、鼻缘）。避免纯 Lambert 的平面
+  皮肤。
 
-## Verification Cues
+## 验证线索
 
-A procedural object is usually failing when:
+程序化物体通常在以下情况下是失败的：
 
-- silhouette reads wrong even before material
-- every edge is perfectly sharp or perfectly smooth
-- material has one flat color and no roughness variation
-- lighting hides the form instead of explaining it
-- repeated details are too evenly spaced
-- close-up details add triangles but not recognizability
+- 还没上材质轮廓就已经不对
+- 所有边缘都完全锐利或完全平滑
+- 材质只有一种平涂颜色，没有粗糙度变化
+- 光照遮掩了形体，而不是解释形体
+- 重复细节间距过于均匀
+- 近景细节增加了三角形，却没有提升可辨识度
 
 ---
 
-## Hard-won patterns — real-object reconstructions (2026-07: BMX bike + M9 bayonet)
+## 来之不易的模式——真实物体重建（2026-07：BMX 自行车 + M9 刺刀）
 
-**Tube-network > single sweep for framed/tubular subjects.** A bike frame, knife-handle grip, fork, handlebar are *networks of straight members*. Model each member as a component with `attachment.localStart`/`localEnd` (+`baseRadius`) — the generator emits an oriented cylinder (quaternion Y→dir). A single closed `curve-sweep` CatmullRom-smooths into a teardrop blob. (BMX frame was a teardrop until rebuilt as a tube-network.)
+**框架/管状对象用管网，胜过单一扫掠。** 自行车车架、刀柄握把、前叉、车把都是*直构件组成的网络*。把每个构件建模为一个组件，带 `attachment.localStart`/`localEnd`（+`baseRadius`）——生成器会生成一个有朝向的圆柱（quaternion Y→dir）。单条闭合 `curve-sweep` 会被 CatmullRom 平滑成泪滴状团块。（BMX 车架在重建为管网之前一直是泪滴形。）
 
-**Blockout must contain every silhouette-defining macro part.** A bike blockout with the frame but no wheels does not read as a bike, and coarse silhouette-IoU won't catch the omission. Put wheels/blade/major masses in at `level: macro`.
+**白模必须包含所有决定轮廓的宏观部件。** 有车架却没有车轮的自行车白模看起来不像自行车，而粗略的轮廓 IoU 发现不了这一遗漏。在 `level: macro` 就放入车轮/刀刃/主要体块。
 
-**Root/container `transform.scale` MUST be `[1,1,1]`.** Children parent to the root node and inherit its transform — a `0.02` "hide" scale shrinks the whole model to a speck. Hide the container with a transparent material (`opacity:0`), never with scale.
+**根/容器的 `transform.scale` 必须是 `[1,1,1]`。** 子节点挂在根节点下并继承其变换——用 `0.02` 缩放来"隐藏"会把整个模型缩成一个点。用透明材质（`opacity:0`）隐藏容器，绝不要用缩放。
 
-**Cloned components inherit `actionProfile.animationRole` — reset it.** Cloning a seeded root carries `animationRole:"root"`, and `root` ∈ ATTACHMENT_ROLES, so every part trips the structural attachment gate. Set a sensible per-part `animationRole` (e.g. `"static-part"`); keep roles like `handle` off non-appendage parts.
+**克隆的组件会继承 `actionProfile.animationRole`——要重置它。** 克隆一个已初始化的根会带上 `animationRole:"root"`，而 `root` ∈ ATTACHMENT_ROLES，于是每个部件都会触发结构附着门禁。为每个部件设置合理的 `animationRole`（如 `"static-part"`）；不要把 `handle` 这类角色放在非附肢部件上。
 
-**Curve the small details.** Serrations/scallops/teeth as straight boxes look wrong. Use `ellipsoid` (or slightly canted primitives, alternating ±angle) for rounded scallop teeth. Each detail with its own small cant reads as a hand-ground edge.
+**让小细节带弧度。** 用直方块做锯齿/扇贝边/齿看起来不对。圆润的扇贝齿用 `ellipsoid`（或略微倾斜、正负角度交替的基本体）。每个细节各自带一点小倾角，看起来就像手工磨出的刃口。
 
-**Grip / friction texture = geometric ridge segments.** For a knurled/wrapped/segmented grip, model raised barrel bands: a thin core cylinder + N short attachment-tube segments (radius just *proud* of the core, small groove gaps). Size them barely larger than the core — oversized tori read as a coil/spring, not a grip. Material texture alone (no geometry) reads as smooth and coarse at once.
+**握把/防滑纹理 = 几何棱段。** 对滚花/缠绕/分段握把，建模凸起的环带：一根细芯圆柱 + N 段短的附着管段（半径刚好*略高于*芯体，留小凹槽间隙）。尺寸只比芯体稍大——过大的圆环看起来像线圈/弹簧，而不是握把。只靠材质纹理（没有几何）会同时显得既光滑又粗糙。
 
-**`invisibleRoot`/container material is still subject to the material-pass PBR gate.** Give the container a *complete* material (roughness map, frequency bands, textureResolution) — copy a proven one — or it fails "needs usable referencePbr / roughness map" even though it never renders.
+**`invisibleRoot`/容器材质仍受材质阶段 PBR 门禁约束。** 给容器一个*完整*的材质（粗糙度贴图、频段、textureResolution）——复制一个验证过的——否则即使它从不渲染，也会因"needs usable referencePbr / roughness map"而失败。
 
 ---
 
-## Critical Reconstruction Patterns (from Bowie Knife reconstruction failure analysis)
+## 关键重建模式（来自 Bowie 刀重建失败分析）
 
-### Failure record: Classic Fade projection passed as structure
+### 失败记录：Classic Fade 投影被当作结构通过
 
-The Classic Fade incident exposed open card meshes, constant blade stock, and seams
-below the documented overlap. Portable gates now enforce mesh boundaries, seam
-overlap, blade grind/distal taper, map-stripped blockout evidence, and ordered pass
-credit so each failure is visible at the pass that owns it.
+Classic Fade 事件暴露了开放的卡片网格、恒定厚度的刀身坯料，以及低于文档规定重叠量的接缝。
+可移植的门禁现在会强制检查网格边界、接缝重叠、刀刃研磨/远端收窄、去贴图后的白模证据以及
+按顺序的阶段计分，使每个失败都在负责它的阶段暴露出来。
 
-**Blades need a real grind, not constant thickness.** A constant-thickness slab reads as a toy cutout even with perfect silhouette. Model a wedge cross-section tapering to a sharp cutting edge using a grind function:
-- For each point on the blade surface, compute height ratio from cutting edge (0) to spine (1)
-- Apply a grind curve (smoothstep or power function) to taper thickness: full stock at spine, zero at edge
-- For clip-point blades, also thin the false edge near the tip
-- Implementation example: Z-warp the projected face plates via a `grindWarp` function that applies `halfThk * grind(height)` per vertex
+**刀刃需要真实的研磨，而不是恒定厚度。** 即使轮廓完美，恒定厚度的板也看起来像玩具剪纸。用研磨函数建模一个收窄到锋利刃口的楔形截面：
+- 对刀刃表面上的每个点，计算从刃口（0）到刀脊（1）的高度比例
+- 应用研磨曲线（smoothstep 或幂函数）收窄厚度：刀脊处为完整坯料厚度，刃口处为零
+- 对 clip-point 刀刃，还要在刀尖附近削薄假刃
+- 实现示例：通过 `grindWarp` 函数对投影面板做 Z 向变形，每个顶点应用 `halfThk * grind(height)`
 
-**Do NOT eyeball proportions — extract 1-to-1 from reference.** Eyeballed shapes (guard, pommel, curves) are consistently wrong. Instead:
-- Trace each part's exact outline from the reference image (foreground / colour-masked top & bottom per image column)
-- Use a fixed image→world mapping function: `X = (nx - 0.5) * SX`, `Y = (CY - ny) * SY` (adjust SX, SY, CY to your reference dimensions)
-- Sample exact colours as RGB medians from reference regions, never guess visually
-- Store traced points as coordinate arrays (world space) and use them directly in Shape constructors
-- For smooth curves, use `splineThru` through traced points rather than manual control point tuning
+**不要目测比例——从参考中 1:1 提取。** 目测的形状（护手、柄头、曲线）总是错的。应当：
+- 从参考图中描出每个部件的精确轮廓（逐图像列提取前景/颜色遮罩的上下边界）
+- 使用固定的图像→世界映射函数：`X = (nx - 0.5) * SX`、`Y = (CY - ny) * SY`（根据参考尺寸调整 SX、SY、CY）
+- 从参考区域采样 RGB 中位数作为精确颜色，绝不凭视觉猜测
+- 将描出的点存为坐标数组（世界空间），并直接用于 Shape 构造函数
+- 平滑曲线用 `splineThru` 穿过描出的点，而不是手动调控制点
 
-**Colours: sample, don't guess.** Visual colour estimation is unreliable. For each material:
-- Sample RGB median values from reference regions using image analysis tools
-- Convert RGB (0-255) to hex: `0xRRGGBB` where each component is in hex
-- Example from Bowie: guard gunmetal (71,74,79) → 0x474a4f, handle gray (140,148,158) → 0x8c949e
-- Store these sampled values in comments for traceability and verification
+**颜色：采样，不要猜。** 目测颜色不可靠。对每种材质：
+- 用图像分析工具从参考区域采样 RGB 中位数
+- 将 RGB（0-255）转为十六进制：`0xRRGGBB`，每个分量为十六进制
+- Bowie 示例：护手枪灰色 (71,74,79) → 0x474a4f，握把灰色 (140,148,158) → 0x8c949e
+- 将这些采样值写在注释中，便于追溯和验证
 
-**Parts must physically connect, not just be near each other.** Adjacent components must overlap at their shared seam:
-- Check XY overlap between adjacent components (e.g., guard ↔ handle, blade ↔ guard)
-- Example bug: guard ended at X=-0.20, handle started at X=-0.42 → gap → "floating" appearance
-- Fix: extend one or both shapes so they overlap by at least 0.02-0.05 world units at the seam
-- Verify overlap by checking that `partA.end >= partB.start` for each axis where they meet
+**部件必须物理连接，而不只是彼此靠近。** 相邻组件必须在共享接缝处重叠：
+- 检查相邻组件之间的 XY 重叠（如护手 ↔ 握把、刀刃 ↔ 护手）
+- 缺陷示例：护手止于 X=-0.20，握把起于 X=-0.42 → 有间隙 → 看起来"悬浮"
+- 修复：延长一个或两个形状，使它们在接缝处至少重叠 0.02-0.05 世界单位
+- 对每个相接的轴，检查 `partA.end >= partB.start` 来验证重叠
 
-### Failure record: Glock-18 Ghost Protocol — separable parts, still 2.5D (2026-07)
+### 失败记录：Glock-18 Ghost Protocol——部件可分离，仍是 2.5D（2026-07）
 
-The build scored 0.986 silhouette IoU on both references, matched 6 of 8 colour zones to
-within ±3.3 counts, held across five non-degenerate orbit views — and still read as "just a
-projection" to the user. Every gate passed because **no gate measures cross-section**.
+这次构建在两张参考上都得到 0.986 的轮廓 IoU，8 个颜色区中有 6 个误差在 ±3.3 计数以内，
+在五个非退化环绕视图中都成立——但用户看来仍"只是一个投影"。所有门禁都通过了，因为
+**没有任何门禁测量横截面**。
 
-**The distinctZ test — run it before declaring a pass.** For each mesh, count the distinct
-Z values its vertices take (rounded to ~1e-3). A planar extrusion with a bevel lands on
-6–10 planes no matter how many triangles it has; a genuinely revolved or lofted part lands
-on 11+. On the Glock: slide 856 tris / **10** planes, frame 4900 tris / **10**, magazine 876 /
-**10**, trigger 476 / **10** — while barrel 57 tris / **15**, bore 49 / **13** were the only parts
-that read as real. Triangle count is not evidence of form; plane count is.
+**distinctZ 测试——宣布通过前先跑它。** 对每个网格，统计其顶点取到的不同 Z 值数量
+（舍入到约 1e-3）。带倒角的平面挤出不管有多少三角形，都只落在 6–10 个平面上；真正旋转或
+放样的部件会落在 11 个以上。Glock 上：套筒 856 三角形 / **10** 个平面，框架 4900 三角形 / **10**，
+弹匣 876 / **10**，扳机 476 / **10**——而枪管 57 三角形 / **15**、膛孔 49 / **13** 是唯一看起来
+真实的部件。三角形数量不是形体的证据；平面数量才是。
 
     zs = set(); for i in range(pos.count): zs.add(round(pos.getZ(i), 3))
     # <= 10 on a part that should have a profile  =>  it is a slab, not a solid
 
-**A high silhouette IoU actively hides this.** IoU is computed from the broadside view, which
-is exactly the view a flat extrusion nails perfectly. The tell-tales are elsewhere:
-- top-down / muzzle-on render is a plain rectangle with no interior modelling
-- an axis-aligned cross-section render shows constant width top to bottom
-- the object looks right at 0° and progressively more like cardboard as it rotates
+**高轮廓 IoU 反而会掩盖这一点。** IoU 由侧面宽幅视图计算，而这恰恰是平面挤出能完美命中的
+视图。破绽在别处：
+- 俯视/枪口正对渲染是一个没有内部建模的普通矩形
+- 轴对齐横截面渲染显示从上到下宽度恒定
+- 物体在 0° 时看起来正确，旋转越多越像纸板
 
-**"Separable" and "3D" are different properties — do not conflate them.** The Glock had 29
-named meshes in 4 pivot groups, every one explodable and addressable via `sculptRuntime.nodes`.
-Separation was perfect. That bought nothing, because each separated part was itself a slab.
-When a user says details look fake, audit cross-section first, part hierarchy second.
+**"可分离"和"3D"是不同的属性——不要混为一谈。** 这把 Glock 在 4 个枢轴组里有 29 个
+命名网格，每个都可以炸开，并可通过 `sculptRuntime.nodes` 寻址。分离做得完美，但毫无用处，
+因为每个分离出的部件本身都是一块板。当用户说细节看起来假时，先审查横截面，再审查部件层级。
 
-**Internals must be mechanism, not primitives.** Hiding the translucent shell exposed the
-"internals" as an 8-triangle box for the magazine body, an 8-triangle box for the breech, and
-a plain tube for the barrel with no chamber, hood, lug or feed ramp. A shell at transmission
-0.3 over dark internals reveals ~20–30% of them, so placeholder boxes survive every 2D gate
-while contributing nothing but a vague smudge. Either model the mechanism or drop it and say
-the interior is not reconstructed — a box that reads as a box is worse than an honest absence.
+**内部结构必须是机构，而不是基本体。** 隐藏半透明外壳后，"内部结构"暴露为：弹匣主体是
+一个 8 三角形的盒子，枪膛是一个 8 三角形的盒子，枪管是一根普通管子，没有弹膛、枪管罩、
+闭锁凸笋或供弹坡。透射率 0.3 的外壳覆盖在暗色内部结构上只会显露约 20–30%，因此占位盒能
+通过每个 2D 门禁，却只贡献一团模糊的污迹。要么建模机构，要么去掉并说明内部未重建——
+看起来就是盒子的盒子，比坦诚的缺失更糟。
 
-**Watch for `[top, bottom]` where the helper wants `[min, max]`.** A block helper computing
-`y[1] - y[0]` silently accepts a negative height and produces an inside-out mesh with flipped
-normals. It renders — you see the far interior wall — so it never throws and never fails a
-colour gate. Assert `y[1] > y[0]` in the helper.
+**注意辅助函数要 `[min, max]` 时却传了 `[top, bottom]`。** 计算 `y[1] - y[0]` 的方块辅助
+函数会默默接受负高度，生成法线翻转、内外颠倒的网格。它能渲染——你看到的是远处的内壁——
+所以它从不抛错，也从不会让颜色门禁失败。在辅助函数中断言 `y[1] > y[0]`。
 
-**Projection core poke-through prevention.** When using photo-projected face plates over a solid core:
-- A solid core behind photo-projected face plates bleeds onto the blade face in the grind-transition band
-- Keep the core a thin spine rail (top ~18% of blade height) raised well above the red/black boundary
-- Translate the core to sit safely inside the plates: `translate(0, 0, -HALF * 0.525)` for ±0.021 plates
-- Ensure the core never reaches the red/black boundary or the grind zone so it never shows on the blade face
+**防止投影芯体穿出。** 在实心芯体上使用照片投影面板时：
+- 照片投影面板后的实心芯体会在研磨过渡带渗到刀面上
+- 让芯体保持为细的刀脊轨（刀刃高度的顶部约 18%），并抬高到远离红/黑分界线的位置
+- 平移芯体，使其安全地位于面板内部：对 ±0.021 面板使用 `translate(0, 0, -HALF * 0.525)`
+- 确保芯体绝不触及红/黑分界线或研磨区，使其永不出现在刀面上
 
-### Fix record: the variable-thickness loft that fixed it (2026-07)
+### 修复记录：修好它的变厚度放样（2026-07）
 
-The repair for the 2.5D failure above. Replace `ExtrudeGeometry` with a loft: sweep the traced
-outline through ~11 rings whose Z is `t * halfWidth(x, y)`, where `halfWidth` is a hand-authored
-field naming each anatomical feature (dust cover thinner than receiver, palm swell, raised grip
-panel plateau, slide-deck break, magazine floorplate flare). Groups come back as +Z cap / -Z cap /
-walls, so each broad face keeps its own reference projection. Result on the Glock: distinct-Z per
-shell went 10 → 693 (frame) / 363 (slide) / 231 (magazine) with silhouette IoU held at 0.985.
+针对上述 2.5D 失败的修复。用放样替换 `ExtrudeGeometry`：让描出的轮廓扫过约 11 个环，
+每个环的 Z 为 `t * halfWidth(x, y)`，其中 `halfWidth` 是一个手工编写、逐一命名各解剖特征的
+场（防尘盖比机匣薄、掌部隆起、凸起的握把面板平台、套筒台面转折、弹匣底板外扩）。分组结果为
++Z 端盖 / -Z 端盖 / 侧壁，因此每个大面都保有自己的参考投影。Glock 上的结果：每个外壳的
+distinct-Z 从 10 → 693（框架）/ 363（套筒）/ 231（弹匣），轮廓 IoU 保持在 0.985。
 
-Four traps, each of which cost a debugging cycle:
+四个陷阱，每个都花了一轮调试：
 
-1. **The cap has no interior vertices.** `ShapeUtils.triangulateShape` puts vertices only on the
-   outline, so a swell in the MIDDLE of a part has nothing to displace and collapses to flat
-   facets. Subdivide cap triangles 4-way and re-sample the field at each new interior vertex.
-   Midpoints landing on a boundary edge must keep the straight-line interpolation of their
-   parents, or they leave the wall and crack the seam.
-2. **Never take cap normals from the triangulation.** Ear-clipping returns slivers; three nearly
-   collinear samples of a curved field give an averaged normal that swings wildly, and the grip
-   renders as a fan of hard creases radiating across it. Compute the normal analytically from the
-   field gradient (`normalize(-f_x, -f_y, 1) * sign(t)`) for interior vertices only — boundary
-   vertices are shared with the wall and carry the rolled rim. Laplacian relaxation of the mesh is
-   NOT a substitute; it made it worse.
-3. **Roll must be per-vertex, off the LOCAL half-width.** A roll sized off nominal thickness turns
-   a locally slim section (a trigger-guard bow at 58% of the receiver) almost entirely into roll,
-   and it renders as a white tube.
-4. **A sloped cap surface is scored by the BROADSIDE gate, and what it reads is the SLOPE, not the
-   depth.** An over-scaled slide-deck break put that zone +23 luma over the reference. Halving the
-   guard bow's ramp — a steeper slope for a *shallower* waist — took it from +19 to +54. Widen the
-   shoulder to dim it. Sanity-check every new bevel against the reference before keeping it.
+1. **端盖没有内部顶点。** `ShapeUtils.triangulateShape` 只在轮廓上放顶点，所以部件*中间*的
+   隆起没有可置换的东西，会塌成平面小面。把端盖三角形 4 分细分，并在每个新的内部顶点重新
+   采样场。落在边界边上的中点必须保持其父顶点的直线插值，否则它们会离开侧壁、裂开接缝。
+2. **绝不要从三角剖分取端盖法线。** 耳切法会返回细长三角形；曲面场上三个几乎共线的采样点
+   给出的平均法线会剧烈摆动，握把渲染出来就是一扇从中放射的硬折痕。仅对内部顶点，用场梯度
+   解析计算法线（`normalize(-f_x, -f_y, 1) * sign(t)`）——边界顶点与侧壁共享，承载卷边。
+   对网格做 Laplacian 松弛*不能*替代它；那样反而更糟。
+3. **卷边必须逐顶点、基于*局部*半宽计算。** 按名义厚度确定的卷边会把局部较薄的截面（只有
+   机匣 58% 厚的扳机护圈弓）几乎全部变成卷边，渲染出来像一根白管。
+4. **倾斜的端盖表面由*侧面宽幅*门禁打分，它读到的是*斜率*，而不是深度。** 过度缩放的套筒
+   台面转折让该区比参考高 +23 亮度。把护圈弓的坡道减半——为了*更浅*的收腰而用更陡的斜率——
+   使其从 +19 变成 +54。加宽肩部来压暗它。保留每个新倒角之前，都先对照参考做合理性检查。
 
-Measure the baseline before claiming a photometric regression: `git stash` the rewritten factory,
-re-render, diff per zone. Two of eight zones here were genuine regressions; two others were
-pre-existing and the rework improved them.
+在宣称光度回归之前先测基线：`git stash` 重写后的工厂函数，重新渲染，逐区对比。这里八个区中
+有两个是真正的回归；另外两个是原本就存在的，重做反而改善了它们。
 
-### Diagnosis record: the reviewer names the SYMPTOM, not the cause (2026-07)
+### 诊断记录：审查者指出的是*症状*，不是原因（2026-07）
 
-Across three review rounds on the Glock, every reported symptom was real and the stated cause was
-wrong more often than right. Acting on the stated cause would have made the model worse twice.
+在 Glock 的三轮审查中，每个报告的症状都是真实的，而陈述的原因错的次数比对的多。按陈述的
+原因去做，会有两次让模型变得更糟。
 
-| Reported cause | Actual cause |
+| 报告的原因 | 实际原因 |
 | --- | --- |
-| "floating micro-meshes used for serrations — use normal maps instead" | ribs are half-sunk in the shell; the EXPLODE was giving each its own offset and scattering them |
-| "trigger ghost is a projection artefact — apply an isolation mask to the albedo" | the traced guard hole wrapped AROUND the trigger, so the frame carried a solid trigger tongue. Masking the albedo would have changed nothing |
-| "no normal map on the serrations" | there was one, at normalScale 0.42 |
-| "set transmission 0.8 / roughness 0.1" | transmission was solved at 0.3 against the reference; roughness is a per-pixel authored map, not a scalar |
+| "锯齿用的是悬浮的微网格——改用法线贴图" | 棱条一半埋在外壳里；是炸开（EXPLODE）给了每根棱条各自的偏移，把它们打散了 |
+| "扳机幻影是投影伪影——对反照率应用隔离遮罩" | 描出的护圈孔*包住*了扳机，所以框架带着一条实心扳机舌。遮罩反照率什么也改变不了 |
+| "锯齿上没有法线贴图" | 有一张，normalScale 为 0.42 |
+| "设置 transmission 0.8 / roughness 0.1" | transmission 已对照参考求解为 0.3；roughness 是逐像素编写的贴图，不是标量 |
 
-Self-inflicted too: the ejection-port zone was mis-attributed twice (blamed the rib material, then
-the raceway colour — each moved it by ~0.1) before the real cause turned out to be opening the
-slide's underside. **Two failed attributions in a row means stop guessing and run a discriminating
-test.**
+也有自己造成的：抛壳口区域被错误归因了两次（先怪棱条材质，再怪导轨颜色——每次只让它变化
+约 0.1），最后才发现真正原因是打开了套筒底面。**连续两次归因失败，就意味着停止猜测，去跑
+一个能区分原因的测试。**
 
-Four cheap tests that each settled a question in one shot:
+四个廉价测试，每个都一次性解决了一个问题：
 
-- **Flat-material render** — hide everything but the part, swap in `MeshBasicMaterial` with no maps,
-  render. Anything still visible is GEOMETRY, not texture. Settled the trigger ghost instantly.
-- **Axis raycast** — for any "the hole is blocked" report, cast a ray down the axis from outside and
-  print the ordered hit list with object names. It names the blocker. `slide@1.708` ended the
-  guesswork about the bore in one call.
-- **`git stash` the rewrite, re-render** — before conceding a photometric regression, measure the
-  baseline. Half the "regressions" were pre-existing and the rework had improved them.
-- **Bracket the parameter** — change the suspect the WRONG way. If the symptom does not worsen, it is
-  not the cause. Tightening the guard-bow ramp took it +19 → +54, which proved the slope was the
-  driver and pointed at the fix.
+- **平涂材质渲染**——隐藏除该部件外的一切，换成无贴图的 `MeshBasicMaterial`，渲染。仍然可见的
+  一切都是*几何*，不是贴图。立刻解决了扳机幻影问题。
+- **轴向射线投射**——对任何"孔被堵住"的报告，从外部沿轴向投射一条射线，并按顺序打印带物体
+  名称的命中列表。它会指出堵塞物。`slide@1.708` 一次调用就结束了关于膛孔的猜测。
+- **`git stash` 重写，重新渲染**——在承认光度回归之前，先测基线。一半的"回归"原本就存在，
+  而重做改善了它们。
+- **夹逼参数**——把可疑参数往*错误*方向改。如果症状没有变差，它就不是原因。收紧护圈弓的坡道
+  让它从 +19 → +54，证明了斜率才是驱动因素，并指向了修复方法。
 
-### Failure record: a loft's cavities are not all holes (2026-07)
+### 失败记录：放样的空腔并不都是孔（2026-07）
 
-A loft swept along Z has caps at ±Z and WALLS around the XY silhouette. That decides the mechanism:
+沿 Z 扫掠的放样在 ±Z 处有端盖，并围绕 XY 轮廓有*侧壁*。这决定了做法：
 
-- cavity opening along ±Z → a **hole in the outline**
-- cavity opening along any other axis → **missing wall**, a different operation
+- 沿 ±Z 开口的空腔 → **轮廓中的孔**
+- 沿其他任何轴开口的空腔 → **缺失的侧壁**，是另一种操作
 
-The slide's muzzle bore opens along +X and the U-channel opens along -Y, so neither is a hole; both
-needed wall-skipping. Modelled as outline holes they would have been cut on the wrong axis. This is
-usually what a reviewer means by "it is solid / it cannot be assembled".
+套筒的枪口膛孔沿 +X 开口，U 形槽沿 -Y 开口，所以两者都不是孔；两者都需要跳过侧壁。若建模为
+轮廓孔，就会在错误的轴上切开。这通常就是审查者说"它是实心的 / 它无法组装"时的意思。
 
-Negative result worth not repeating: a cavity whose inner surface is a back-faces-only mesh does NOT
-work inside a translucent shell of varying thickness — the magwell attempt ghosted through the grip
-as a grey slab and was reverted. Cutting the mouth is only half the job; the cavity needs a surface
-that stays contained, and a simple inverted box will not.
+值得避免重复的负面结果：内表面是仅背面网格的空腔，在厚度变化的半透明外壳内*不*起作用——
+弹匣井的尝试以一块灰色板的形式透过握把显现出来，已回退。切开开口只是一半工作；空腔还需要一个
+能保持封闭的表面，而简单的翻转盒子做不到。
 
-### Failure record: the trace absorbs adjacent opaque parts (2026-07)
+### 失败记录：描边吸收了相邻的不透明部件（2026-07）
 
-Alpha-tracing a photo where part B is opaque and touches part A gives an A-outline that swallows B
-as a solid tongue. Model B separately as well and the build carries TWO Bs — one real, one fake and
-full-thickness. Here the traced trigger-guard hole wrapped around the trigger, so the frame kept a
-trigger-shaped tongue at full receiver thickness under the real shoe.
+对一张照片做 alpha 描边时，如果部件 B 不透明且与部件 A 接触，得到的 A 轮廓会把 B 作为一条
+实心舌吞进去。如果再单独建模 B，构建中就会有*两个* B——一个真的，一个是全厚度的假的。这里
+描出的扳机护圈孔包住了扳机，所以框架在真实扳机片下保留了一条全机匣厚度的扳机形状舌。
 
-Fix at the trace, never downstream: punch B's footprint out of the mask BEFORE tracing A's holes.
-`build_geo.py` now does this; the guard hole went 114 pts → 75 and every other field in `geo.json`
-stayed byte-identical. Audit for it by rendering each shell alone with a flat material.
+在描边阶段修复，绝不要在下游修：在描 A 的孔*之前*，先把 B 的足迹从遮罩中挖掉。
+`build_geo.py` 现在会这么做；护圈孔从 114 点 → 75，而 `geo.json` 中其他所有字段保持逐字节
+一致。审查方法：用平涂材质单独渲染每个外壳。
 
-**A 2D gate can reward the defect.** Removing the tongue dropped front IoU 0.9855 → 0.9834, because
-the tongue had been padding the silhouette. Do not defend a metric that was earned by wrong
-geometry — report the drop as the correction it is.
+**2D 门禁可能奖励缺陷。** 去掉这条舌使正面 IoU 从 0.9855 → 0.9834，因为这条舌一直在填充轮廓。
+不要为一个靠错误几何换来的指标辩护——把下降如实报告为它本来就是的修正。
 
-### Explode contract: surface detail is not a part
+### 炸开约定：表面细节不是部件
 
-Serrations, stria, inner raceways, port floors and muzzle faces belong TO a part; they are not parts.
-Give them a flag (`userData.explodeWithParent`), parent them to their shell, and have the explode
-skip them so they ride it. Without it a disassembly shatters into a comb of loose slivers and reads
-as broken geometry — which is exactly how it was reported. The corollary is the positive one: a real
-sub-assembly (trigger shoe + safety lever + bar + connector) should move as ONE module, so parent
-those to the shoe and flag them too.
+锯齿、条纹、内导轨、口部底面和枪口端面*属于*某个部件；它们本身不是部件。给它们打上标记
+（`userData.explodeWithParent`），挂到所属外壳下，并让炸开跳过它们，使其随外壳一起移动。否则
+拆解会碎成一排松散的细条，看起来像几何损坏——而它正是这样被报告的。推论则是正面的：真正的
+子组件（扳机片 + 保险杆 + 连杆 + 连接器）应作为*一个*模块移动，因此把它们挂到扳机片下并同样
+打上标记。
 
-### Assembly contract: every model ships explodable and clickable (2026-07)
+### 组装约定：每个模型交付时都可炸开、可点击（2026-07）
 
-Not optional, not one-demo-only. Both are cheap once the naming is right, and together they are the
-only *structural* check in a pipeline whose every other gate scores pixels: a model that can be
-taken apart and clicked part-by-part cannot be one fused mesh wearing a photograph. Build them from
-a single definition of "a part" — if the explode and the picker disagree about what one part is,
-both are wrong.
+这不是可选项，也不是只为某个演示。命名正确后两者都很廉价，而它们合在一起，是一个其余每道
+门禁都按像素打分的管线中唯一的*结构*检查：一个能被拆开、能逐部件点击的模型，不可能是一张
+穿着照片的融合网格。从同一个"部件"定义来构建两者——如果炸开和拾取器对一个部件是什么意见
+不一，两者都错了。
 
-**Naming rules the runtime depends on.** These are the whole contract; get them right and the
-viewer needs no per-demo configuration:
+**运行时依赖的命名规则。** 这些就是全部约定；做对了，查看器就不需要任何按演示的配置：
 
-1. **Name every mesh.** An unnamed mesh cannot be selected, cannot be reported, and explodes on its
-   own. The manifest counts them and the assembly gate warns.
-2. **`userData.explodeWithParent` on surface detail**, as above. It now does double duty: it makes
-   a click on a serration resolve *up* to the comb instead of selecting one sliver.
-3. **A named Group means one of two things**, and the runtime tells them apart by what is inside: a
-   group holding *named parts* is a container/pivot (`slideAssembly`, `triggerPivot`) and is
-   descended through; a group holding *anonymous* meshes is itself the part and travels whole. So a
-   bracket set authored as eight unnamed meshes under `corner-brackets` explodes as one bracket set
-   — what the author meant — instead of bursting into twenty slivers.
-4. **Publish `sculptRuntime.destructionGroups`** when the object has assemblies; the part list
-   groups by it for free.
+1. **为每个网格命名。** 未命名的网格无法被选中、无法被报告，并且会单独炸开。清单会统计它们，
+   组装门禁会发出警告。
+2. **表面细节上设 `userData.explodeWithParent`**，如上。它现在身兼两职：让点击某根锯齿时
+   *向上*解析到整排锯齿，而不是选中单根细条。
+3. **命名的 Group 有两种含义**，运行时根据其内部内容区分：包含*命名部件*的组是容器/枢轴
+   （`slideAssembly`、`triggerPivot`），会被向下遍历；包含*匿名*网格的组本身就是部件，整体移动。
+   因此，在 `corner-brackets` 下以八个未命名网格编写的一组支架会作为一个支架组炸开——这正是
+   作者的本意——而不是爆成二十根细条。
+4. 当物体有组件时，**发布 `sculptRuntime.destructionGroups`**；部件列表会自动按它分组。
 
-**Separation is a layout SCALE, not a uniform push.** Displacing every part the same distance
-outward slides the whole arrangement without opening the gaps between neighbours — parts that
-touched still touch, and are neither readable nor clickable. Scale each part's distance from the
-model centre (≈2×), add a base clearance for parts near the middle where the scaling term vanishes,
-fan concentric stacks (a barrel inside a slide) along the model's THINNEST axis in alternating
-growing steps, then dolly the camera by how much the layout actually grew rather than a fixed guess.
+**分离是布局上的*缩放*，不是统一外推。** 把每个部件向外移动相同距离，只会让整体排布平移，
+而不会拉开相邻部件之间的间隙——原本接触的部件仍然接触，既不可读也不可点击。把每个部件到模型
+中心的距离缩放（约 2×），为靠近中心、缩放项趋于零的部件加一个基础间隙，把同心叠套（套筒里的
+枪管）沿模型*最薄*的轴以交替递增的步长展开，然后按布局实际扩大的程度推拉相机，而不是用固定
+猜测值。
 
-### Assembly gate: `forge/stage4_review/check_part_coverage.py`
+### 组装门禁：`forge/stage4_review/check_part_coverage.py`
 
-Compares the BUILT part tree against the spec's `componentTree`, and the spec against its own
-`detailInventory`. Catches a specified component that was never built, two components fused onto one
-mesh, an inventoried detail that never reached the spec, and meshes belonging to no named part.
-Feed it a manifest dumped from the running page; the script's docstring gives the shape.
+将*构建出的*部件树与 spec 的 `componentTree` 比较，并将 spec 与其自身的 `detailInventory` 比较。
+能发现：已指定但从未构建的组件、被融合到同一网格上的两个组件、已登记但从未进入 spec 的细节，
+以及不属于任何命名部件的网格。给它输入从运行中页面导出的清单；脚本的 docstring 给出了格式。
 
-Two rules it took a wrong pass to learn, both about not punishing correct work:
+有两条规则是走了一次错误阶段才学到的，都是关于不惩罚正确的工作：
 
-- **A missing component whose parent IS built is usually right.** A bevel, a jimping band, a choil
-  is relief cut into the part it belongs to. Report it as a note; reserve failure for an important
-  component whose branch is absent entirely.
-- **"Has children" does not mean "is a container".** In a real spec the blade and the grip are
-  genuine geometry *and* the parents of their own relief features; that rule silently drops the most
-  important components from the check. Only the parentless tree root is a container.
+- **缺失的组件如果其父组件*已*构建，通常是对的。** 倒角、jimping 防滑齿带、刃根凹口（choil）
+  是切入所属部件的浮雕。把它作为备注报告；只有当重要组件的整个分支都缺失时才判定失败。
+- **"有子节点"不等于"是容器"。** 在真实的 spec 中，刀刃和握把既是真正的几何体，*又*是自身
+  浮雕特征的父节点；按那条规则会把最重要的组件默默排除在检查之外。只有没有父节点的树根才是
+  容器。
 
-**Its honest limit:** it compares model → spec → inventory. It cannot invent knowledge intake never
-captured. The Glock-18 fire selector — never observed, never inventoried, never specified — passes
-every check here. Closing *that* gap is the detail inventory's job and the family adapter's job. A
-coverage gate proves you built what you said; it cannot prove you said enough.
+**它的真实局限：** 它比较的是模型 → spec → 清单。它无法凭空产生资料录入阶段从未捕获的信息。
+Glock-18 的射击选择器——从未被观察到、从未被登记、从未被指定——能通过这里的每项检查。填补
+*那个*缺口是细节清单和类别适配器的职责。覆盖率门禁能证明你构建了你所说的；它无法证明你说得
+足够多。

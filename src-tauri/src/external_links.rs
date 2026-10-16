@@ -9,8 +9,8 @@ pub fn open_popup(url: tauri::Url) -> tauri::webview::NewWindowResponse<tauri::W
         std::thread::spawn(move || {
             if let Err(error) = open_browser(&url) {
                 rfd::MessageDialog::new()
-                    .set_title("Could not open your browser")
-                    .set_description(format!("{error}\nCheck the default browser in your system settings."))
+                    .set_title("无法打开浏览器")
+                    .set_description(format!("{error}\n请在系统设置中检查默认浏览器。"))
                     .set_level(rfd::MessageLevel::Error)
                     .show();
             }
@@ -29,7 +29,7 @@ fn open_browser(url: &tauri::Url) -> Result<(), String> {
         let initialized = CoInitializeEx(std::ptr::null(), COINIT_APARTMENTTHREADED as u32);
         let result = ShellExecuteW(std::ptr::null_mut(), verb.as_ptr(), target.as_ptr(), std::ptr::null(), std::ptr::null(), SW_SHOWNORMAL) as isize;
         if initialized >= 0 { CoUninitialize(); }
-        if result > 32 { Ok(()) } else { Err(format!("Windows could not open this web link (code {result}).")) }
+        if result > 32 { Ok(()) } else { Err(format!("Windows 无法打开此网页链接（代码 {result}）。")) }
     }
 }
 
@@ -37,7 +37,7 @@ fn open_browser(url: &tauri::Url) -> Result<(), String> {
 fn open_browser(url: &tauri::Url) -> Result<(), String> {
     use std::process::Command;
     let program = if cfg!(target_os = "macos") { "open" } else { "xdg-open" };
-    Command::new(program).arg(url.as_str()).spawn().map(|_| ()).map_err(|error| format!("Could not start {program}: {error}"))
+    Command::new(program).arg(url.as_str()).spawn().map(|_| ()).map_err(|error| format!("无法启动 {program}：{error}"))
 }
 
 pub fn reveal_path(path: &str) -> Result<(), String> {
@@ -48,17 +48,17 @@ pub fn reveal_path(path: &str) -> Result<(), String> {
     {
         let mut command = Command::new("explorer.exe");
         if target.is_dir() { command.arg(target); } else { command.arg(format!("/select,{}", target.display())); }
-        command.spawn().map(|_| ()).map_err(|error| format!("Could not open Explorer: {error}"))
+        command.spawn().map(|_| ()).map_err(|error| format!("无法打开资源管理器：{error}"))
     }
     #[cfg(not(windows))]
     {
         // Finder can select the file itself; xdg-open can only open its folder.
         if cfg!(target_os = "macos") && !target.is_dir() {
-            return Command::new("open").arg("-R").arg(target).spawn().map(|_| ()).map_err(|error| format!("Could not open Finder: {error}"));
+            return Command::new("open").arg("-R").arg(target).spawn().map(|_| ()).map_err(|error| format!("无法打开访达：{error}"));
         }
         let folder = if target.is_dir() { target } else { target.parent().unwrap_or(target) };
         let program = if cfg!(target_os = "macos") { "open" } else { "xdg-open" };
-        Command::new(program).arg(folder).spawn().map(|_| ()).map_err(|error| format!("Could not start {program}: {error}"))
+        Command::new(program).arg(folder).spawn().map(|_| ()).map_err(|error| format!("无法启动 {program}：{error}"))
     }
 }
 

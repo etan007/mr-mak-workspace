@@ -10,6 +10,6 @@ export const modKey = (event: { ctrlKey: boolean, metaKey: boolean }) => isMac ?
 export const modLabel = isMac ? '⌘' : 'Ctrl+'
 export const shortcutLabel = (keys: string) => isMac ? `⌘${keys.replace(/Shift\+/g, '⇧')}` : `Ctrl+${keys}`
 
-export const fileManager = isMac ? 'Finder' : isWindows ? 'Explorer' : 'the file manager'
-export const trashName = isWindows ? 'Recycle Bin' : 'Trash'
+export const fileManager = isMac ? '访达' : isWindows ? '资源管理器' : '文件管理器'
+export const trashName = isWindows ? '回收站' : '废纸篓'
 export const shellName = isWindows ? 'PowerShell' : 'Shell'

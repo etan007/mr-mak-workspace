@@ -5,12 +5,12 @@ import path from 'node:path';
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const runtime = path.join(repo, '.cache', 'desktop-runtime');
-if (!['win32', 'linux', 'darwin'].includes(process.platform)) throw new Error(`Unsupported desktop platform: ${process.platform}`);
+if (!['win32', 'linux', 'darwin'].includes(process.platform)) throw new Error(`不支持的桌面平台：${process.platform}`);
 // Clear only this generated staging directory, after verifying its resolved path.
 const actualRuntime = await realpath(runtime).catch(() => null);
 if (actualRuntime) {
   const expected = path.join(await realpath(repo), '.cache', 'desktop-runtime');
-  if (actualRuntime.toLowerCase() !== expected.toLowerCase()) throw new Error('Refusing to clear a staging directory outside this repository');
+  if (actualRuntime.toLowerCase() !== expected.toLowerCase()) throw new Error('拒绝清理此仓库之外的暂存目录');
   await rm(actualRuntime, { recursive: true });
 }
 await mkdir(runtime, { recursive: true });
@@ -24,7 +24,7 @@ const run = (args, cwd) => {
   const command = npmScript ? process.execPath : npmCommand;
   const commandArgs = npmScript ? [npmScript, ...args] : args;
   const result = spawnSync(command, commandArgs, { cwd, stdio: 'inherit', windowsHide: true });
-  if (result.error || result.status !== 0) throw new Error(`npm ${args.join(' ')} failed: ${result.error?.message || `exit ${result.status}`}`);
+  if (result.error || result.status !== 0) throw new Error(`npm ${args.join(' ')} 失败：${result.error?.message || `退出码 ${result.status}`}`);
 };
 run(['run', 'build'], repo);
 // Homebrew's node is a small launcher linked to libnode.dylib and cannot run from
@@ -39,19 +39,19 @@ async function portableNode() {
   const binary = path.join(cache, name, 'bin', 'node');
   if (await access(binary).then(() => true, () => false)) return binary;
   const base = `https://nodejs.org/dist/${process.version}`;
-  console.log(`[mak] ${process.execPath} is not self-contained; downloading ${name} from nodejs.org`);
+  console.log(`[mak] ${process.execPath} 不是自包含的 Node；正在从 nodejs.org 下载 ${name}`);
   const sums = await (await fetch(`${base}/SHASUMS256.txt`)).text();
   const expected = sums.split('\n').find(line => line.endsWith(`  ${name}.tar.gz`))?.split(/\s+/)[0];
-  if (!expected) throw new Error(`nodejs.org lists no ${name}.tar.gz`);
+  if (!expected) throw new Error(`nodejs.org 上没有 ${name}.tar.gz`);
   const response = await fetch(`${base}/${name}.tar.gz`);
-  if (!response.ok) throw new Error(`Node download failed: HTTP ${response.status}`);
+  if (!response.ok) throw new Error(`Node 下载失败：HTTP ${response.status}`);
   const archive = Buffer.from(await response.arrayBuffer());
   const { createHash } = await import('node:crypto');
-  if (createHash('sha256').update(archive).digest('hex') !== expected) throw new Error(`Checksum mismatch for ${name}.tar.gz`);
+  if (createHash('sha256').update(archive).digest('hex') !== expected) throw new Error(`${name}.tar.gz 校验和不匹配`);
   await mkdir(cache, { recursive: true });
   await writeFile(path.join(cache, `${name}.tar.gz`), archive);
   const extracted = spawnSync('tar', ['-xzf', path.join(cache, `${name}.tar.gz`), '-C', cache, `${name}/bin/node`], { stdio: 'inherit' });
-  if (extracted.status !== 0) throw new Error(`Could not extract ${name}`);
+  if (extracted.status !== 0) throw new Error(`无法解压 ${name}`);
   await rm(path.join(cache, `${name}.tar.gz`));
   return binary;
 }
@@ -89,8 +89,8 @@ for (const nodeLicense of licenseCandidates) {
 }
 if (!license) {
   const response = await fetch(`https://raw.githubusercontent.com/nodejs/node/${process.version}/LICENSE`);
-  if (!response.ok) throw new Error('Could not retrieve the license for the bundled Node runtime');
+  if (!response.ok) throw new Error('无法获取内置 Node 运行时的许可证');
   license = await response.text();
 }
 await writeFile(path.join(runtime, 'NODE-LICENSE.txt'), license);
-console.log('Desktop runtime prepared: Node, native terminals and production UI.');
+console.log('桌面运行时已准备好：Node、原生终端和生产版 UI。');

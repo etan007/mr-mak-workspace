@@ -1,24 +1,23 @@
-# Authoring a Workspace card
+# 撰写工作区卡片
 
-1. Read the current registry and reuse the relevant project or task card.
-2. Create a dated folder only for a new independent task. Keep sources and
-   output media local to that task or its project folder.
-3. Write the result in English by default. Use stable tab names and relative
-   paths. Keep one main project pinned when it is the user's working hub.
-4. Add the shared report CSS and script; use `data-mak-report="document"`.
-   Markdown requires no HTML wrapper and opens in the formatted document view.
-5. Make every image clickable and downloadable. Videos need native controls.
-   Keep source links near claims and label historical model runs as historical.
-6. Update the registry's `updated` date after meaningful changes. Preserve the
-   original `created` date. Do not mark personal work `sample: true`.
-7. Open every changed tab at wide and narrow widths, test links and media,
-   then report the outcome. A built installer is not an installed update.
+1. 阅读当前注册表，复用相关的项目或任务卡片。
+2. 只为新的独立任务创建带日期的文件夹。源文件和输出媒体放在该任务或其项目文件夹内。
+3. 结果默认用简体中文撰写。使用稳定的标签页名称和相对路径。当某个主项目是用户的
+   工作中心时，保持其置顶。
+4. 加入共享的报告 CSS 和脚本；使用 `data-mak-report="document"`。Markdown 不需要
+   HTML 外壳，会在排版后的文档视图中打开。
+5. 每张图片都可点击并可下载。视频需要原生控件。来源链接放在相关论断附近，历史上的
+   模型运行标注为历史。
+6. 有实质改动后更新注册表的 `updated` 日期。保留原始 `created` 日期。不要把个人
+   工作标记为 `sample: true`。
+7. 在宽、窄两种宽度下打开每个改动过的标签页，测试链接和媒体，然后报告结果。构建出
+   安装程序不等于已安装更新。
 
-New HTML reports can begin with:
+新的 HTML 报告可以这样开头：
 
 ```html
 <!doctype html>
-<html lang="en" data-mak-report="document">
+<html lang="zh-CN" data-mak-report="document">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -31,5 +30,5 @@ New HTML reports can begin with:
 </html>
 ```
 
-The relative paths above assume a folder immediately inside `workspace/`.
-Adjust them for nested reports. All sample pages follow the same shared style.
+上面的相对路径假定文件夹直接位于 `workspace/` 下。嵌套的报告需相应调整。所有示例
+页面都遵循同一套共享样式。

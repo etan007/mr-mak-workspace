@@ -58,7 +58,7 @@ export class Files {
       return { name: entry.name, path: full, directory: info?.isDirectory() || entry.isDirectory(), size: info?.size || 0, modifiedAt: info?.mtime.toISOString() || null };
     }));
     if (atRoot && mode !== 'all') {
-      for (const [name, relative] of [['Claude skills', '.claude/skills'], ['Codex skills', '.agents/skills']]) {
+      for (const [name, relative] of [['Claude 技能', '.claude/skills'], ['Codex 技能', '.agents/skills']]) {
         const full = path.join(this.repo, relative), info = await stat(full).catch(() => null);
         if (info?.isDirectory()) result.push({ name, path: full, directory: true, size: 0, modifiedAt: info.mtime.toISOString() });
       }
@@ -69,26 +69,26 @@ export class Files {
   async preview(file) {
     const actual = await realpath(path.resolve(file));
     const info = await stat(actual);
-    if (!info.isFile()) throw new Error('Choose a file to preview');
+    if (!info.isFile()) throw new Error('请选择要预览的文件');
     const ext = path.extname(actual).toLowerCase();
     const base = { path: actual, name: path.basename(actual), size: info.size };
     if (['.html', '.htm', '.pdf'].includes(ext)) return { ...base, kind: 'document', url: this.url(actual) };
     if (/^image\//.test(mime[ext] || '')) return { ...base, kind: 'image', url: this.url(actual) };
     if (/^(video|audio)\//.test(mime[ext] || '')) return { ...base, kind: mime[ext].split('/')[0], url: this.url(actual) };
     if (textExtensions.has(ext) || info.size === 0 || path.basename(actual).startsWith('.env')) {
-      if (info.size > 2 * 1024 * 1024) return { ...base, kind: 'unsupported', reason: 'This text file is larger than the 2 MB preview limit.' };
+      if (info.size > 2 * 1024 * 1024) return { ...base, kind: 'unsupported', reason: '此文本文件超过 2 MB 预览上限。' };
       const bytes = await readFile(actual);
       return { ...base, kind: 'text', text: bytes.toString('utf8'), ...(ext === '.md' ? { revision: createHash('sha256').update(bytes).digest('hex'), url: this.url(actual) } : {}) };
     }
-    return { ...base, kind: 'unsupported', reason: 'Open this file in its desktop application.' };
+    return { ...base, kind: 'unsupported', reason: '请在对应的桌面应用中打开此文件。' };
   }
   async saveMarkdown({ path: requested, text, revision }) {
-    if (typeof requested !== 'string' || path.extname(requested).toLowerCase() !== '.md' || typeof text !== 'string' || Buffer.byteLength(text) > 2 * 1024 * 1024 || !/^[a-f0-9]{64}$/.test(revision || '')) throw new Error('Choose a Markdown file of up to 2 MB with a current revision.');
+    if (typeof requested !== 'string' || path.extname(requested).toLowerCase() !== '.md' || typeof text !== 'string' || Buffer.byteLength(text) > 2 * 1024 * 1024 || !/^[a-f0-9]{64}$/.test(revision || '')) throw new Error('请选择不超过 2 MB 且带当前版本号的 Markdown 文件。');
     const operation = this.writes.catch(() => {}).then(async () => {
       const actual = await realpath(path.resolve(requested));
-      if (path.extname(actual).toLowerCase() !== '.md') throw new Error('Only Markdown files can be edited.');
+      if (path.extname(actual).toLowerCase() !== '.md') throw new Error('只能编辑 Markdown 文件。');
       const original = await readFile(actual);
-      if (createHash('sha256').update(original).digest('hex') !== revision) throw Object.assign(new Error('This file changed on disk. Your draft is kept. Reopen the file to compare before saving.'), { status: 409 });
+      if (createHash('sha256').update(original).digest('hex') !== revision) throw Object.assign(new Error('此文件已在磁盘上被修改。草稿已保留。请重新打开文件比较后再保存。'), { status: 409 });
       const backupFolder = path.join(this.repo, '.mrmak', 'markdown-backups');
       await mkdir(backupFolder, { recursive: true });
       const id = `${Date.now()}-${randomUUID()}`;
@@ -97,7 +97,7 @@ export class Files {
       const temp = path.join(path.dirname(actual), `.${path.basename(actual)}.${id}.tmp`);
       try {
         await writeFile(temp, text, { flag: 'wx' });
-        if (createHash('sha256').update(await readFile(actual)).digest('hex') !== revision) throw Object.assign(new Error('This file changed while saving. Your draft is kept; reopen the file to compare.'), { status: 409 });
+        if (createHash('sha256').update(await readFile(actual)).digest('hex') !== revision) throw Object.assign(new Error('保存期间文件发生了变化。草稿已保留；请重新打开文件进行比较。'), { status: 409 });
         await rename(temp, actual);
       } finally { await unlink(temp).catch(() => {}); }
       return this.preview(actual);
@@ -107,11 +107,11 @@ export class Files {
   }
   async content(request, response, url) {
     const match = /^\/view\/([\w-]+)\/(.*)$/.exec(url.pathname);
-    if (!match || !this.grants.has(match[1])) throw Object.assign(new Error('Preview not found'), { status: 404 });
+    if (!match || !this.grants.has(match[1])) throw Object.assign(new Error('未找到预览'), { status: 404 });
     const relative = decodeURIComponent(match[2]);
-    if (relative.split(/[\\/]/).some(secretPart)) throw Object.assign(new Error('Private application files cannot be loaded by reports'), { status: 403 });
+    if (relative.split(/[\\/]/).some(secretPart)) throw Object.assign(new Error('报告不能加载应用私有文件'), { status: 403 });
     const { file, info } = await realFile(this.grants.get(match[1]), relative);
-    if (!info.isFile()) throw Object.assign(new Error('File not found'), { status: 404 });
+    if (!info.isFile()) throw Object.assign(new Error('未找到文件'), { status: 404 });
     const serve = /\.html?$/i.test(file) ? serveReport : serveFile;
     await serve(request, response, file, info, { 'Referrer-Policy': 'no-referrer', 'Access-Control-Allow-Origin': this.uiOrigin, 'Cross-Origin-Resource-Policy': 'cross-origin' });
   }

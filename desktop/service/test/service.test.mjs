@@ -94,7 +94,7 @@ test('real PTY supports Unicode, reconnect snapshots, resizing, exit and saved h
     service.sessions.input(session.id, 'exit 7\r');
     await until(() => service.sessions.get(session.id).status === 'exited');
     assert.equal(service.sessions.get(session.id).exitCode, 7);
-    assert.throws(() => service.sessions.input(session.id, 'unexpected command'), /stopped/);
+    assert.throws(() => service.sessions.input(session.id, 'unexpected command'), /已停止/);
     await service.sessions.persist();
     ws.close(); await service.close();
     const reopened = await createService({ repo, uiDir: path.join(repo, 'ui') });
@@ -167,7 +167,7 @@ test('History preserves closed and pinned chats while startup restores only open
     assert.equal(history[0].id, archived.id);
     assert.equal(history[0].pinned, true);
     assert.equal(history[0].open, false);
-    assert.throws(() => service.sessions.rename(active.id, 'Русское название'), /English/);
+    assert.throws(() => service.sessions.rename(active.id, 'Русское название'), /英文/);
     const imported = await service.sessions.importConversation({ agent: 'codex', nativeId: '00000000-0000-0000-0000-000000000001', name: 'System Setup', pinned: true, cwd: repo });
     assert.equal(imported.open, false);
     assert.equal(service.sessions.get(imported.id).terminal, null);
@@ -222,10 +222,10 @@ test('context access reads project guidance and excludes credential and runtime 
     const library = new ContextLibrary(repo);
     await writeFile(path.join(repo, 'projects', 'brief.md'), '# Project brief\nA task description.');
     assert.match((await library.read('projects/brief.md')).text, /task description/);
-    await assert.rejects(library.read('.env'), /Private runtime/);
+    await assert.rejects(library.read('.env'), /私有运行时文件/);
     await mkdir(path.join(repo, '.mrmak'), { recursive: true });
     await writeFile(path.join(repo, '.mrmak', 'runtime.json'), '{}');
-    await assert.rejects(library.read('.mrmak/runtime.json'), /Private runtime/);
+    await assert.rejects(library.read('.mrmak/runtime.json'), /私有运行时文件/);
   } finally { await service.close(); }
 });
 

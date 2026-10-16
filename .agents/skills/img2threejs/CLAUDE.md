@@ -1,56 +1,50 @@
-# Shared project instructions
+# 共享项目说明
 
-This repository is the canonical source for the `img2threejs` skill. Host entrypoints
-(`~/.claude/skills/img2threejs`, `~/.codex/skills/img2threejs`) should be symlinks to one checkout —
-never independent copies, or the two hosts drift apart silently.
+本仓库是 `img2threejs` 技能的权威来源。各宿主入口
+（`~/.claude/skills/img2threejs`、`~/.codex/skills/img2threejs`）应为指向同一份 checkout 的符号链接——
+绝不能是彼此独立的副本，否则两个宿主会悄无声息地逐渐分叉。
 
-## Change rules
+## 变更规则
 
-- Preserve the code-only procedural Three.js contract; do not silently download meshes or art packs.
-- Keep claims honest: distinguish implemented capability from roadmap or design-only documentation.
-- Treat `forge/` as deterministic tooling and `grimoire/` as routed reference material.
-- Keep backward compatibility for existing sculpt specs unless a migration is explicitly planned.
-- When changing schema, gates, generators, or review behavior, add or update focused tests.
-- Keep `SKILL.md`, `README.md`, `CHANGELOG.md`, and `ROADMAP.md` consistent when release-facing
-  behavior changes.
-- Reference the companion showcase through `IMG2THREEJS_SHOWCASE_ROOT`, never an absolute path — a
-  path that only exists on one machine passes there and fails everywhere else, CI included.
+- 维持"纯代码程序化 Three.js"约定；不得静默下载网格或美术资源包。
+- 表述保持诚实：区分已实现的能力与路线图或仅停留在设计层面的文档。
+- 将 `forge/` 视为确定性工具，将 `grimoire/` 视为按路由查阅的参考资料。
+- 除非明确规划了迁移，否则保持对现有 sculpt spec 的向后兼容。
+- 修改 schema、门禁、生成器或评审行为时，新增或更新针对性测试。
+- 面向发布的行为发生变化时，保持 `SKILL.md`、`README.md`、`CHANGELOG.md` 和 `ROADMAP.md`
+  之间一致。
+- 通过 `IMG2THREEJS_SHOWCASE_ROOT` 引用配套 showcase，绝不使用绝对路径——只在某一台机器上存在的
+  路径在那台机器上能通过，在其他任何地方（包括 CI）都会失败。
 
-## Verification
+## 验证
 
 ```bash
 python3 -m unittest discover -s forge/tests -p 'test_*.py'
 ```
 
-Set `IMG2THREEJS_SHOWCASE_ROOT` to a showcase checkout to include the TypeScript typecheck gates;
-without it they skip, and a green run has not proven the emitted Three.js compiles. Add
-`IMG2THREEJS_REQUIRE_SHOWCASE=1` to turn that skip into a failure.
+将 `IMG2THREEJS_SHOWCASE_ROOT` 设为一个 showcase checkout，即可纳入 TypeScript 类型检查门禁；
+未设置时这些门禁会跳过，此时全绿的运行并不能证明生成的 Three.js 可以编译。再加上
+`IMG2THREEJS_REQUIRE_SHOWCASE=1` 可把这种跳过变为失败。
 
-Do not report completion without reading the fresh outputs. For visual reconstruction changes,
-structural tests and screenshot/reference-loop validation are separate required gates.
+未读取最新输出前不得报告完成。对于视觉重建类变更，结构测试与截图/参考循环验证是彼此独立、
+都必须通过的门禁。
 
-## Mandatory visual screenshot gate
+## 强制视觉截图门禁
 
-For every visual reconstruction task, a readable screenshot is a hard prerequisite for visual
-implementation claims and completion:
+对每一项视觉重建任务，可读取的截图是做出视觉实现声明与宣告完成的硬性前提：
 
-1. Before accepting visual results, verify that the browser/screenshot tooling is installed,
-   authenticated, reachable, and able to capture the running showcase.
-2. Save fresh PNG/JPEG screenshots inside the workspace, including the fixed reference view and the
-   required orbit views. Inline previews alone are not evidence.
-3. Read the saved screenshots back with an image-capable tool and verify they contain the rendered
-   model at the expected dimensions. A screenshot that cannot be opened or visually read is a failed
-   gate.
-4. Produce and retain a side-by-side reference/render comparison, semantic image scoring,
-   pixel/feature comparison, and the `diagnose_render.py` output for the saved render before
-   reporting visual validation.
-5. If capture, file write, readback, comparison, scoring, or diagnosis fails, stop the visual
-   workflow and repair the tooling first. Do not infer visual evidence from runtime readiness,
-   structural tests, inline previews, or code review, and do not claim the visual gate passed.
+1. 接受视觉结果之前，先确认浏览器/截图工具已安装、已认证、可访问，并且能够截取正在运行的
+   showcase。
+2. 在工作区内保存最新的 PNG/JPEG 截图，包括固定参考视角和要求的环绕视角。仅有内联预览不算
+   证据。
+3. 用支持图像的工具读回已保存的截图，确认其中包含渲染出的模型且尺寸符合预期。无法打开或无法
+   从视觉上读取的截图即视为门禁失败。
+4. 在报告视觉验证结果之前，针对已保存的渲染图生成并保留并排的参考/渲染对比图、语义图像评分、
+   像素/特征对比，以及 `diagnose_render.py` 的输出。
+5. 若截取、写文件、读回、对比、评分或诊断任一环节失败，立即停止视觉工作流，先修复工具。不得
+   从运行时就绪状态、结构测试、内联预览或代码评审中推断视觉证据，也不得声称视觉门禁已通过。
 
-**Scope of this gate.** It governs the Three.js reconstruction this repository builds — the
-procedural model and its self-correction loop. An exported artifact produced by an explicitly-selected
-emission target (`--target <kind>`) is a different thing: it is verified to the base's own stated
-limit — container/structure check where a prober exists, existence/size/location/determinism
-otherwise — and is never reported under this gate's completion vocabulary. The visual fidelity of an
-export, if any is claimed, is that target plugin's own gate's responsibility, not this one's.
+**本门禁的适用范围。** 它约束的是本仓库构建的 Three.js 重建——即程序化模型及其自我修正循环。
+由显式选择的输出目标（`--target <kind>`）产生的导出产物是另一回事：它只按基础层自身声明的限度
+进行验证——有探测器时做容器/结构检查，否则检查存在性/大小/位置/确定性——并且绝不使用本门禁的
+完成用语来报告。导出产物若声称了任何视觉保真度，那由该目标插件自己的门禁负责，而不是本门禁。

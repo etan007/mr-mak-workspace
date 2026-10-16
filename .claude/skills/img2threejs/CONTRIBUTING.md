@@ -1,74 +1,70 @@
-# Contributing to img2threejs
+# 为 img2threejs 做贡献
 
-Thanks for your interest. img2threejs turns a reference image into a code-only, procedural,
-quality-gated Three.js model. Contributions that keep that identity sharp are very welcome.
+感谢关注。img2threejs 把一张参考图转换为纯代码、程序化、经过质量门禁的 Three.js 模型。
+欢迎任何能让这一定位更鲜明的贡献。
 
-## Good first areas
+## 适合入手的方向
 
-- New procedural material or geometry recipes in `grimoire/build/geometry_patterns.md`.
-- Object-domain templates and detail-inventory taxonomy improvements.
-- Generator primitives, bevels, instancing, and surface-band tuning in `forge/stage3_build/generate_threejs_factory.py`.
-- More pipeline tests in `forge/tests/test_pipeline.py`.
-- Documentation and worked examples.
+- 在 `grimoire/build/geometry_patterns.md` 中新增程序化材质或几何配方。
+- 物体领域模板与细节清单（detail-inventory）分类体系的改进。
+- `forge/stage3_build/generate_threejs_factory.py` 中的生成器基元、倒角、实例化与表面色带调优。
+- 在 `forge/tests/test_pipeline.py` 中补充更多流水线测试。
+- 文档与完整示例。
 
-## Where the project is strong vs honest limits
+## 项目的强项与如实说明的局限
 
-- Strong: hard-surface objects, props, stylized/low-poly assets.
-- Stylized-only: characters and creatures read as game/figurine avatars, not photoreal likeness.
-- Out of scope today: photoreal reconstruction of a specific person, animal, or landscape from a
-  single image. That needs photo-texture projection or ML image-to-3D, which breaks the code-only
-  promise. See `docs/UPGRADE_PLAN.md` for the analysis and the tiered roadmap.
+- 强项：硬表面物体、道具、风格化/低多边形资产。
+- 仅限风格化：角色与生物呈现为游戏/手办风格的化身，而非照片级相似度。
+- 目前不在范围内：从单张图片对特定人物、动物或风景做照片级重建。那需要照片纹理投影或 ML
+  图像转 3D，会打破纯代码的承诺。分析与分级路线图见 `docs/UPGRADE_PLAN.md`。
 
-Please do not add code that silently downloads meshes or art packs — the core promise is
-reconstruction by code. If you want a projection or generative-assist path, propose it as an
-explicit, flagged, opt-in mode. `integrations/glb_character_pipeline/` is one such mode: a GLB-baseline
-character reconstruction pipeline (SDF point-cloud splat + Surface Nets) that runs against a companion
-showcase checkout via `IMG2THREEJS_SHOWCASE_ROOT`, isolated behind its own `pyproject.toml`/`uv.lock`
-and `node/package.json` so the `forge` core stays dependency-free. It only applies when a character
-build actually has a GLB reference to measure — skip it entirely otherwise. See its `README.md`.
+请不要添加静默下载网格或美术资源包的代码——核心承诺是用代码完成重建。如果你需要投影或生成式
+辅助路径，请将其作为显式、带标志、需主动开启的模式来提议。`integrations/glb_character_pipeline/`
+就是这样一种模式：一条以 GLB 为基线的角色重建流水线（SDF 点云 splat + Surface Nets），通过
+`IMG2THREEJS_SHOWCASE_ROOT` 在配套 showcase checkout 上运行，并以自己的 `pyproject.toml`/`uv.lock`
+和 `node/package.json` 隔离，使 `forge` 核心保持零依赖。它只在角色构建确实有可供测量的 GLB 参考时
+适用——否则完全跳过。详见其 `README.md`。
 
-## Development
+## 开发
 
-- Scripts under `forge/` are pure Python 3.10+ standard library. No pip dependencies there. Optional
-  integrations under `integrations/<name>/` may declare their own pip/npm dependencies in their own
-  `pyproject.toml`/`package.json`, isolated from the core.
-- Run the test suite from the skill root: `python3 -m unittest discover -s forge/tests -p 'test_*.py'`.
-  Set `IMG2THREEJS_SHOWCASE_ROOT` to a showcase checkout to include the TypeScript typecheck gates;
-  without it they skip, so a green run has not proven the emitted Three.js compiles.
-- Validate a spec before generation: `python3 forge/stage2_spec/validate_sculpt_spec.py spec.json --strict-quality`.
-- Keep changes backward compatible: existing object specs must continue to validate.
-- No emojis in source, docs, or generated output.
+- `forge/` 下的脚本只使用纯 Python 3.10+ 标准库，那里不引入 pip 依赖。`integrations/<name>/` 下的
+  可选集成可以在各自的 `pyproject.toml`/`package.json` 中声明自己的 pip/npm 依赖，与核心隔离。
+- 在技能根目录运行测试套件：`python3 -m unittest discover -s forge/tests -p 'test_*.py'`。
+  将 `IMG2THREEJS_SHOWCASE_ROOT` 设为一个 showcase checkout 可纳入 TypeScript 类型检查门禁；
+  未设置时它们会跳过，因此全绿的运行并不能证明生成的 Three.js 可以编译。
+- 生成前先校验 spec：`python3 forge/stage2_spec/validate_sculpt_spec.py spec.json --strict-quality`。
+- 保持变更向后兼容：现有物体 spec 必须继续通过校验。
+- 源码、文档和生成输出中不使用 emoji。
 
-## Before you open an issue
+## 提交 issue 之前
 
-- Search existing issues first.
-- For a bug, include the reference image characteristics, the exact command, the relevant spec or generated output, expected versus actual behavior, and a render screenshot when it helps. Do not post private images, credentials, or other sensitive material.
-- For a proposal, describe the problem, the observable outcome, and how it preserves the project's code-only procedural reconstruction contract.
-- Use a discussion channel or another appropriate forum for usage questions when one is available; issues should be actionable bugs or focused proposals.
+- 先搜索已有 issue。
+- 报告 bug 时，请附上参考图的特征、确切命令、相关 spec 或生成输出、预期与实际行为，必要时附上
+  渲染截图。不要发布私人图片、凭据或其他敏感材料。
+- 提出建议时，请描述问题、可观察的结果，以及它如何维持本项目"纯代码程序化重建"的约定。
+- 有讨论区或其他合适论坛时，使用问题请发到那里；issue 应当是可处理的 bug 或聚焦的提议。
 
-## Triage and contributor intent
+## 分诊与贡献者意向
 
-- The issue itself is the triage discussion record. A `triage: needs-review` label means the issue
-  is waiting for maintainer review; a label is not a promise that it will be implemented.
-- Maintainers record a decision comment before setting priority, contributor state, or closure.
-  `priority: low` keeps an issue open and must include a reason and a revisit trigger.
-- To offer a fix, use the **Contribution intent** form. It records your proposed scope and does not
-  reserve or assign the work. A maintainer will discuss and, if appropriate, mark the target issue
-  `contribution: claimed`.
-- Link implementation PRs with `Refs #<number>` or `Related to #<number>`. Do not use closing
-  keywords. A maintainer manually closes an issue only after recording the merged PR, verification,
-  and closure rationale in a final comment.
+- issue 本身就是分诊讨论记录。`triage: needs-review` 标签表示该 issue 正在等待维护者评审；
+  标签并不承诺一定会实现。
+- 维护者在设置优先级、贡献者状态或关闭之前，会先记录一条决定评论。`priority: low` 会让 issue
+  保持打开，且必须附带理由和重新评估的触发条件。
+- 想提供修复，请使用 **Contribution intent** 表单。它记录你提议的范围，但不会预留或分配该工作。
+  维护者会讨论，并在合适时把目标 issue 标记为 `contribution: claimed`。
+- 用 `Refs #<number>` 或 `Related to #<number>` 关联实现 PR。不要使用关闭关键字。维护者只会在
+  最终评论中记录已合并的 PR、验证情况和关闭理由之后，才手动关闭 issue。
 
-## Pull requests
+## Pull request
 
-- Keep PRs focused and describe the behavior change plus how you verified it.
-- Add or update tests for new gates, schema fields, or templates.
-- Update `docs/UPGRADE_PLAN.md` status when you land a roadmap item.
-- Link the issue with `Refs #<number>` when applicable.
-- For changes that affect visual fidelity, include the relevant render or comparison-sheet evidence and the result of its review.
-- Do not include private reference images, credentials, or other sensitive material in the PR description, commits, or attachments.
+- 保持 PR 聚焦，描述行为变化以及你是如何验证的。
+- 为新的门禁、schema 字段或模板新增或更新测试。
+- 落地路线图条目时，更新 `docs/UPGRADE_PLAN.md` 中的状态。
+- 适用时用 `Refs #<number>` 关联 issue。
+- 对影响视觉保真度的变更，附上相关渲染图或对比图证据及其评审结果。
+- 不要在 PR 描述、提交或附件中包含私人参考图、凭据或其他敏感材料。
 
-## Reporting issues
+## 报告问题
 
-Include the reference image characteristics, the command you ran, the spec or generated output,
-and what you expected versus what you got. Screenshots of the render help a lot.
+请附上参考图的特征、你运行的命令、spec 或生成输出，以及预期与实际得到的结果。渲染截图
+非常有帮助。

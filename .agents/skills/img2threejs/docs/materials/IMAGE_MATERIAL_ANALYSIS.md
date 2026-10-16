@@ -1,41 +1,39 @@
-# Mandatory image material analysis
+# 强制性图像材质分析
 
-Material analysis is an admission gate for material authoring. A model may not enter or pass the
-material build pass merely because every component has a material ID. Each critical visible region
-must have evidence that the ID and rendered response are plausible for the reference.
+材质分析是材质编写的准入门禁。模型不能仅因每个部件都有材质 ID 就进入或通过材质构建轮次。
+每个关键可见区域都必须有证据，表明该 ID 及其渲染响应与参考图相符。
 
-## 1. Inputs
+## 1. 输入
 
-- admitted reference images with hashes, roles and camera metadata;
-- component masks and material-region masks per usable view;
-- prompt or authoritative metadata supplied by the user;
-- named component and region IDs that remain stable through UV, skinning, morphs and LOD;
-- crop resolution and visible-footprint coverage.
+- 已采纳的参考图，带哈希、角色和相机元数据；
+- 每个可用视角的部件遮罩和材质区域遮罩；
+- 用户提供的提示词或权威元数据；
+- 在 UV、蒙皮、morph 和 LOD 中保持稳定的部件和区域命名 ID；
+- 裁剪分辨率和可见覆盖区域。
 
-Reject empty, inverted, fragmented, duplicate or too-small crops before classification. Cropping a
-nearby component is a failed gate, not low-confidence evidence.
+在分类之前，拒绝空的、反转的、碎片化的、重复的或过小的裁剪图。裁到相邻部件是门禁失败，
+而不是低置信度证据。
 
-## 2. Observation before classification
+## 2. 先观察，后分类
 
-For each material region, record observable signals without naming the material first:
+对每个材质区域，先记录可观察信号，不要先给材质命名：
 
-- de-lit base-colour distribution and colour variation;
-- highlight colour, width, sharpness, elongation and view dependence;
-- diffuse versus specular balance;
-- fibre, grain, strand, brushing or machining direction;
-- macro, meso and micro surface frequency bands;
-- opacity, refraction, transmission and apparent thickness cues;
-- edge wear, coating chips, oxidation, dirt, wetness and cavity response;
-- component context: garment, skin surface, blade, trim, lens, hair mass, tyre, wood panel;
-- occlusion and uncertainty per view.
+- 去光照后的基础色分布和颜色变化；
+- 高光的颜色、宽度、锐度、拉伸和视角依赖性；
+- 漫反射与镜面反射的比例；
+- 纤维、纹理、发丝、拉丝或机加工方向；
+- 宏观、中观和微观表面频段；
+- 不透明度、折射、透射和视觉厚度线索；
+- 边缘磨损、涂层剥落、氧化、污垢、潮湿和凹陷处响应；
+- 部件上下文：衣物、皮肤表面、刀刃、饰边、镜片、头发团、轮胎、木板；
+- 每个视角的遮挡和不确定性。
 
-Do not classify material from colour alone. Black plastic, rubber, leather and cloth can share an
-albedo. Gold metal, brass and metallic yellow paint can share a hue. The light-response evidence is
-the discriminator.
+不要仅凭颜色分类材质。黑色塑料、橡胶、皮革和布料可以有相同的 albedo。金、黄铜和金属黄漆可以
+有相同的色相。区分依据是光照响应证据。
 
-## 3. Hypothesis record
+## 3. 假设记录
 
-Every region emits:
+每个区域输出：
 
 ```json
 {
@@ -55,58 +53,52 @@ Every region emits:
 }
 ```
 
-Allowed status values are `proceed`, `probe`, `request-input` and `unknown`. Missing confidence,
-crop, mask or evidence view fails closed.
+允许的状态值为 `proceed`、`probe`、`request-input` 和 `unknown`。缺少置信度、裁剪图、遮罩或证据视角
+时按失败处理（fail closed）。
 
-## 4. Lookup and evidence reconciliation
+## 4. 查找与证据调和
 
-Resolve the hypothesis against `material-reference.json`. Semantic vision provides candidate
-identity; deterministic image analysis provides colour, gradient, highlight and frequency evidence.
-Neither source decides alone.
+用 `material-reference.json` 解析该假设。语义视觉提供候选身份；确定性图像分析提供颜色、梯度、高光和
+频率证据。任何一方都不能单独决定。
 
-- If both agree above the configured threshold, seed the candidate recipe.
-- If identity is known but surface evidence is weak, retain the identity and mark PBR values for
-  controlled-render fitting.
-- If the highest candidates are materially different and the distinction is critical, request
-  another view or explicit user metadata.
-- Never raise confidence merely because a default recipe produced an attractive render.
+- 若两者一致且高于配置阈值，用其作为候选配方的种子。
+- 若身份已知但表面证据较弱，保留身份，并将 PBR 数值标记为需在受控渲染中拟合。
+- 若最高候选在材质上明显不同且区分很关键，请求补充视角或明确的用户元数据。
+- 绝不能仅因默认配方渲染效果好看就提高置信度。
 
-## 5. Map and shader authoring
+## 5. 贴图与着色器编写
 
-- `map`, `emissiveMap`, `sheenColorMap` and `specularColorMap` are colour data and use sRGB.
-- Roughness, metalness, normal, AO, clearcoat, thickness, transmission, anisotropy and iridescence
-  maps are mathematical data and use no colour-space transform.
-- Albedo, roughness, metalness, normal/height and AO are independent signals.
-- Coated surfaces represent the top layer correctly: intact paint is dielectric even when its
-  substrate is metal; exposed chips may use a separate metallic region or mask.
-- Geometry supplies silhouette-scale fibres, fur tufts, hair clumps, folds, facets and deep damage.
-  Normal/bump maps supply sub-pixel or small-scale relief; albedo must not fake missing form.
+- `map`、`emissiveMap`、`sheenColorMap` 和 `specularColorMap` 是颜色数据，使用 sRGB。
+- 粗糙度、金属度、法线、AO、清漆层、厚度、透射、各向异性和虹彩贴图是数学数据，不做颜色空间转换。
+- Albedo、粗糙度、金属度、法线/高度和 AO 是相互独立的信号。
+- 涂层表面要正确表示顶层：即使基底是金属，完好的漆面也是电介质；露出的剥落处可使用单独的金属区域或遮罩。
+- 几何负责轮廓尺度的纤维、毛簇、发束、褶皱、切面和深度损伤。法线/凹凸贴图负责亚像素或小尺度起伏；
+  albedo 不得伪造缺失的形体。
 
-## 6. Controlled validation views
+## 6. 受控验证视角
 
-Every critical material requires the views named by its lookup record:
+每种关键材质都需要其查找记录中指定的视角：
 
-- `albedo-unlit`: verifies de-lit colour and pattern;
-- `neutral-studio`: verifies balanced diffuse/specular response;
-- `grazing`: reveals roughness, normal strength, sheen and anisotropy;
-- `environment-reflection`: distinguishes conductors and polished coatings;
-- `backlight-transmission`: required for transmissive or thin materials;
-- `reference-beauty`: verifies the final appearance at the solved camera.
+- `albedo-unlit`：验证去光照颜色和图案；
+- `neutral-studio`：验证均衡的漫反射/镜面响应；
+- `grazing`：显示粗糙度、法线强度、sheen 和各向异性；
+- `environment-reflection`：区分导体和抛光涂层；
+- `backlight-transmission`：透射或薄材质必需；
+- `reference-beauty`：在求解出的相机下验证最终外观。
 
-Wait for every texture to load before capture. Save each image, read it back, and compare the
-component's visible footprint rather than an isolation render that reveals occluded surface.
+截图前等待所有贴图加载完成。保存每张图像并读回，对比部件的可见覆盖区域，而不是一张会露出被遮挡
+表面的单独渲染。
 
-## 7. Gate policy
+## 7. 门禁策略
 
-The material pass fails when:
+出现以下情况时材质轮次失败：
 
-- a critical visible region has no hypothesis or lookup result;
-- one material is assigned across visibly incompatible regions;
-- evidence confidence is below threshold and no explicit user identity resolves it;
-- required maps or controlled views are missing;
-- a conductor renders like a dielectric, fabric like smooth plastic, hair like rubber, or glass as
-  alpha-blended air;
-- a high global beauty score hides a failed critical material region;
-- texture loading, colour space, environment preprocessing or screenshot readback fails.
+- 关键可见区域没有假设或查找结果；
+- 一种材质被分配到视觉上明显不相容的多个区域；
+- 证据置信度低于阈值，且没有明确的用户身份信息来解决；
+- 缺少必需贴图或受控视角；
+- 导体渲染得像电介质，织物像光滑塑料，头发像橡胶，或玻璃像 alpha 混合的空气；
+- 全局 beauty 高分掩盖了某个失败的关键材质区域；
+- 贴图加载、颜色空间、环境预处理或截图读回失败。
 
-Unknown is an acceptable analysis result. Silent substitution is not.
+Unknown 是可接受的分析结果。静默替换则不可接受。

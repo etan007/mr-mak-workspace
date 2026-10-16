@@ -1,8 +1,6 @@
-# Goals
+# 目标
 
-Add your current goals here. The starter repository does not assume a job,
-business, channel, schedule or personal background.
+在这里填写你当前的目标。初始仓库不预设任何职业、业务、频道、日程或个人背景。
 
-For a first session, open My Dream Game, read the example design, and ask an agent
-to replace the brief with your own idea. Keep the example unchanged if you would
-prefer to start a new project beside it.
+第一次使用时，打开“我的梦想游戏”，阅读示例设计，然后让代理把简介换成你自己的
+想法。如果想在旁边新建项目，可以保留示例不动。

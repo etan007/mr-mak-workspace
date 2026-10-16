@@ -1,34 +1,28 @@
-# GLB-reference character prompt — animation
+# GLB 参考角色提示词——动画
 
-The third of three prompts for the GLB-mediated character route. It rigs and animates a character
-whose surfaces are already built and gated.
+GLB 中介角色路线三份提示词中的第三份。它为表面已构建并通过门禁的角色做绑定和动画。
 
 | | |
 |---|---|
-| **Use it when** | the figure looks right standing still, and has passed the build pass's gates including `joint_loops.py` |
-| **Do not use it when** | the surface has not been gated — a skeleton bound to an ungated surface makes surface defects read as art problems; or `joint_loops.py` fails, which is a surface-build finding and no amount of weight tuning reaches it |
-| **Before this** | [build](GLB_CHARACTER_PROMPT.md), then [polish](GLB_CHARACTER_POLISH_PROMPT.md) |
+| **适用场景** | 人物静止时看起来正确，并已通过构建 pass 的门禁，包括 `joint_loops.py` |
+| **不适用场景** | 表面尚未经过门禁——绑定到未过门禁表面的骨架会让表面缺陷看起来像美术问题；或者 `joint_loops.py` 失败，这是表面构建层面的发现，再怎么调权重也解决不了 |
+| **前置步骤** | 先 [build](GLB_CHARACTER_PROMPT.md)，再 [polish](GLB_CHARACTER_POLISH_PROMPT.md) |
 
-## Read this before using it
+## 使用前先读
 
-**This is reference material, not a guarantee.** The measured figures throughout — dominant-bone
-percentages, capsule radii, gait harmonics — came from one character with one axis convention. They
-are there to show *what to measure and what a wrong answer looks like*, not to be copied. The sign
-table in Step 5 in particular must be re-derived for your own axes; copying it is how a gait ends up
-playing backwards.
+**这是参考资料，不是保证。** 文中所有测量数值——主导骨骼百分比、胶囊半径、步态谐波——都来自同一个角色、同一种坐标轴约定。它们用来展示*该测量什么、错误答案长什么样*，而不是用来照抄。尤其是 Step 5 中的符号表，必须针对你自己的坐标轴重新推导；照抄它就是步态倒着播放的原因。
 
-**Do not run this before the shape is settled.** Rigging is the most expensive pass to redo, because
-a surface change invalidates the weights. Finish the build and polish passes first.
+**形状确定之前不要运行本提示词。** 绑定是返工代价最高的 pass，因为表面一改权重就失效。先完成 build 和 polish 两个 pass。
 
-## The prompt
+## 提示词
 
-Copy everything inside this block, fill the placeholders, and paste it as a single message.
+复制此块内的全部内容，填好占位符，作为一条消息粘贴。
 
 ````markdown
 
-Rig and animate a GLB-referenced img2threejs character whose surfaces are already built.
+为一个表面已构建完成、以 GLB 为参考的 img2threejs 角色做绑定和动画。
 
-## Inputs
+## 输入
 
 ```
 GLB reference:   <ABSOLUTE_PATH_TO_GLB>
@@ -38,42 +32,33 @@ Motion wanted:   <e.g. "walk cycle", "idle breathing", "draw the sword">
 Props:           <rigid items held or worn — sword, bag, tool — or NONE>
 ```
 
-## What can and cannot be 1:1 here
+## 这里什么能 1:1、什么不能
 
-This is the stage where "match the GLB exactly" most often means matching something the file does
-not contain. Establish which case you are in at Step 0 and put it in the report:
+这是"与 GLB 完全一致"最常被理解为"去匹配文件里根本没有的东西"的阶段。在 Step 0 确定你属于哪种情况，并写进报告：
 
 | | |
 |---|---|
-| **Rig, when the GLB carries none** | `skinCount: 0`, `animationCount: 0`, no `JOINTS_0`/`WEIGHTS_0` — there is nothing to match. Every joint, radius, weight and pose is **computed**, and each must trace to a measurement of this model or a cited gait dataset. Report them as computed, never as matched. |
-| **Rig, when the GLB carries one** | matching it is a different deliverable from this pipeline's contract, and a licence question. Stop and ask. |
-| **Bind-pose proportions** | these *are* 1:1 and must stay so. Joint positions come from the built model's own measured bounds, so a knee sits where the shin mesh ends. Re-measure after rigging: binding must not move a vertex at rest. |
-| **Anything below the cell size** | a resolution statement, not a rig problem. |
+| **绑定，当 GLB 不含绑定时** | `skinCount: 0`、`animationCount: 0`，没有 `JOINTS_0`/`WEIGHTS_0`——没有任何可匹配的东西。每个关节、半径、权重和姿态都是**计算**出来的，并且每一项都必须能追溯到对本模型的测量或某个引用的步态数据集。把它们报告为计算所得，绝不说是匹配所得。 |
+| **绑定，当 GLB 含有绑定时** | 匹配它是与本流水线契约不同的交付物，还涉及许可问题。停下来提问。 |
+| **绑定姿态的比例** | 这些*是* 1:1 的，必须保持。关节位置来自已构建模型自身测得的包围盒，所以膝盖位于小腿网格的末端。绑定后重新测量：静止状态下绑定不得移动任何顶点。 |
+| **低于格子尺寸的任何东西** | 这是分辨率层面的说明，不是绑定问题。 |
 
-The one 1:1 check this stage owes the reference: **the rest pose must still match.** Re-run the band
-comparison after binding. A skeleton that shifts the figure at phase 0 has broken the shape the
-previous two passes measured, and no motion quality makes that acceptable.
+本阶段对参考唯一欠下的 1:1 检查：**静止姿态必须仍然匹配。** 绑定后重跑分带比较。在 phase 0 就让人物发生偏移的骨架，已经破坏了前两个 pass 测量的形状，再好的动作质量也无法让这一点变得可接受。
 
-## Step 0 — Confirm there is no rig to copy
+## Step 0——确认没有可复制的绑定
 
 ```bash
 python3 forge/stage1_intake/probe_glb.py <glb> --out glb-probe.json
 python3 -c "import json;d=json.load(open('glb-probe.json'));print({k:d.get(k) for k in ('skinCount','animationCount')})"
 ```
 
-A baseline asset typically reports `skinCount: 0`, `animationCount: 0` and carries no `JOINTS_0` or
-`WEIGHTS_0` on any primitive. If so, **state it in the report**: there is no rig in the asset, so
-every joint position, every skin weight and every pose is computed here. That is also the honest
-answer to "which part of this is actually procedural" — this part is, with no alternative.
+基线资产通常报告 `skinCount: 0`、`animationCount: 0`，并且任何 primitive 上都没有 `JOINTS_0` 或 `WEIGHTS_0`。如果是这样，**在报告中说明**：资产中没有绑定，因此每个关节位置、每个蒙皮权重和每个姿态都是在这里计算的。这也是对"其中哪部分真正是程序化的"的诚实回答——这一部分是，别无选择。
 
-If the GLB *does* carry skins or animations, stop and ask. Copying them is a different deliverable
-with a different licence question, and this pipeline's contract is that reference topology and
-materials are never copied into the factory.
+如果 GLB *确实*带有蒙皮或动画，停下来提问。复制它们是另一种交付物，涉及另一种许可问题，而本流水线的契约是参考拓扑和材质绝不复制进工厂。
 
-## Step 1 — Joints from the model's own bounds, never from fractions of figure height
+## Step 1——关节取自模型自身的包围盒，绝不取自人物身高的比例
 
-The factory's parts are named anatomically, so a knee goes where the shin mesh actually **ends**.
-Measure the built model and write the table into the rig module. From a real subject:
+工厂的部件按解剖学命名，所以膝盖放在小腿网格实际**结束**的地方。测量已构建的模型，并把表格写进绑定模块。来自一个真实主体：
 
 ```
 boots        y -0.001 .. 0.167      ankle at the boot top
@@ -83,150 +68,104 @@ torso+arms   y  0.974 .. 1.602      shoulder below the neck
 head         y  1.525 .. 1.749
 ```
 
-`left` and `right` are the **character's**, so left is at positive x when the figure faces +z. Write
-which way your figure faces and derive from it; do not carry this sentence over unchecked.
+`left` 和 `right` 指**角色自身**的左右，所以当人物面向 +z 时，左侧在正 x。写明你的人物面向哪个方向并据此推导；不要未经核对就沿用这句话。
 
-## Step 2 — Skin, unless the part is a rigid prop
+## Step 2——蒙皮，除非该部件是刚性道具
 
-Decide per part, and record the reason:
+逐部件决定，并记录理由：
 
-- **Skinned**, when one mesh spans a joint. A single node holding the torso *and both arms* cannot
-  swing an arm by rigid rotation, and linear blend skinning is also what keeps the surface
-  continuous at hip and shoulder where rigid parts open a visible gap.
-- **One bone, rigid**, for a prop. A sword allowed both the arm chain and the pelvis measured
-  **44.7% arm-bound and 55% hip-bound** — one solid object split between the hand holding it and the
-  body it hangs beside, so every arm movement stretched it and the scabbard tore away from the hilt.
-  A rigid prop wants a rigid attachment.
+- **蒙皮**：当一个网格跨越关节时。一个同时包含躯干*和双臂*的节点无法通过刚性旋转来摆动手臂；线性混合蒙皮也是让髋部和肩部表面保持连续的手段，刚性部件在这些地方会张开可见的缝隙。
+- **单骨骼、刚性**：用于道具。一把被允许同时受手臂链和骨盆影响的剑，测得 **44.7% 绑定到手臂、55% 绑定到髋部**——一个实心物体被拆分在握着它的手和它悬挂旁边的身体之间，于是每次手臂动作都会拉伸它，剑鞘被从剑柄上扯开。刚性道具需要刚性挂接。
 
-## Step 3 — Weights fail in three independent ways. All three need fixing.
+## Step 3——权重会以三种相互独立的方式失败。三者都要修。
 
-This is the core of the stage. Each defect below has a different cause and **none of the three fixes
-addresses another**. Skipping any one produces motion that looks wrong in a way weight tuning cannot
-reach.
+这是本阶段的核心。下面每个缺陷成因不同，**三个修复中的任何一个都不能解决另一个**。跳过任何一个，动作都会以权重调节无法触及的方式看起来不对。
 
-### 3a. Influence radius, not point distance — or the torso follows the arms
+### 3a. 用影响半径，而不是点距离——否则躯干会跟着手臂走
 
-Weighting by raw distance to a bone *segment* reads the body inside out: a torso surface sits
-~0.15 m from the spine axis while the arms hang against the ribs, so an arm segment passes **closer
-to a chest vertex than the spine does**. Measured on a first build, the torso mesh's dominant bone
-was `shoulder.L` at **25.2%**, ahead of `spine` at **21.8%** — and the torso duly swung with the arm.
+按到骨骼*线段*的原始距离分配权重，会把身体内外读反：躯干表面距脊柱轴约 0.15 m，而手臂贴着肋骨垂下，所以手臂线段**比脊柱更靠近胸部顶点**。在第一次构建上测得，躯干网格的主导骨骼是 `shoulder.L`，占 **25.2%**，高于 `spine` 的 **21.8%**——躯干果然随手臂摆动。
 
-Give each bone a capsule radius taken from measured part widths (that subject: torso x-extent
-~0.26 m without the arms, shins ~0.11, boots ~0.14). A vertex inside the capsule is distance zero,
-so a thick bone owns its own volume and a thin one cannot reach across the body.
+为每根骨骼设定一个取自测得部件宽度的胶囊半径（那个主体：不含手臂的躯干 x 范围约 0.26 m，小腿约 0.11，靴子约 0.14）。位于胶囊内的顶点距离为零，所以粗骨骼拥有自己的体积，细骨骼无法跨过身体去够。
 
-### 3b. Geodesic distance, not euclidean — or raising an arm drags the chest
+### 3b. 用测地距离，而不是欧氏距离——否则抬手臂会拖动胸部
 
-Straight-line distance does not care whether the path stays **inside** the model. An arm resting
-against the ribs is millimetres from the chest *through the air*. Every character whose limbs touch
-the body has this defect; it is not an edge case, it is the default pose.
+直线距离不在乎路径是否留在模型**内部**。贴着肋骨的手臂*隔着空气*离胸部只有几毫米。每个肢体接触身体的角色都有这个缺陷；这不是边缘情况，这是默认姿态。
 
 ```bash
 python3 forge/stage5_rig/geodesic_skinning.py <mesh.json> --bones <bones.json> \
   --resolution <N> --out weights.json --json
 ```
 
-Geodesic voxel binding (Dionne & de Lasa, SCA 2013) voxelizes the mesh, seeds each bone's voxels and
-propagates without crossing empty space, so the arm-to-chest path is forced around through the
-shoulder and is correctly long. Purely geometric — no training data, no time constants, nothing to
-tune at bind or pose time.
+测地体素绑定（Dionne & de Lasa，SCA 2013）将网格体素化，为每根骨骼的体素播种，并在不穿过空白空间的前提下传播，所以从手臂到胸部的路径被迫绕经肩部，长度因而正确。纯几何——没有训练数据、没有时间常数，在绑定或摆姿态时没有任何需要调的东西。
 
-### 3c. A region → bone allow-list — because geometry cannot know how clothing is worn
+### 3c. 区域 → 骨骼白名单——因为几何无法知道衣物是怎么穿的
 
-A capsule radius fixes "the torso follows the arm". It cannot fix "the belt pouch follows the left
-leg", because a pouch at hip height genuinely **is** closest to the thigh bone and no radius makes
-that false. What makes it wrong is knowledge the geometry does not carry and the part list does: a
-pouch is worn on the **belt**, so it rides the pelvis however the leg swings.
+胶囊半径修好了"躯干跟着手臂走"。它修不了"腰包跟着左腿走"，因为髋部高度的腰包确实**就是**离大腿骨最近，没有哪个半径能让这一点变假。让它错的，是几何不携带而部件清单携带的知识：腰包挂在**腰带**上，所以无论腿怎么摆，它都随骨盆走。
 
-Measured before the allow-list existed:
+白名单出现之前测得：
 
-| Part | Dominant bones | Consequence |
+| 部件 | 主导骨骼 | 后果 |
 |---|---|---|
-| cage canister | `hip.L` 66%, `hips` 34% | would swing with the left leg |
-| belt pouch, left | `hip.L` 100% | same |
-| head and hair | `chest` 58%, `head` 39% | skull owned by the chest capsule — the head would not turn |
-| trousers | 13.8% arm-**dominated** | the arm swings and the trousers go with it |
+| cage canister | `hip.L` 66%，`hips` 34% | 会随左腿摆动 |
+| 腰包，左 | `hip.L` 100% | 同上 |
+| 头部和头发 | `chest` 58%，`head` 39% | 颅骨被胸部胶囊占有——头不会转 |
+| 裤子 | 13.8% 由手臂**主导** | 手臂一摆，裤子跟着走 |
 
-So write an explicit `{region: [allowed bones]}` map. Constrain a rigid prop to one bone. Leave
-regions that genuinely span the figure (bare skin, a full-body garment) unconstrained, and say which
-ones you left open.
+所以写一张显式的 `{region: [allowed bones]}` 映射。把刚性道具约束到一根骨骼。真正跨越整个人物的区域（裸露皮肤、全身衣物）保持不约束，并说明你放开了哪些。
 
-## Step 4 — Topology has to survive being bent
+## Step 4——拓扑必须经得起弯曲
 
 ```bash
 python3 forge/stage4_review/joint_loops.py <meshes.json> --min-loops <N> --json
 ```
 
-A joint with too few rings of geometry across it collapses when it flexes: the elbow pinches into a
-crease, the knee loses its volume, the shoulder folds. **No amount of weight tuning fixes it**,
-because the vertices needed to describe a bent surface do not exist.
+横跨关节的几何环数太少的关节，弯曲时会塌陷：肘部掐成一道折痕，膝盖失去体积，肩部折叠。**再怎么调权重都修不好**，因为描述弯曲表面所需的顶点根本不存在。
 
-Automatic remeshing does not reliably produce deformation-grade topology — but that constraint
-belongs to pipelines that *receive* a finished mesh. A procedural generator writes its own topology
-and can place loops at joints by construction. If this gate fails, the fix is upstream in the
-surface build, not in the rig.
+自动重拓扑并不能可靠地产出可用于变形的拓扑——但这个约束属于*接收*成品网格的流水线。程序化生成器自己写拓扑，可以在构造时就把环放在关节处。如果这个门禁失败，修复点在上游的表面构建，而不是绑定。
 
-## Step 5 — The gait, as a Fourier series
+## Step 5——步态，作为傅里叶级数
 
-A walk is not a sine wave and a clamp is not a joint.
+步行不是正弦波，钳制也不是关节。
 
-The knee flexes **twice** per stride, and that is the whole difference between a walk and a limp: a
-small stance flexion of ~18° just after heel strike absorbing the load, and a large swing flexion of
-~60° while the foot clears the ground. A single-peak curve reads as disjointed **no matter how the
-amplitudes are tuned** — that is the symptom to recognise.
+每一步膝盖弯曲**两次**，这就是走路和跛行的全部差别：脚跟着地后不久约 18° 的小幅支撑期屈曲，用于吸收负荷；以及脚离地时约 60° 的大幅摆动期屈曲。单峰曲线**无论怎么调幅度**看起来都脱节——这就是要识别的症状。
 
-Fit coefficients to standard sagittal joint angles for adult level walking, sampled every 5% of the
-cycle from heel strike. Four harmonics were enough to reproduce them to:
+将系数拟合到成人平地行走的标准矢状面关节角度，从脚跟着地起每 5% 周期采样一次。四个谐波足以把它们复现到：
 
 ```
 hip 0.27°      knee 0.89°      ankle 1.44°
 ```
 
-A truncated Fourier series is smooth by construction — infinitely differentiable and periodic — so
-unlike a clamped sine it cannot introduce a kink at any amplitude, and the cycle joins itself
-seamlessly at the wrap. The opposite leg is exactly half a cycle behind.
+截断傅里叶级数在构造上就是平滑的——无穷可微且周期性——所以不像钳制的正弦，它在任何幅度下都不会引入折角，周期在首尾衔接处无缝相接。另一条腿恰好落后半个周期。
 
-**Verify the signs by forward kinematics, never by eye.** Reversed signs play the gait backwards, and
-because the pose stays symmetric it is not obvious — it just reads as moonwalking. Measure where the
-ankle actually goes:
+**用正向运动学验证符号，绝不靠肉眼。** 符号反了会让步态倒着播放，又因为姿态仍然对称，问题并不明显——看起来就像太空步。测量脚踝实际去了哪里：
 
-| Sign choice | Result |
+| 符号选择 | 结果 |
 |---|---|
-| hip +, knee − | 66% of the cycle moving forward, peak +2.49 / −4.02 — fast **backward** |
-| hip −, knee + | 34%, peak +4.02 / −2.49 — fast forward, **40% swing** |
+| hip +，knee − | 66% 的周期向前移动，峰值 +2.49 / −4.02——快速**向后** |
+| hip −，knee + | 34%，峰值 +4.02 / −2.49——快速向前，**40% 摆动** |
 
-The second matches the human 40% swing / 60% stance split. Bone local axes are world-aligned in this
-rig, so a positive x rotation swings a downward limb to −Z, i.e. backward: hip flexion is −x, knee
-flexion +x, ankle dorsiflexion −x. **Re-derive this for your own axis convention rather than copying
-the signs.**
+第二种符合人类 40% 摆动 / 60% 支撑的比例。在这个绑定中骨骼局部轴与世界轴对齐，所以正 x 旋转会把向下的肢体摆向 −Z，即向后：髋屈曲为 −x，膝屈曲为 +x，踝背屈为 −x。**针对你自己的坐标轴约定重新推导，而不是照抄这些符号。**
 
-Expose one `scale` that trims every joint together, so the walk can be made gentler without changing
-its shape. Tuning individual amplitudes is what breaks the coordination between them.
+暴露一个统一裁剪所有关节的 `scale`，这样可以让步行更柔和而不改变其形态。单独调各个幅度正是破坏它们之间协调的原因。
 
-If the figure carries something in one hand, damp that arm's counter-swing — a full swing on an armed
-hand reads as flailing rather than walking.
+如果人物一只手拿着东西，减弱那只手臂的反向摆动——持械的手做完整摆动看起来像在乱挥，而不是在走路。
 
-## Step 6 — Chirality: a reflection, never a rotation
+## Step 6——手性：是反射，绝不是旋转
 
-Negate the lateral axis only. Reflecting inverts triangle winding, so flip it back or `flatShading`
-lights the limb as though lit from behind.
+只对侧向轴取反。反射会反转三角形绕序，所以要翻转回来，否则 `flatShading` 会把肢体照得像是从背后打光。
 
 ```bash
 python3 forge/stage2_spec/validate_sculpt_spec.py <spec> --json
 ```
 
-That runs two checks that catch two different defects, and you need both: `validate_chirality`
-catches a rotation mistaken for a reflection, and `medial_lateral_bias` against a reference catches a
-pair wrong the **same** way on both sides — which any mirror test passes by construction.
+它运行两项检查，捕获两种不同的缺陷，你两者都需要：`validate_chirality` 捕获被误当作反射的旋转；对照参考的 `medial_lateral_bias` 捕获两侧以**相同**方式出错的一对——任何镜像测试在构造上都会让它通过。
 
-## Step 7 — Gate through the cycle. A rest pose proves nothing about motion.
+## Step 7——在整个周期上过门禁。静止姿态对运动什么也证明不了。
 
-Every static gate is necessary and none is sufficient: the defects this stage introduces only exist
-while the figure moves. Sample the cycle — at minimum phase 0, 0.25, 0.5, 0.75 — and run the
-penetration and coverage gates **at each phase**.
+每个静态门禁都是必要的，但没有一个是充分的：本阶段引入的缺陷只在人物运动时存在。对周期采样——至少 phase 0、0.25、0.5、0.75——并在**每个 phase** 运行穿插和覆盖门禁。
 
 ```bash
-python3 forge/stage5_rig/validate_rig_payload.py --payload <payload.json>   # BEFORE binding any Skeleton
+python3 forge/stage5_rig/validate_rig_payload.py --payload <payload.json>   # 在绑定任何 Skeleton 之前
 node $IMG2THREEJS_SHOWCASE_ROOT/pipelines/warrior/export_mesh_geometry.mjs --url <preview?phase=0.25> --out meshes-p25.json
 python3 forge/stage4_review/self_intersection.py meshes-p25.json --json
 python3 forge/stage4_review/pairwise_penetration.py meshes-p25.json --allow <nameA,nameB> --json
@@ -235,39 +174,29 @@ python3 forge/stage4_review/swept_arc_gate.py --geometry meshes-p25.json --compo
 python3 forge/stage4_review/turntable_gate.py --capture 0=p25-front.png --capture 90=p25-right.png --json
 ```
 
-- `validate_rig_payload.py` runs **before** any `THREE.Skeleton` is constructed. A bad payload
-  becomes a bound skeleton, and a bound skeleton's defects read as art problems.
-- `pairwise_penetration.py --allow` is for pairs genuinely permitted to touch. Every pair you allow
-  is a pair the gate stops checking — list them in the report.
-- `swept_arc_gate.py` fits a curved component's actual bend radius, angular span and taper. A
-  silhouette IoU passes a straight cone that occupies roughly the right cells; this does not.
-- Read `sampledVertexCount`, `unmeasuredAttachments` and `missingAzimuths` before believing a clean
-  verdict — each names what the gate did not look at.
+- `validate_rig_payload.py` 在构造任何 `THREE.Skeleton` **之前**运行。坏载荷会变成已绑定的骨架，而已绑定骨架的缺陷看起来像美术问题。
+- `pairwise_penetration.py --allow` 用于真正允许接触的部件对。你允许的每一对都是门禁不再检查的一对——在报告中列出它们。
+- `swept_arc_gate.py` 拟合弯曲组件实际的弯曲半径、角度跨度和收窄。silhouette IoU 会让一个大致占据正确格子的直锥体通过；这个门禁不会。
+- 在相信干净的结论之前，先读 `sampledVertexCount`、`unmeasuredAttachments` 和 `missingAzimuths`——每一项都指出门禁没看的东西。
 
-Then **watch the animation**, not a strip of stills: a foot that slides, a limb that pops at the
-wrap, and a prop that lags one frame are all invisible in single frames and obvious in motion.
+然后**观看动画**，而不是一排静帧：滑步的脚、在周期衔接处跳变的肢体、滞后一帧的道具，在单帧里都看不见，在运动中一目了然。
 
-## Standing rules
+## 常设规则
 
-1. **No typed-in anatomical constant.** Every joint position, radius and amplitude traces to a
-   measurement of this model or to a cited gait dataset. Anything else is labelled an assumption.
-2. **One change, then re-measure.** Weight defects mask each other; two changes at once means the
-   next agent inherits a fact that is not true.
-3. **A rest pose is not evidence of motion**, and a strip of stills is not evidence of a cycle.
-4. **Never claim "done" when it is "improved."** Name what still reads wrong and at which phase.
+1. **不手写解剖学常数。** 每个关节位置、半径和幅度都要能追溯到对本模型的测量或某个引用的步态数据集。其他任何东西都标注为假设。
+2. **改一处，就重新测量。** 权重缺陷会相互掩盖；同时改两处意味着下一个代理会继承一个并不成立的事实。
+3. **静止姿态不是运动的证据**，一排静帧也不是周期的证据。
+4. **"有改善"时绝不宣称"完成"。** 指出什么仍然看起来不对，以及在哪个 phase。
 
-## Report format
+## 报告格式
 
-Per step: what was **measured** (the number and the command that printed it), what was **decided**,
-what is still **unverified**. Close with:
+每一步：**测得**了什么（数字以及打印它的命令），**决定**了什么，还有什么**未验证**。最后列出：
 
-- the dominant-bone percentage per region, before and after the allow-list;
-- every pair passed to `--allow`, and why;
-- which phases were gated and which were not;
-- every constant you could not measure, named as an assumption;
-- what still reads wrong in motion.
+- 每个区域的主导骨骼百分比，白名单前后各一份；
+- 每一对传给 `--allow` 的部件，以及原因；
+- 哪些 phase 过了门禁、哪些没有；
+- 每一个你无法测量的常数，标明为假设；
+- 运动中仍然看起来不对的地方。
 
-"This motion cannot be reached from this rig without changing the surface topology" is a valid
-result — `joint_loops.py` failing is exactly that finding. Say it rather than tuning weights against
-a joint with no geometry in it.
+"不改变表面拓扑就无法用这个绑定实现该动作"是一个有效结果——`joint_loops.py` 失败恰恰就是这个发现。直接说出来，而不是对着一个内部没有几何的关节去调权重。
 ````

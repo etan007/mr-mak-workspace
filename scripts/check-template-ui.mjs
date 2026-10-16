@@ -37,12 +37,12 @@ try {
     const image = dom.locator('img:visible').first();
     if (!await image.count()) return;
     await image.click();
-    const dialog = dom.getByRole('dialog', { name: 'Image preview' }); await dialog.waitFor();
+    const dialog = dom.getByRole('dialog', { name: '图片预览' }); await dialog.waitFor();
     await dialog.locator('img').evaluate(img => img.decode());
     const pending = page.waitForEvent('download');
-    await dialog.getByRole('link', { name: 'Download', exact: true }).click();
+    await dialog.getByRole('link', { name: '下载', exact: true }).click();
     assert.equal(await (await pending).failure(), null);
-    await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+    await dialog.getByRole('button', { name: '关闭', exact: true }).click();
     await dialog.waitFor({ state: 'hidden' });
   }
   for (const width of [1440, 760]) {
@@ -109,7 +109,7 @@ try {
     // Invalid indices recover to the chosen default.
     await page.goto(service.urls.workspace + '#/creative-mcp/999');
     await frameLocator().locator('h1').waitFor();
-    assert.equal(await page.locator('.step-tab[aria-selected="true"]').innerText(), 'Tool shortlist');
+    assert.equal(await page.locator('.step-tab[aria-selected="true"]').innerText(), '工具候选清单');
   }
   await page.setViewportSize({ width: 1440, height: 1060 });
   await page.goto(service.urls.workspace + '#/my-dream-game');
@@ -118,17 +118,17 @@ try {
   await page.evaluate(async () => Promise.all([...document.images].map(img => img.decode())));
   await page.screenshot({ path: path.join(root, 'docs/assets/workspace.png'), animations: 'disabled' });
   // Both provider entries must expose the complete readable skill and resources.
-  await page.getByRole('button', { name: 'Toggle skills', exact: true }).click();
+  await page.getByRole('button', { name: '切换技能面板', exact: true }).click();
   for (const provider of ['Claude', 'Codex']) {
     await page.locator('.skill-locations').getByRole('button', { name: provider, exact: true }).click();
     await page.getByRole('treeitem', { name: /^fal-ai-generation$/ }).click();
     await page.getByRole('treeitem', { name: /^SKILL.md/ }).click();
-    await page.getByRole('heading', { name: 'fal.ai generation', exact: true }).waitFor();
-    await page.getByRole('heading', { name: 'Run and retain the job', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'fal.ai 生成', exact: true }).waitFor();
+    await page.getByRole('heading', { name: '运行并保留任务', exact: true }).waitFor();
     const documentText = await page.locator('.mak-markdown').innerText();
-    assert.ok(documentText.length > 3000);
+    assert.ok(documentText.length > 1000);
     assert.doesNotMatch(documentText, /[A-Z]:[\\/]Users[\\/]|[\u0400-\u04ff]/iu);
-    await page.getByRole('button', { name: 'Close file preview' }).click();
+    await page.getByRole('button', { name: '关闭文件预览' }).click();
     checks.push({ skillProvider: provider, completeInstructions: true });
   }
   assert.deepEqual(errors, []);

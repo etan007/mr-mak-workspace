@@ -1,17 +1,17 @@
-# Implicit SDF Modeling
+# 隐式 SDF 建模
 
-This is WS1. It gives the generator a code-side implicit surface path for shapes
-that need one welded organic body instead of a stack of separate primitives.
+这是 WS1。它为生成器提供一条代码侧的隐式曲面路径，用于需要单个焊接有机主体、
+而不是一堆分离基本体的形状。
 
-Use it when the reference calls for smooth unions, blended limbs, soft transitions,
-or another form that breaks down if you keep stacking boxes and capsules.
+当参考图需要平滑并集、融合的肢体、柔和过渡，或其他一旦持续堆叠方块和胶囊体就会
+失真的形体时使用它。
 
-## What the spec carries
+## spec 携带的内容
 
-The spec uses `component.topologyClass: "implicit"` together with
-`geometryDescriptor.sdf`.
+规格（spec）同时使用 `component.topologyClass: "implicit"` 和
+`geometryDescriptor.sdf`。
 
-The descriptor is limited to these primitive types:
+描述符仅限以下基本体类型：
 
 ```json
 {
@@ -27,33 +27,32 @@ The descriptor is limited to these primitive types:
 }
 ```
 
-Supported primitives are `sphere`, `capsule`, `box`, `cone`, and `ellipsoid`.
-Supported operations are `smooth-union`, `subtract`, and `intersect`.
+支持的基本体有 `sphere`、`capsule`、`box`、`cone` 和 `ellipsoid`。
+支持的运算有 `smooth-union`、`subtract` 和 `intersect`。
 
-## Limits
+## 限制
 
-- `primitives` must be non-empty and stay at or below 64 entries.
-- `operations` is optional, but when present it stays at or below 128 entries.
-- `resolution` must stay between 4 and 64.
-- Optional bounds, when present, must have ordered `min` and `max` vectors.
+- `primitives` 不能为空，且不超过 64 项。
+- `operations` 可选，但如果提供，不超过 128 项。
+- `resolution` 必须在 4 到 64 之间。
+- 可选的 bounds 如果提供，`min` 和 `max` 向量必须有序。
 
-## Generator behavior
+## 生成器行为
 
-The generator samples the SDF, polygonizes it, and recomputes normals on the
-resulting geometry. The output is still procedural code, not an imported mesh.
+生成器对 SDF 采样、将其多边形化，并重新计算结果几何体的法线。输出仍是程序化代码，
+而不是导入的网格。
 
-The emitted geometry keeps the default pipeline unchanged when no SDF block is
-present. Subdivision is not available on the emitted `implicit sdf` path.
+没有 SDF 块时，生成的几何体保持默认管线不变。生成的 `implicit sdf` 路径不支持细分。
 
-## Validation rules
+## 校验规则
 
-- `geometryDescriptor.sdf` must be structurally valid before codegen.
-- `sdf` and `visualHull` cannot live on the same component.
-- `sdf` and `subdivide` cannot be combined for the implicit path.
-- Primitive and operation ids must stay unique.
+- `geometryDescriptor.sdf` 必须在代码生成前结构有效。
+- `sdf` 和 `visualHull` 不能位于同一个组件上。
+- 隐式路径不能同时使用 `sdf` 和 `subdivide`。
+- 基本体和运算的 id 必须保持唯一。
 
-## Acceptance criteria
+## 验收标准
 
-- A torso plus limb fixture emits one welded geometry with continuous normals.
-- Default object-only specs stay byte-identical.
-- Forge unit tests pass and the showcase TypeScript smoke stays clean.
+- 躯干加肢体的测试夹具生成一个法线连续的焊接几何体。
+- 默认的纯物体 spec 保持逐字节一致。
+- Forge 单元测试通过，showcase TypeScript 冒烟测试保持干净。

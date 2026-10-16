@@ -39,19 +39,19 @@ try {
   });
   for (const surface of ['chats', 'workspace']) {
     await page.goto(service.urls[surface]);
-    await page.getByRole('button', { name: 'Start voice', exact: true }).click();
+    await page.getByRole('button', { name: '开始语音', exact: true }).click();
     await page.getByRole('alert').filter({ hasText: 'Permission denied' }).waitFor();
-    await page.getByRole('button', { name: 'Dismiss voice error' }).click();
+    await page.getByRole('button', { name: '关闭语音错误提示' }).click();
     assert.equal(await page.getByRole('alert').count(), 0);
     assert.equal(await page.evaluate(() => window.fixtureMicRequests), 1);
-    const input = page.getByRole('textbox', { name: 'Message Mr. Mak' });
+    const input = page.getByRole('textbox', { name: '给 Mr. Mak 发消息' });
     const before = requests.length;
     await input.fill('First line'); await input.press('Shift+Enter'); await input.pressSequentially('Second line');
     assert.equal(await input.inputValue(), 'First line\nSecond line'); assert.equal(requests.length, before);
     await input.dispatchEvent('keydown', { key: 'Enter', code: 'Enter', isComposing: true });
     assert.equal(requests.length, before);
-    await page.getByRole('button', { name: 'Toggle conversation' }).click();
-    await page.getByRole('button', { name: 'Toggle conversation' }).click();
+    await page.getByRole('button', { name: '切换对话面板' }).click();
+    await page.getByRole('button', { name: '切换对话面板' }).click();
     assert.equal(await input.inputValue(), 'First line\nSecond line');
     await input.press('Enter');
     await page.waitForFunction(() => document.querySelector('.voice-compose textarea')?.value === '');
@@ -63,17 +63,17 @@ try {
       const clipboardData = new DataTransfer(); clipboardData.items.add(new File([bytes], 'Screenshot.png', { type: 'image/png' }));
       element.dispatchEvent(new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData }));
     }, imageBase64);
-    const attached = page.getByLabel('Attached images', { exact: true });
+    const attached = page.getByLabel('已附加的图片', { exact: true });
     await attached.locator('img').waitFor();
     await page.waitForFunction(() => !document.querySelector('.voice-compose button[type=submit]').disabled);
-    await attached.getByRole('link').click(); await page.getByRole('dialog', { name: 'Image preview' }).waitFor();
-    await page.getByRole('button', { name: 'Close', exact: true }).click();
+    await attached.getByRole('link').click(); await page.getByRole('dialog', { name: '图片预览' }).waitFor();
+    await page.getByRole('button', { name: '关闭', exact: true }).click();
     await page.screenshot({ path: path.join(repo, `composer-${surface}.png`) });
     fail = true;
     await input.press('Enter');
     await page.getByRole('alert').filter({ hasText: 'Fixture request failed' }).waitFor();
     assert.equal(await input.inputValue(), 'Review this screenshot'); assert.equal(await attached.locator('img').count(), 1);
-    await page.getByRole('button', { name: 'Dismiss message error' }).click();
+    await page.getByRole('button', { name: '关闭消息错误提示' }).click();
     fail = false; await input.press('Enter');
     await page.waitForFunction(() => document.querySelector('.voice-compose textarea')?.value === '');
     assert.equal(await attached.count(), 0);
@@ -81,11 +81,11 @@ try {
     const saved = requests.at(-1).images[0];
     assert.ok(saved.startsWith(path.join(repo, 'inbox/attachments') + path.sep));
     assert.deepEqual(await readFile(saved), Buffer.from(imageBase64, 'base64'));
-    await page.getByLabel('Sent images', { exact: true }).last().locator('img').waitFor();
+    await page.getByLabel('已发送的图片', { exact: true }).last().locator('img').waitFor();
 
-    await page.locator('input[type=file][aria-label="Choose images for Mr. Mak"]').setInputFiles({ name: 'Reference.png', mimeType: 'image/png', buffer: Buffer.from(imageBase64, 'base64') });
+    await page.locator('input[type=file][aria-label="为 Mr. Mak 选择图片"]').setInputFiles({ name: 'Reference.png', mimeType: 'image/png', buffer: Buffer.from(imageBase64, 'base64') });
     await attached.locator('img').waitFor();
-    await attached.getByRole('button', { name: /^Remove / }).click();
+    await attached.getByRole('button', { name: /^移除 / }).click();
     assert.equal(await attached.count(), 0);
   }
   assert.deepEqual(errors, []);

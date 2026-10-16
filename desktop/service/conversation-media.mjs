@@ -15,7 +15,7 @@ function imageType(data) {
   if (data.subarray(0, 2).toString() === 'BM') return 'image/bmp';
   if (data.subarray(4, 8).toString() === 'ftyp') return data.subarray(8, 12).toString() === 'qt  ' ? 'video/quicktime' : 'video/mp4';
   if (data.subarray(0, 4).equals(Buffer.from([0x1a, 0x45, 0xdf, 0xa3])) && data.includes(Buffer.from('webm'))) return 'video/webm';
-  throw new Error('Media unavailable');
+  throw new Error('媒体不可用');
 }
 
 // Read only explicit media records and media links; never infer media from arbitrary tool text.
@@ -51,24 +51,24 @@ export class ConversationMedia {
   async source(reference, cwd) {
     if (reference.startsWith('data:')) {
       const match = /^data:(image\/(?:png|jpeg|webp|gif|bmp));base64,([A-Za-z0-9+/=]+)$/.exec(reference);
-      if (!match || match[2].length > MAX_INLINE * 1.4) throw new Error('Image unavailable');
+      if (!match || match[2].length > MAX_INLINE * 1.4) throw new Error('图片不可用');
       const data = Buffer.from(match[2], 'base64');
-      if (!data.length || data.length > MAX_INLINE || imageType(data) !== match[1]) throw new Error('Image unavailable');
-      return { inline: reference, type: match[1], name: 'Shared image' };
+      if (!data.length || data.length > MAX_INLINE || imageType(data) !== match[1]) throw new Error('图片不可用');
+      return { inline: reference, type: match[1], name: '共享图片' };
     }
     // Network and file:// URLs are not fetched. Only exact paths recorded in this chat can be granted.
     let file = decodeURIComponent(reference);
-    if (/^[a-z][a-z\d+.-]*:/i.test(file) && !/^[a-z]:[\\/]/i.test(file) || file.startsWith('//') || file.startsWith('\\\\') || /[\x00-\x1f]/.test(file)) throw new Error('Image unavailable');
-    if (!path.isAbsolute(file) && !cwd) throw new Error('Image unavailable');
+    if (/^[a-z][a-z\d+.-]*:/i.test(file) && !/^[a-z]:[\\/]/i.test(file) || file.startsWith('//') || file.startsWith('\\\\') || /[\x00-\x1f]/.test(file)) throw new Error('图片不可用');
+    if (!path.isAbsolute(file) && !cwd) throw new Error('图片不可用');
     file = path.resolve(cwd || '.', file);
     const actual = await realpath(file);
     const handle = await open(actual, 'r');
     try {
       const info = await handle.stat();
-      if (!info.isFile() || info.size < 1 || info.size > MAX_VIDEO_BYTES) throw new Error('Image unavailable');
+      if (!info.isFile() || info.size < 1 || info.size > MAX_VIDEO_BYTES) throw new Error('图片不可用');
       const head = Buffer.alloc(4096); await handle.read(head, 0, head.length, 0);
       const type = imageType(head);
-      if (!type.startsWith('video/') && info.size > MAX_BYTES) throw new Error('Media unavailable');
+      if (!type.startsWith('video/') && info.size > MAX_BYTES) throw new Error('媒体不可用');
       return { file: actual, type, name: path.basename(actual) };
     } finally { await handle.close(); }
   }
@@ -90,7 +90,7 @@ export class ConversationMedia {
           const [token, grant] = existing; grant.expires = Date.now() + 10 * 60 * 1000;
           const url = `/mobile/api/sessions/${session.id}/media/${token}`;
           images.push({ url, name: grant.name, kind: grant.type.startsWith('video/') ? 'video' : 'image', type: grant.type });
-        } catch { images.push({ unavailable: true, name: 'Media unavailable', kind: /\.(mp4|webm|mov|m4v)$/i.test(reference) ? 'video' : 'image' }); }
+        } catch { images.push({ unavailable: true, name: '媒体不可用', kind: /\.(mp4|webm|mov|m4v)$/i.test(reference) ? 'video' : 'image' }); }
       }
       messages.push({ ...clean, ...(images.length ? { images } : {}) });
     }
@@ -106,11 +106,11 @@ export class ConversationMedia {
     if (grant.type.startsWith('video/')) {
       let handle;
       try {
-        if (await realpath(grant.file) !== grant.file) throw new Error('Media unavailable');
+        if (await realpath(grant.file) !== grant.file) throw new Error('媒体不可用');
         handle = await open(grant.file, 'r');
         const info = await handle.stat(), head = Buffer.alloc(4096);
         await handle.read(head, 0, head.length, 0);
-        if (!info.isFile() || info.size < 1 || info.size > MAX_VIDEO_BYTES || imageType(head) !== grant.type) throw new Error('Media unavailable');
+        if (!info.isFile() || info.size < 1 || info.size > MAX_VIDEO_BYTES || imageType(head) !== grant.type) throw new Error('媒体不可用');
         const headers = { 'Content-Type': grant.type, 'Accept-Ranges': 'bytes', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; sandbox", ...(download ? { 'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(grant.name)}` } : {}) };
         let start = 0, end = info.size - 1, status = 200;
         const range = request.headers?.range;
@@ -137,17 +137,17 @@ export class ConversationMedia {
     try {
       if (grant.inline) data = Buffer.from(grant.inline.slice(grant.inline.indexOf(',') + 1), 'base64');
       else {
-        if (await realpath(grant.file) !== grant.file) throw new Error('Image unavailable');
+        if (await realpath(grant.file) !== grant.file) throw new Error('图片不可用');
         const handle = await open(grant.file, 'r');
         try {
           const info = await handle.stat();
-          if (!info.isFile() || info.size > MAX_BYTES) throw new Error('Image unavailable');
+          if (!info.isFile() || info.size > MAX_BYTES) throw new Error('图片不可用');
           data = await handle.readFile();
         } finally { await handle.close(); }
       }
-      if (data.length > MAX_BYTES || imageType(data) !== grant.type) throw new Error('Image unavailable');
+      if (data.length > MAX_BYTES || imageType(data) !== grant.type) throw new Error('图片不可用');
     } catch { response.writeHead(404); response.end(); return; }
-    response.writeHead(200, { 'Content-Type': grant.type, 'Content-Length': data.length, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; sandbox", ...(download ? { 'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(grant.name === 'Shared image' ? `shared-image.${grant.type.split('/')[1]}` : grant.name)}` } : {}) });
+    response.writeHead(200, { 'Content-Type': grant.type, 'Content-Length': data.length, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "default-src 'none'; sandbox", ...(download ? { 'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(grant.name === '共享图片' ? `shared-image.${grant.type.split('/')[1]}` : grant.name)}` } : {}) });
     response.end(request.method === 'HEAD' ? undefined : data);
   }
 }

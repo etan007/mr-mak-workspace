@@ -37,7 +37,7 @@ export async function api<T>(path: string, data?: unknown, method?: string, opti
     body: data === undefined ? undefined : JSON.stringify(data),
   })
   const value = await response.json()
-  if (!response.ok) throw new Error(value.error || `Request failed (${response.status})`)
+  if (!response.ok) throw new Error(value.error || `请求失败（${response.status}）`)
   return value as T
 }
 export function pickFiles(): Promise<string[]> {
@@ -49,7 +49,7 @@ export function pickFiles(): Promise<string[]> {
       if (detail?.requestId !== requestId) return
       cleanup(); resolve(detail.paths)
     }
-    const closed = () => { cleanup(); reject(new Error('The file picker window was closed.')) }
+    const closed = () => { cleanup(); reject(new Error('文件选择窗口已关闭。')) }
     window.addEventListener('mrmak-picked-files', picked)
     window.addEventListener('pagehide', closed)
     api('/files/pick', { requestId }).catch(error => { cleanup(); reject(error) })
@@ -58,7 +58,7 @@ export function pickFiles(): Promise<string[]> {
 export async function uploadImage(file: File): Promise<{ path: string; name: string }> {
   const response = await fetch('/api/attachments', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/octet-stream', 'X-File-Name': encodeURIComponent(file.name || 'Screenshot.png') }, body: file })
   const value = await response.json()
-  if (!response.ok) throw new Error(value.error || 'Image could not be saved')
+  if (!response.ok) throw new Error(value.error || '图片保存失败')
   return value
 }
 export async function uploadFile(file: File, folder: string): Promise<{ path: string; name: string; renamed: boolean }> {
@@ -66,7 +66,7 @@ export async function uploadFile(file: File, folder: string): Promise<{ path: st
     method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/octet-stream' }, body: file,
   })
   const value = await response.json()
-  if (!response.ok) throw new Error(value.error || 'File could not be copied')
+  if (!response.ok) throw new Error(value.error || '文件复制失败')
   return value
 }
 export function sendEvent(value: unknown) {
@@ -105,7 +105,7 @@ function connect() {
       const sessions = state.sessions.filter(item => item.id !== event.id)
       update({ sessions, selectedId: state.selectedId === event.id ? sessions[0]?.id || null : state.selectedId })
     }
-    if (event.type === 'service-error') reportError(event.error || 'Connection error')
+    if (event.type === 'service-error') reportError(event.error || '连接错误')
     if (event.type === 'coordinator-state') update({ coordinator: event.state || 'idle' })
     if (event.type === 'coordinator-result' && event.operation) {
       const operation = event.operation
@@ -140,6 +140,6 @@ window.addEventListener('pagehide', () => { token = ''; socket?.close(); clearTi
 export async function transcribeDesktopAudio(recording: import('../mobile/voice-drafts').VoiceDraft, signal: AbortSignal): Promise<{ text: string }> {
   const response = await fetch('/api/transcribe', { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': recording.audio.type, 'X-Transcription-Id': recording.id }, body: recording.audio, signal: AbortSignal.any([signal, AbortSignal.timeout(270000)]) })
   const result = await response.json()
-  if (!response.ok) throw new Error(result.error || 'Could not transcribe this recording.')
+  if (!response.ok) throw new Error(result.error || '无法转写这段录音。')
   return result
 }

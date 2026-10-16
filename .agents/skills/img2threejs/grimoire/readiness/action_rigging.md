@@ -1,53 +1,55 @@
-# Action-Ready Procedural Models
+# 可动作的程序化模型
 
-Use this reference when a procedural Three.js model may later need animation, transformation, physics, or destruction.
+当程序化 Three.js 模型之后可能需要动画、变换、物理或破坏效果时，使用本参考。
 
-## Design Goal
+## 设计目标
 
-The generated model should be a runtime-ready hierarchy, not a single decorative mesh. Future actions should be added by targeting named nodes, sockets, colliders, and destruction groups instead of rewriting the reconstruction.
+生成的模型应是一个可直接用于运行时的层级结构，而不是单个装饰性网格。后续动作应通过指向具名节点、socket、碰撞体和破坏组来添加，而无需重写重建代码。
 
 ## Hierarchy Pattern
 
-Use this structure:
+（层级模式）
 
-- `root`: whole-object motion, visibility, global scale, runtime metadata.
-- `component pivot Group`: stable transform node for each macro/meso component.
-- `visual mesh`: child of the component pivot; holds geometry and material.
-- `socket Object3D`: child of the relevant pivot; marks attachment, effect, grip, or joint positions.
-- collider metadata/proxy: simplified runtime shape, not necessarily a visible mesh.
-- destruction group metadata: semantic grouping for detach/break logic.
+使用以下结构：
 
-## Pivot Rules
+- `root`：整体运动、可见性、全局缩放、运行时元数据。
+- `component pivot Group`：每个宏观/中观组件的稳定变换节点。
+- `visual mesh`：组件 pivot 的子节点；承载几何体和材质。
+- `socket Object3D`：相关 pivot 的子节点；标记挂接点、特效点、握持点或关节位置。
+- 碰撞体元数据/代理：简化的运行时形状，不一定是可见网格。
+- 破坏组元数据：用于脱离/破碎逻辑的语义分组。
 
-- Use center pivots only when the object rotates around its center of mass.
-- Use base pivots for trees, signs, bottles, poles, legs, and upright props.
-- Use hinge pivots for lids, doors, handles, flaps, jaws, levers, and wings.
-- Use branch/root pivots for organic appendages that bend from one end.
-- Use custom pivots when the reference clearly implies a mechanical joint or socket.
+## Pivot 规则
 
-## Collider Rules
+- 只有当物体绕质心旋转时才使用中心 pivot。
+- 树木、标牌、瓶子、杆子、腿和直立道具使用底部 pivot。
+- 盖子、门、把手、翻板、颌部、杠杆和翅膀使用铰链 pivot。
+- 从一端弯曲的有机附肢使用枝根/根部 pivot。
+- 当参考图明确暗示存在机械关节或插槽时，使用自定义 pivot。
 
-- Use primitive proxies first: box, sphere, capsule, cylinder.
-- Use compound proxies for complex silhouettes.
-- Avoid visual mesh colliders unless the user explicitly asks for high-precision collision.
-- Mark triggers separately from solid colliders.
-- Store collider intent even when no physics engine is installed.
+## 碰撞体规则
 
-## Destruction Rules
+- 优先使用基本体代理：box、sphere、capsule、cylinder。
+- 复杂轮廓使用复合代理。
+- 除非用户明确要求高精度碰撞，否则避免使用视觉网格作为碰撞体。
+- 将触发器与实体碰撞体分开标记。
+- 即使没有安装物理引擎，也要保存碰撞体意图。
 
-- Break along existing seams, joints, material boundaries, weak points, or branch roots.
-- Use detachable component groups for large fragments.
-- Use procedural small fragments only where they improve readability.
-- Attach impact, spark, dust, liquid, or debris effect sockets when destruction is expected.
-- Preserve material continuity on exposed fracture faces where possible.
+## 破坏规则
 
-## Acceptance Criteria
+- 沿已有接缝、关节、材质边界、薄弱点或枝根断裂。
+- 大碎块使用可脱离的组件组。
+- 只在能提升可读性的地方使用程序化小碎片。
+- 预期会发生破坏时，挂接撞击、火花、尘土、液体或碎屑特效 socket。
+- 尽可能在暴露的断面上保持材质连续性。
 
-An action-ready model passes when:
+## 验收标准
 
-- Every major part has a stable ID and pivot node.
-- Movable or breakable parts are not merged into unrelated geometry.
-- Sockets are named and placed in local coordinates.
-- Collider proxies exist for physics-relevant parts.
-- Destruction groups and fracture seams are explicit.
-- `root.userData.sculptRuntime` exposes maps that later code can target.
+满足以下条件时，可动作模型通过：
+
+- 每个主要部件都有稳定的 ID 和 pivot 节点。
+- 可动或可破坏的部件没有被合并进无关几何体。
+- socket 已命名，并放置在局部坐标中。
+- 与物理相关的部件有碰撞体代理。
+- 破坏组和断裂接缝是显式定义的。
+- `root.userData.sculptRuntime` 暴露了后续代码可以定位的映射表。

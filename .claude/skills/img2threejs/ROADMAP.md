@@ -1,261 +1,223 @@
-# img2threejs Roadmap
+# img2threejs 路线图
 
-Where img2threejs is going: from rebuilding one object at a time to generating whole playable
-worlds from reference images. For the full technical specification and acceptance criteria of
-in-flight work, see [docs/UPGRADE_PLAN.md](docs/UPGRADE_PLAN.md).
+img2threejs 的方向：从一次重建一个物体，走向根据参考图生成完整的可玩世界。进行中工作的完整技术
+规格与验收标准，见 [docs/UPGRADE_PLAN.md](docs/UPGRADE_PLAN.md)。
 
-Each release has one theme. That is deliberate — a version people can name is a version people
-can plan around.
+每个版本只有一个主题。这是刻意的——一个大家叫得出名字的版本，才是大家能据此做计划的版本。
 
-## Shipped
+## 已发布
 
-| Version | Theme | Date | Highlights |
+| 版本 | 主题 | 日期 | 亮点 |
 |---|---|---|---|
-| v1.0 | Object pipeline | 2026-07-15 | Staged sculpt pipeline (blockout through optimization), render-vs-reference review loop, action-ready runtime hierarchy |
-| v1.1 | Detail-first analysis | 2026-07-15 | Required `detailInventory` artifact (gloss, bevel, fasteners, linework, stains), strict-quality gate blocking shallow specs before codegen |
-| v1.2 | Humanoid character generator | 2026-07-21 | Character/hybrid domain detection, anatomy-aware track, proportion-lock and feature-placement gated passes, per-part character materials |
-| v1.3 | Quality & efficiency (Divine Eye) | 2026-07-22 | Deterministic multi-signal review harness, input-integrity and geometry-truth gates, reference-grounded texture/material analysis, CIEDE2000 colour math |
-| v1.4 | Weapon Pipeline | 2026-07-25–26 | CS2 image-matched reconstruction, provenance-aware intake and local search, projection-first finishes, family-specific adapters, structural review and component-coverage gates |
-| v1.5 | The Character Update | 2026-08-12 | Skeleton derived from the component tree and bound to `SkinnedMesh` geometry, geodesic skinning, hair as a five-stage subsystem with a hard scalp-exposure gate, chirality gates, interior-difference review, `tapered-sweep`, material pipeline with a blocking acceptance gate, resumable workflow state |
-| v1.5.2 | Character rigging & animation | 2026-08-25 | Clip measurement vocabulary and classifier, corrected loop rule (poseReturn, not travel), proximity weight blending, topology-driven chain resolution, foot-contact gate, and the G1-G10 gate suite where an unmeasured gate reports `unevaluated` rather than a pass |
-| v2.0 | The Plugin Update — plugin ecosystem & API | 2026-09-05 | Domain registry (`forge/_shared/domains/`), pull-based spec augmentation with raise-only quality floors, emission-target socket with provenance, per-plugin blocking gates, the img2 harness (`install/add/doctor/sync/capabilities`); CS2 extracted into `plugin-cs2`, `animated-character` served by `plugin-character`, the base names no domain. Pulled forward from the original Procedural World bundle |
+| v1.0 | 物体流水线 | 2026-07-15 | 分阶段雕刻流水线（从 blockout 到 optimization）、渲染对参考图的评审循环、可用于动作的运行时层级 |
+| v1.1 | 细节优先的分析 | 2026-07-15 | 必需的 `detailInventory` 产物（光泽、倒角、紧固件、线条、污渍），在代码生成前阻止浅薄 spec 的严格质量门禁 |
+| v1.2 | 人形角色生成器 | 2026-07-21 | 角色/混合领域检测、感知解剖结构的路线、比例锁定与特征放置的门禁 pass、按部件的角色材质 |
+| v1.3 | 质量与效率（Divine Eye） | 2026-07-22 | 确定性多信号评审框架、输入完整性与几何真实性门禁、基于参考的纹理/材质分析、CIEDE2000 色彩计算 |
+| v1.4 | 武器流水线 | 2026-07-25–26 | CS2 图像匹配重建、感知来源的 intake 与本地检索、投影优先的表面处理、按家族区分的适配器、结构评审与组件覆盖门禁 |
+| v1.5 | The Character Update | 2026-08-12 | 从组件树推导并绑定到 `SkinnedMesh` 几何的骨架、测地蒙皮、作为五阶段子系统并带有头皮暴露硬门禁的头发、手性门禁、内部差异评审、`tapered-sweep`、带阻断性验收门禁的材质流水线、可恢复的工作流状态 |
+| v1.5.2 | 角色绑定与动画 | 2026-08-25 | 动画片段测量词汇与分类器、修正后的循环规则（poseReturn 而非位移）、邻近权重混合、拓扑驱动的骨链解析、脚部接触门禁，以及 G1-G10 门禁套件——其中未测量的门禁报告 `unevaluated` 而非通过 |
+| v2.0 | The Plugin Update——插件生态与 API | 2026-09-05 | 领域注册表（`forge/_shared/domains/`）、拉取式 spec augmentation（质量下限只升不降）、带来源记录的输出目标插槽、按插件的阻断性门禁、img2 harness（`install/add/doctor/sync/capabilities`）；CS2 被提取到 `plugin-cs2`，`animated-character` 由 `plugin-character` 提供，基础层不指名任何领域。从原先的 Procedural World 版本提前 |
 
-### v1.2 — Humanoid character generator
+### v1.2——人形角色生成器
 
-Characters and hybrid subjects became first-class citizens of the pipeline, alongside a round of
-engine work on the code generator itself.
+角色和混合对象成为流水线的一等公民，同时对代码生成器本身做了一轮引擎改进。
 
-- **Character / hybrid domain detection** — assessment recognises character-like form language and
-  routes the reconstruction through an anatomy-aware track instead of the hard-surface object path.
-- **Humanoid component template** — measured head-unit proportions, facial landmark placement, and
-  pose alignment emitted from the assessment stage.
-- **Proportion-lock build pass** — a gated pass enforcing anatomical proportion correctness before
-  any form or material work proceeds.
-- **Feature-placement build pass** — a gated pass placing and validating facial and body landmarks
-  against the reference.
-- **Per-part character materials** — skin, hair, cloth, and accessory materials wired into the
-  detail machinery, for stylized figures with recognisable likeness.
-- **Surface-topology classification** — parts classified by surface topology to drive more accurate
-  geometry choices, with per-part colour / RGBA recipes for tighter reference matching.
-- **Real extrude / lathe / tube geometry** — genuine geometry generation replaced the prior
-  approximations; plus tier-1 diagnostics and content-hash caching across passes.
+- **角色/混合领域检测**——评估阶段能识别类似角色的形体语言，并把重建路由到感知解剖结构的路线，
+  而不是硬表面物体路径。
+- **人形组件模板**——由评估阶段输出测量得到的头身比例、面部关键点位置和姿态对齐。
+- **比例锁定构建 pass**——一个门禁 pass，在任何形体或材质工作开始之前强制解剖比例正确。
+- **特征放置构建 pass**——一个门禁 pass，对照参考图放置并验证面部和身体关键点。
+- **按部件的角色材质**——皮肤、头发、布料和配饰材质接入细节机制，使风格化人物具有可辨认的相似度。
+- **表面拓扑分类**——按表面拓扑对部件分类，以驱动更准确的几何选择，并提供按部件的颜色 / RGBA
+  配方以更紧密地匹配参考。
+- **真正的挤出 / 车削 / 管几何**——真正的几何生成取代了之前的近似；另有 tier-1 诊断以及跨 pass 的
+  内容哈希缓存。
 
-### v1.3 — Quality & efficiency (Divine Eye)
+### v1.3——质量与效率（Divine Eye）
 
-The review harness became deterministic-first: signals are computed by scripts, and the model's
-judgment is spent only where a script cannot decide.
+评审框架变为确定性优先：信号由脚本计算，模型的判断只花在脚本无法决定的地方。
 
-- **Divine Eye** — a deterministic multi-signal ensemble (`divine_eye.py`): IoU and scale hard
-  gates; proportion, symmetry-parity, pHash, SSIM, edge, blowout, flatness, and tonal-parity soft
-  signals; self-uncertainty `probe` routing.
-- **Input integrity** — reference admission and intake-correctness cross-checks, property
-  auto-binding, shared pHash.
-- **Geometry truth** — curve-sweep, a flatness gate, and Blum lathe-profile derivation.
-- **Multi-angle** — degenerate-view detection with reference-free self-consistency, plus
-  auto-framing.
-- **Eye judgment layers** — a gated VLM check, per-feature verification, a bounded stop policy, and
-  a calibration harness (report-only, with a separation check).
-- **Texture-finish analysis** — classifies finish (gem-metal / gemstone / painted-metal /
-  worn-composite / brushed-steel / plastic / `candy-coat`) and writes doc-grounded
-  `MeshPhysicalMaterial` scalars. The `candy-coat` recipe exists so a saturated anodized or doppler
-  coat keeps its hue instead of the environment stealing it.
-- **Reference-grounded gradient stops** — foreground-masked per-band median sampling extracts a
-  material's true gradient from the reference instead of hand-guessing it, and flags blue-leaning
-  stops that would collapse to blue under tone-mapping.
-- **CIEDE2000 colour math** — full ΔE00 (`_shared/color_metrics.py`), verified against the canonical
-  Sharma test pairs, feeding report-only `hue_zone_parity` and `specular_wash` signals that catch
-  "purple rendered blue" where luma and structure signals cannot.
-- **Objectness** — a pure-stdlib HOG-like descriptor and cosine similarity, wired in as a soft
-  signal plus a reconstruction-mode rescue.
-- **Efficiency** — per-module codegen cache with neighbour invalidation.
-- **Presentation** — reference-conditional post-fx (DOF / bloom) kept strictly off the evaluation
-  path, so bloom cannot blow highlights the gate is measuring.
+- **Divine Eye**——一个确定性的多信号集成（`divine_eye.py`）：IoU 和尺度硬门禁；比例、对称一致性、
+  pHash、SSIM、边缘、过曝、平坦度和色调一致性软信号；自不确定性 `probe` 路由。
+- **输入完整性**——参考准入与 intake 正确性交叉检查、属性自动绑定、共享 pHash。
+- **几何真实性**——曲线扫掠、平坦度门禁，以及 Blum 车削轮廓推导。
+- **多角度**——退化视角检测与无参考自洽性检查，外加自动取景。
+- **眼睛判断层**——受门禁控制的 VLM 检查、逐特征验证、有界停止策略，以及校准框架（仅报告，附带
+  分离度检查）。
+- **纹理表面处理分析**——对表面处理分类（gem-metal / gemstone / painted-metal / worn-composite /
+  brushed-steel / plastic / `candy-coat`），并写入有文档依据的 `MeshPhysicalMaterial` 标量。
+  `candy-coat` 配方的存在，是为了让饱和的阳极氧化或 doppler 涂层保持色相，而不被环境光吃掉。
+- **基于参考的渐变色标**——前景遮罩下的分带中值采样，从参考图中提取材质的真实渐变而不是手工
+  猜测，并标出在色调映射下会塌缩为蓝色的偏蓝色标。
+- **CIEDE2000 色彩计算**——完整的 ΔE00（`_shared/color_metrics.py`），经 Sharma 标准测试对验证，
+  为仅报告的 `hue_zone_parity` 和 `specular_wash` 信号提供数据，能捕获亮度和结构信号捕获不到的
+  "紫色被渲染成蓝色"。
+- **物体性（Objectness）**——纯标准库的类 HOG 描述符与余弦相似度，作为软信号接入，并提供重建模式
+  补救。
+- **效率**——按模块的代码生成缓存，带邻居失效。
+- **展示**——依参考条件启用的后期特效（DOF / bloom），严格排除在评估路径之外，使 bloom 无法冲淡
+  门禁正在测量的高光。
 
-## Roadmap
+## 路线图
 
-| Version | Theme | Primary goal | Highlights |
+| 版本 | 主题 | 主要目标 | 亮点 |
 |---|---|---|---|
-| v1.0 | Object pipeline | Shipped | Staged sculpt pipeline (blockout through optimization), render-vs-reference review loop, action-ready runtime hierarchy |
-| v1.1 | Detail-first analysis | Shipped | Required `detailInventory` artifact (gloss, bevel, fasteners, linework, stains), strict-quality gate blocking shallow specs before codegen |
-| v1.2-gates | Portable structural gates | In progress | Host-specific tool-call enforcement is deferred; portable ledger, geometry, evidence, and report gates run in forge scripts. |
-| v1.2 | Humanoid character generator | Shipped | Character/hybrid domain detection, anatomy and facial landmarks, proportion-lock and feature-placement build passes, per-part character materials |
-| v1.3 | Quality & efficiency (Divine Eye) | Shipped | Deterministic review harness, input-integrity and geometry-truth gates, projection-first texture/material analysis, CIEDE2000 colour math |
-| v1.4 | Weapon Pipeline | Shipped | CS2 image-matched reconstruction, provenance-aware intake, projection-first finishes, family-specific adapters, structural and component-coverage gates |
-| v1.5 | Character Pipeline | Shipped | Component-derived skeleton bound to `SkinnedMesh` geometry · geodesic skinning · hair subsystem across all five stages · chirality gates · interior-difference review · `tapered-sweep` · material pipeline · resumable workflow state. Not shipped: `hairProfile` compiler, IK, pose-sweep gating, clothing |
-| v2.0 | The Plugin Update | Shipped | Domain registry · pull-based spec augmentation with raise-only floors · emission-target socket · per-plugin blocking gates · img2 harness · CS2 and animated-character extracted into installed plugins |
-| **v2.1** | Character plugin split | Finish the v2.0 split | Round out the v2.0 plugin split: extract the in-repo `character` domain into `plugin-character`, so the base names no domain. CS2 and the full character workflow (anatomy + rig) then ship entirely from external plugins. |
-| **v2.2** | Environment Pipeline | Build scenes, not just objects | Buildings · rooms · streets · trees & vegetation · terrain-aware generation · multi-object reconstruction |
-| **v2.3** | Game Pipeline | Game-ready assets | Unity exporter · Unreal exporter · Blender bridge · FBX / OBJ / glTF improvements · LOD generation · collision mesh generation |
-| **v2.4** | Animation Pipeline | Move assets into production | Auto rigging · auto skin weights · Mixamo compatibility · facial rig · lip-sync preparation · animation-ready exports |
-| **v2.5** | AI Studio | Cut the manual work | Web UI · drag & drop workflow · batch processing · visual prompt builder · project management · cloud rendering · public showcase integration |
-| **v3.0** | Procedural World Generation | Whole worlds from reference images | Multi-view reconstruction · large scene generation · semantic world understanding · procedural city generation · interior reconstruction · multi-agent generation pipeline |
+| v1.0 | 物体流水线 | 已发布 | 分阶段雕刻流水线（从 blockout 到 optimization）、渲染对参考图的评审循环、可用于动作的运行时层级 |
+| v1.1 | 细节优先的分析 | 已发布 | 必需的 `detailInventory` 产物（光泽、倒角、紧固件、线条、污渍），在代码生成前阻止浅薄 spec 的严格质量门禁 |
+| v1.2-gates | 可移植的结构门禁 | 进行中 | 特定宿主的工具调用强制执行暂缓；可移植的台账、几何、证据和报告门禁在 forge 脚本中运行。 |
+| v1.2 | 人形角色生成器 | 已发布 | 角色/混合领域检测、解剖与面部关键点、比例锁定与特征放置构建 pass、按部件的角色材质 |
+| v1.3 | 质量与效率（Divine Eye） | 已发布 | 确定性评审框架、输入完整性与几何真实性门禁、投影优先的纹理/材质分析、CIEDE2000 色彩计算 |
+| v1.4 | 武器流水线 | 已发布 | CS2 图像匹配重建、感知来源的 intake、投影优先的表面处理、按家族区分的适配器、结构与组件覆盖门禁 |
+| v1.5 | 角色流水线 | 已发布 | 由组件推导并绑定到 `SkinnedMesh` 几何的骨架 · 测地蒙皮 · 贯穿全部五个阶段的头发子系统 · 手性门禁 · 内部差异评审 · `tapered-sweep` · 材质流水线 · 可恢复的工作流状态。未发布：`hairProfile` 编译器、IK、姿态扫描门禁、服装 |
+| v2.0 | The Plugin Update | 已发布 | 领域注册表 · 拉取式 spec augmentation（下限只升不降）· 输出目标插槽 · 按插件的阻断性门禁 · img2 harness · CS2 和 animated-character 被提取为已安装插件 |
+| **v2.1** | 角色插件拆分 | 完成 v2.0 的拆分 | 收尾 v2.0 的插件拆分：把仓内的 `character` 领域提取到 `plugin-character`，使基础层不指名任何领域。之后 CS2 和完整的角色工作流（解剖 + 绑定）都完全由外部插件提供。 |
+| **v2.2** | 环境流水线 | 构建场景，而不只是物体 | 建筑 · 房间 · 街道 · 树木与植被 · 感知地形的生成 · 多物体重建 |
+| **v2.3** | 游戏流水线 | 可直接用于游戏的资产 | Unity 导出器 · Unreal 导出器 · Blender 桥接 · FBX / OBJ / glTF 改进 · LOD 生成 · 碰撞网格生成 |
+| **v2.4** | 动画流水线 | 让资产进入生产 | 自动绑定 · 自动蒙皮权重 · Mixamo 兼容 · 面部绑定 · 口型同步准备 · 可用于动画的导出 |
+| **v2.5** | AI Studio | 减少手工工作 | Web UI · 拖放工作流 · 批处理 · 可视化提示词构建器 · 项目管理 · 云渲染 · 公开展示集成 |
+| **v3.0** | 程序化世界生成 | 根据参考图生成完整世界 | 多视角重建 · 大场景生成 · 语义化世界理解 · 程序化城市生成 · 室内重建 · 多代理生成流水线 |
 
-### Release names
+### 版本名称
 
-- **v1.5 — The Character Update**
-- **v2.0 — The Plugin Update**
-- **v2.1 — The Character Split**
-- **v2.2 — The Environment Update**
-- **v2.3 — The Game Pipeline Update**
-- **v2.4 — The Animation Update**
-- **v2.5 — The AI Studio Update**
-- **v3.0 — The Procedural World Update**
+- **v1.5——The Character Update**
+- **v2.0——The Plugin Update**
+- **v2.1——The Character Split**
+- **v2.2——The Environment Update**
+- **v2.3——The Game Pipeline Update**
+- **v2.4——The Animation Update**
+- **v2.5——The AI Studio Update**
+- **v3.0——The Procedural World Update**
 
-## Version details
+## 版本详情
 
-### v1.4 — The Weapon Update · *shipped 2026-07-25–26*
+### v1.4——The Weapon Update · *2026-07-25–26 发布*
 
-v1.4 establishes image-matched reconstruction for CS2 hard-surface assets. The pipeline records
-reference admission, family/subtype identity, metadata and texture provenance, exactness tier, and
-hidden-region confidence before authoring geometry. It defaults patterned finishes, decals, and skin
-surfaces to a de-lit reference projection, rather than presenting a procedural approximation as an
-exact match.
+v1.4 为 CS2 硬表面资产确立了图像匹配重建。流水线在编写几何之前，会记录参考准入、家族/子类型
+身份、元数据与纹理来源、精确度档位以及隐藏区域置信度。它默认把带图案的表面处理、贴花和皮肤
+表面交给去光照后的参考投影，而不是把程序化近似当作精确匹配来呈现。
 
-The initial family route covers supported knives and the Glock-18 with dedicated component contracts.
-Review now combines fixed and orbit renders with family, finish, projection, critical-detail,
-geometry-integrity, and component-coverage gates. The v1.4.1 hardening update also requires
-map-stripped blockout evidence and ordered pass credit, so a fused or incomplete assembly cannot pass
-on the strength of a projected texture alone.
+最初的家族路线覆盖受支持的刀具和 Glock-18，各有专用的组件契约。评审现在把固定视角与环绕渲染
+同家族、表面处理、投影、关键细节、几何完整性和组件覆盖门禁结合起来。v1.4.1 加固更新还要求
+去贴图 blockout 证据和有序的 pass 计分，因此融合在一起或不完整的装配不能仅凭投影纹理就通过。
 
-### v1.5 — The Character Update
+### v1.5——The Character Update
 
-*Shipped 2026-08-12.*
+*2026-08-12 发布。*
 
-Characters became a first-class subject rather than a stylized approximation. A skeleton is derived
-from the component tree — never authored beside it — and bound to real `SkinnedMesh` geometry through
-one shared `Skeleton` and exactly one weight helper, with weights from geodesic distance measured
-through the solid. Hair got its own subsystem across all five stages, gated before its generators
-were written, because the failure it exists to prevent had already shipped four wrong fixes. Left and
-right became an importable constant with two different gates, because a rotated limb pair and a pair
-wrong the same way on both sides are different defects. Review learned to measure inside the
-silhouette, after an outline metric scored a deleted face identically to a finished one. Optional
-local SAM2 masks, MediaPipe face/pose landmarks and Depth Anything V2 relative-depth priors feed
-provenance-backed evidence into intake without changing the zero-dependency core or gaining authority
-over geometry and review gates. Resumable, evidence-backed workflow state lets character intake and
-correction loops continue across agents without turning state into a pass bypass.
+角色成为一等对象，而不再是风格化的近似。骨架从组件树推导——绝不在其旁另行编写——并通过一个
+共享的 `Skeleton` 和唯一一个权重辅助函数绑定到真实的 `SkinnedMesh` 几何，权重来自穿过实体测量的
+测地距离。头发获得了贯穿全部五个阶段的独立子系统，并且在其生成器编写之前就先建好了门禁，因为它
+要防止的那种失败此前已经发布过四次错误的修复。左与右成为带有两个不同门禁的可导入常量，因为旋转
+错误的肢体对和两侧以同样方式出错的肢体对是不同的缺陷。在一个轮廓指标把删掉的脸与完成的脸打出
+相同分数之后，评审学会了在轮廓内部测量。可选的本地 SAM2 遮罩、MediaPipe 面部/姿态关键点和 Depth
+Anything V2 相对深度先验，把有来源记录的证据送入 intake，既不改变零依赖核心，也不获得凌驾于几何
+和评审门禁之上的权威。可恢复、有证据支撑的工作流状态，让角色 intake 和修正循环可以在不同代理之间
+延续，而不会让状态变成绕过 pass 的手段。
 
-**Not shipped in v1.5**, and tracked rather than implied: the `hairProfile` → `componentTree`
-compiler, IK (`BoneSpec.ik` exists and nothing populates it), pose-sweep gating, blendshape-driven
-expression work beyond the morph-target emitter, and clothing. Hair dynamics and strand-level hair
-are out of scope permanently — a single image carries no motion, and this pipeline emits no textures
-or alpha.
+**v1.5 中未发布**、且以跟踪而非暗示方式记录的内容：`hairProfile` → `componentTree` 编译器、IK
+（`BoneSpec.ik` 存在但没有任何东西填充它）、姿态扫描门禁、超出 morph target 发射器范围的
+blendshape 驱动表情工作，以及服装。头发动力学和发丝级头发永久不在范围内——单张图片不携带运动
+信息，且本流水线不输出纹理或 alpha。
 
-### v2.0 — The Plugin Update
+### v2.0——The Plugin Update
 
-*Shipped 2026-09-05.*
+*2026-09-05 发布。*
 
-The plugin ecosystem became the product's spine rather than a line item in a far-future bundle. A
-domain registry (`forge/_shared/domains/`) makes profiles pluggable: in-repo modules and installed
-plugins register identically, `--profile` choices derive from what is actually present, and an
-unregistered profile fails loud naming what is available. CS2 moved out of the base into
-`plugin-cs2`; `animated-character` is served by `plugin-character`; the base names no domain and
-infers none from a target's name. Specs pull augmentation from plugins with raise-only quality
-floors, emission targets are a provenance-tracked socket, and each plugin brings its own blocking
-gates. The `img2` harness (`install / add / remove / list / doctor / sync / capabilities`) owns
-installation and drift detection across agent hosts.
+插件生态成为产品的脊梁，而不再是遥远未来版本里的一个条目。领域注册表（`forge/_shared/domains/`）
+让 profile 可插拔：仓内模块和已安装插件以相同方式注册，`--profile` 的可选项来自实际存在的内容，
+未注册的 profile 会响亮地失败并列出可用项。CS2 从基础层移入 `plugin-cs2`；`animated-character`
+由 `plugin-character` 提供；基础层不指名任何领域，也不会从目标名称推断领域。spec 从插件拉取
+augmentation，质量下限只升不降；输出目标是一个有来源跟踪的插槽；每个插件自带阻断性门禁。`img2`
+harness（`install / add / remove / list / doctor / sync / capabilities`）负责跨代理宿主的安装与
+漂移检测。
 
-### v2.1 — The Character Split
+### v2.1——The Character Split
 
-v2.0 left one slice unfinished on purpose: two domains had to stay in-repo so the plugin seam would
-have two consumers from day one; `cs2` and `animated-character` moved out, `character` stayed.
-v2.1 closes that loop. `character` joins `plugin-character`, whose existing job — Stage R rig and
-animation for the `animated-character` profile — folds into the same plugin as the anatomy track.
-After this release the base names no domain, finally true without qualification.
+v2.0 刻意留下了一块未完成：两个领域必须留在仓内，以便插件接缝从第一天起就有两个消费者；`cs2` 和
+`animated-character` 移出了，`character` 留了下来。v2.1 闭合这个循环。`character` 并入
+`plugin-character`，后者现有的职责——为 `animated-character` profile 提供 Stage R 绑定与动画——与
+解剖路线合并进同一个插件。此版本之后，"基础层不指名任何领域"终于无需任何限定地成立。
 
-The acceptance rule is that the character build keeps emitting the same Three.js output for the same
-input across the move. Each line of character anatomy, hair, and material logic is classified as
-either base mechanism (driven by spec data the plugin supplies) or domain content (leaves with the
-plugin); only then does any file move. The seam itself is hardened at the same time: the pass-id
-set the base already enumerates is enforced at the validation site, the one file the base still
-imported into the leaving set is broken, and the contract gains a clause forbidding that reverse
-direction.
+验收规则是：迁移前后，角色构建对相同输入持续输出相同的 Three.js 结果。角色解剖、头发和材质逻辑的
+每一行都要先归类为基础机制（由插件提供的 spec 数据驱动）或领域内容（随插件迁出）；之后才移动任何
+文件。接缝本身也同时加固：基础层已经枚举的 pass-id 集合在校验处被强制执行，基础层仍在导入待迁出
+集合的那一个文件的依赖被切断，契约也新增一条禁止这种反向依赖的条款。
 
-Out of scope: new character features, CS2 changes, environment, game pipeline, animation, AI
-studio, and the procedural world bundle — those stay owned by v2.2–v2.5 and v3.0.
+不在范围内：新的角色功能、CS2 变更、环境、游戏流水线、动画、AI studio 以及程序化世界版本——这些
+仍由 v2.2–v2.5 和 v3.0 负责。
 
-### v2.2 — The Environment Update
+### v2.2——The Environment Update
 
-The unit of reconstruction grows from one object to a scene. Buildings, rooms, and streets become
-buildable subjects; trees and vegetation get procedural treatment suited to code-only generation;
-and generation becomes terrain-aware, so objects sit in a scene rather than floating in a void.
-Multi-object reconstruction lands here: one reference image, several subjects, correct relative
-placement and scale.
+重建的单位从一个物体扩展到一个场景。建筑、房间和街道成为可构建的对象；树木和植被获得适合纯代码
+生成的程序化处理；生成变得感知地形，使物体位于场景之中，而不是漂浮在虚空里。多物体重建在此落地：
+一张参考图、多个对象、正确的相对位置与比例。
 
-### v2.3 — The Game Pipeline Update
+### v2.3——The Game Pipeline Update
 
-Assets stop being Three.js-only. First-class exporters for Unity and Unreal, a Blender bridge, and
-improved FBX / OBJ / glTF output make a generated model something you can drop into an existing
-production pipeline. LOD generation and collision-mesh generation cover the two things every engine
-asks for and no image-to-3D tool ships by default.
+资产不再只限于 Three.js。面向 Unity 和 Unreal 的一等导出器、Blender 桥接以及改进的 FBX / OBJ /
+glTF 输出，使生成的模型可以直接放入现有生产流水线。LOD 生成和碰撞网格生成覆盖了每个引擎都需要、
+而没有任何图像转 3D 工具默认提供的两样东西。
 
-### v2.4 — The Animation Update
+### v2.4——The Animation Update
 
-Rigging becomes automatic: skeleton generation, skin weights, and a facial rig, with Mixamo
-compatibility so existing animation libraries apply without hand work. Lip-sync preparation and
-animation-ready exports close the gap between "a model exists" and "a character performs".
+绑定变为自动：骨架生成、蒙皮权重和面部绑定，并兼容 Mixamo，使现有动画库无需手工处理即可套用。
+口型同步准备和可用于动画的导出，弥合了"模型存在"与"角色能表演"之间的差距。
 
-### v2.5 — The AI Studio Update
+### v2.5——The AI Studio Update
 
-The pipeline gets a front door for people who don't live in a terminal: a web UI with a
-drag-and-drop workflow, batch processing for more than one asset at a time, a visual prompt builder,
-project management, and cloud rendering. Public showcase integration wires the studio directly to
-the [live gallery](https://img2threejs-showcase.pages.dev/), so publishing a result is a button
-rather than a pull request.
+流水线为不在终端里工作的人提供了一扇前门：带拖放工作流的 Web UI、一次处理多个资产的批处理、
+可视化提示词构建器、项目管理和云渲染。公开展示集成把 studio 直接连到
+[在线画廊](https://img2threejs-showcase.pages.dev/)，发布结果只需点一个按钮，而不是提一个 pull request。
 
-### v3.0 — The Procedural World Update
+### v3.0——The Procedural World Update
 
-Multi-view reconstruction removes the single-image blind-side limit that has bounded every prior
-version. Large scene generation, semantic world understanding, procedural city generation, and
-interior reconstruction combine into a pipeline that produces a place rather than a prop, driven by
-a multi-agent generation pipeline — all riding the plugin ecosystem and API that shipped in v2.0.
+多视角重建消除了此前每个版本都受其限制的单图盲面问题。大场景生成、语义化世界理解、程序化城市
+生成和室内重建组合成一条产出"一个地方"而不是"一个道具"的流水线，由多代理生成流水线驱动——全部
+构建在 v2.0 发布的插件生态与 API 之上。
 
-## The long view
+## 长期展望
 
-**Phase 1 (v1.4–v1.5) — Assets.** Build high-quality individual assets: weapons, props, characters.
+**阶段 1（v1.4–v1.5）——资产。** 构建高质量的单个资产：武器、道具、角色。
 
-**Phase 1.5 (v2.0–v2.1) — Ecosystem.** The plugin architecture shipped ahead of schedule: domains,
-emission targets, gates, and augmentation are extension points other people can build on.
+**阶段 1.5（v2.0–v2.1）——生态。** 插件架构提前发布：领域、输出目标、门禁和 augmentation 都是他人
+可以在其上构建的扩展点。
 
-**Phase 2 (v2.2–v2.3) — Worlds.** Build environments and game-ready content: buildings, vegetation,
-streets, export pipelines.
+**阶段 2（v2.2–v2.3）——世界。** 构建环境和可直接用于游戏的内容：建筑、植被、街道、导出流水线。
 
-**Phase 3 (v2.4–v2.5) — Production.** Turn generated assets into production-ready content: rigging,
-animation, Blender, Unity, Unreal, and a web platform.
+**阶段 3（v2.4–v2.5）——生产。** 把生成的资产变为可用于生产的内容：绑定、动画、Blender、Unity、
+Unreal 以及 Web 平台。
 
-**Phase 4 (v3.0) — AI game-asset platform.** Generate entire playable worlds from reference images:
-multi-view understanding, procedural world generation, and AI planning, all riding the v2.0
-plugin ecosystem.
+**阶段 4（v3.0）——AI 游戏资产平台。** 根据参考图生成完整的可玩世界：多视角理解、程序化世界生成和
+AI 规划，全部构建在 v2.0 插件生态之上。
 
-## Known gaps (deep-research audit — 2026-07-22)
+## 已知缺口（深度研究审计——2026-07-22）
 
-A capability audit (NotebookLM research + `file:line` code-map) enumerated Three.js / tech-art
-features the skill does not yet cover. Recorded here so they are tracked, not lost. Most are
-**irrelevant to hard-surface static props** and now map onto a themed version above; one is a real
-latent bug.
+一次能力审计（NotebookLM 研究 + `file:line` 代码映射）列举了本技能尚未覆盖的 Three.js / 技术美术
+功能。记录在此，以便跟踪而不致遗忘。其中大多数**与硬表面静态道具无关**，现已对应到上面某个主题
+版本；有一项是真实的潜在 bug。
 
-| # | Gap | Status / plan | Priority |
+| # | 缺口 | 状态 / 计划 | 优先级 |
 |---|---|---|---|
-| G1 | SkinnedMesh + Bones + Morph targets (organic deform, facial expression) | Roadmap **v2.4 — Animation** (rig-ready topology prepared in v1.5) | deferred |
-| G2 | glTF / GLB export + AnimationMixer (engine portability) | Roadmap **v2.3 — Game Pipeline** | deferred |
-| G3 | ~~**InstancedMesh — real latent bug**: `instanced-cluster` has no `geometry_for()` branch; repetition systems emit a hand-rolled `Mesh` clone loop~~ | **Closed.** `geometry_for()` resolves the cluster's base primitive and the repetition emitter builds `new THREE.InstancedMesh(geo, mat, count)`; `test_repetition_system_scale.py` verifies placement by reading matrices back through `InstancedMesh.getMatrixAt` composed with `cluster.matrixWorld`, not by matching source strings | — |
-| G4 | UV unwrapping / atlas, normal+AO baking (high→low), LOD, BVH; procedural-UV seams stretch at primitive joins | Partial today (procedural cyl/triplanar UV + height→normal). Baking and LOD land in **v2.3** | med |
-| G5 | WebGPURenderer + TSL node materials | Deferred — architecture, not render quality | low |
-| G6 | Topology / retopology / CSG boolean-merge (clean welded mesh for skinning) | Feeds **v1.5** rigging-ready topology; `three-bvh-csg` is for export/skinning, not static-prop quality | low |
+| G1 | SkinnedMesh + Bones + Morph targets（有机形变、面部表情） | 路线图 **v2.4——Animation**（可绑定拓扑已在 v1.5 中准备好） | 暂缓 |
+| G2 | glTF / GLB 导出 + AnimationMixer（引擎可移植性） | 路线图 **v2.3——Game Pipeline** | 暂缓 |
+| G3 | ~~**InstancedMesh——真实的潜在 bug**：`instanced-cluster` 没有 `geometry_for()` 分支；重复系统输出的是手写的 `Mesh` 克隆循环~~ | **已关闭。** `geometry_for()` 会解析 cluster 的基础基元，重复系统发射器构建 `new THREE.InstancedMesh(geo, mat, count)`；`test_repetition_system_scale.py` 通过 `InstancedMesh.getMatrixAt` 结合 `cluster.matrixWorld` 读回矩阵来验证放置，而不是匹配源码字符串 | — |
+| G4 | UV 展开 / 图集、法线+AO 烘焙（高模→低模）、LOD、BVH；程序化 UV 接缝在基元连接处拉伸 | 目前部分支持（程序化圆柱/三平面 UV + 高度→法线）。烘焙和 LOD 在 **v2.3** 落地 | 中 |
+| G5 | WebGPURenderer + TSL 节点材质 | 暂缓——属于架构问题，不影响渲染质量 | 低 |
+| G6 | 拓扑 / 重拓扑 / CSG 布尔合并（用于蒙皮的干净焊接网格） | 服务于 **v1.5** 可绑定拓扑；`three-bvh-csg` 用于导出/蒙皮，与静态道具质量无关 | 低 |
 
-**Corrections to the audit (verified against code):**
-- *"IBL/PMREM not integrated"* — **inaccurate.** The generator emits `create<Type>Environment(renderer)`
-  via `PMREMGenerator.fromScene(new RoomEnvironment())` (`generate_threejs_factory.py:1209-1210`);
-  the showcase `Viewer` also builds a PMREM environment. IBL **is** integrated.
-- *"Only a plain WebGLRenderer / no post-processing"* — **half-true by design.** The generator emits a
-  `create<Type>PresentationComposer` (bloom/DOF) for the hero render, but deliberately keeps the
-  evaluation render composer-free (`generate_threejs_factory.py:1251`: "plain renderer with NO
-  composer — bloom blows highlights and DOF blurs edges"). A bright HDRI/bloom on the *eval* path
-  would also **steal hue** from candy/anodized coats — so it must stay off the eval path.
+**对审计结论的更正（已对照代码核实）：**
+- *"IBL/PMREM 未集成"*——**不准确。** 生成器通过 `PMREMGenerator.fromScene(new RoomEnvironment())`
+  输出 `create<Type>Environment(renderer)`（`generate_threejs_factory.py:1209-1210`）；showcase 的
+  `Viewer` 也会构建 PMREM 环境。IBL **已经**集成。
+- *"只有普通 WebGLRenderer / 没有后期处理"*——**按设计只对一半。** 生成器会为主视觉渲染输出
+  `create<Type>PresentationComposer`（bloom/DOF），但刻意让评估渲染不使用 composer
+  （`generate_threejs_factory.py:1251`："plain renderer with NO composer — bloom blows highlights
+  and DOF blurs edges"）。*评估*路径上明亮的 HDRI/bloom 还会**吃掉** candy/阳极氧化涂层的**色相**——
+  所以它必须远离评估路径。
 
-## Contributing
+## 参与贡献
 
-img2threejs welcomes contributions, and the roadmap is responsive to real usage. If you want to work
-on something above, see [CONTRIBUTING.md](CONTRIBUTING.md) — say which version's theme your work
-belongs to so it lands in the right tranche. Feature requests and bug reports genuinely move
-priorities: the [showcase gallery](https://img2threejs-showcase.pages.dev/) tracks likes per
-category precisely so that demand, not guesswork, decides what gets built next.
+img2threejs 欢迎贡献，路线图也会根据实际使用情况调整。如果你想参与上面的某项工作，请见
+[CONTRIBUTING.md](CONTRIBUTING.md)——说明你的工作属于哪个版本的主题，以便它落入正确的批次。功能
+请求和 bug 报告确实会改变优先级：[展示画廊](https://img2threejs-showcase.pages.dev/)按类别精确跟踪
+点赞数，正是为了让需求而不是猜测来决定下一步构建什么。

@@ -1,30 +1,27 @@
-# Implementation and native review
+# 实现与原生审查
 
-For each layer, record a stable ID, trigger/state owner, recipient, local or
-world space, begin/hold/end conditions, scale basis, visibility rule and resource
-owner. Keep unknown tuning values explicit rather than filling them from a demo.
+为每个图层记录：稳定 ID、触发/状态持有者、接收方、局部或世界空间、开始/保持/结束条件、
+缩放基准、可见性规则和资源持有者。未知的调参值要明确标出，不要用演示里的数值填充。
 
-Check the effect against the event that actually happens:
+对照实际发生的事件检查特效：
 
-| Case | Expected relationship |
+| 情况 | 预期关系 |
 | --- | --- |
-| Windup cancelled | No released projectile or confirmed-hit burst |
-| Release occurs, target moves | Visual travel follows the existing gameplay projectile |
-| Hit confirmed | One impact at the real recipient/contact point |
-| Continuous status refreshes | Existing effect updates; no unintended duplicate stack |
-| Owner dies or disappears | Local emission stops and owned resources finish or release |
-| Teleport or pooled reuse | Previous trail/particles do not bridge to the new position |
-| Surface emitter changes site | New site starts a new lifetime; old smoke remains coherent |
+| 前摇被取消 | 没有释放的投射物，也没有确认命中的爆发 |
+| 已释放，目标移动 | 视觉飞行跟随现有的玩法投射物 |
+| 确认命中 | 在真实接收方/接触点处产生一次命中 |
+| 持续状态刷新 | 更新现有特效；不出现意外的重复叠加 |
+| 持有者死亡或消失 | 本地发射停止，所持资源结束或释放 |
+| 瞬移或对象池复用 | 之前的拖尾/粒子不会连到新位置 |
+| 表面发射器更换位置 | 新位置开始新的生命周期；旧烟雾保持连贯 |
 
-Inspect bright and dark terrain, the intended lighting, moving targets, selected
-units and a plausible crowd. Readability should come from silhouette, value,
-timing and placement before increasing bloom. Preserve distinct visual priorities
-for idle, movement, anticipation and brief contact.
+检查亮色和暗色地形、目标光照、移动目标、选中单位以及合理规模的人群。可读性应先来自
+轮廓、明度、时序和摆放，再考虑增强泛光（bloom）。为待机、移动、预备和短暂接触保留
+各自不同的视觉优先级。
 
-Measure the affected system: active emitters, particles, material instances,
-transparent overlap, allocations and frame cost as appropriate. A passing event
-counter confirms lifecycle wiring, not visual quality or acceptable performance.
-Record the capture setup and the actual measured scope.
+测量受影响的系统：视情况统计活动发射器、粒子、材质实例、透明叠加、内存分配和帧开销。
+事件计数器通过只能证明生命周期接线正确，不能证明视觉质量或性能可接受。记录截取设置和
+实际测量范围。
 
-Use three explicit evidence labels: generated concept, code-drawn study, native
-engine capture. Keep source/vendor licences with assets that are actually shipped.
+使用三个明确的证据标签：生成的概念图、代码绘制的研究、原生引擎截取。对实际发布的素材，
+随附其来源/供应商许可证。

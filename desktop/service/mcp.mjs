@@ -40,7 +40,7 @@ export class McpInventory {
         const text = (await readFile(file, 'utf8')).replace(/^\uFEFF/, '');
         return file.endsWith('.toml') ? toml(text) : JSON.parse(text);
       } catch (error) {
-        if (error.code !== 'ENOENT') problems.push({ path: file, message: 'Configuration could not be read. Check its format and file permissions.' });
+        if (error.code !== 'ENOENT') problems.push({ path: file, message: '无法读取配置。请检查其格式和文件权限。' });
         return {};
       }
     };
@@ -161,14 +161,14 @@ export class McpInventory {
   }
   async list() { return (await this.scan()).public; }
   async check(id) {
-    if (this.closed) throw new Error('Mr. Mak is closing.');
+    if (this.closed) throw new Error('Mr. Mak 正在关闭。');
     if (this.pending.has(id)) return this.pending.get(id).promise;
-    if (this.pending.size >= 2) throw new Error('Two connection checks are running. Wait for one to finish.');
+    if (this.pending.size >= 2) throw new Error('已有两个连接检查在运行。请等其中一个完成。');
     const entry = (await this.scan()).raw.get(id);
-    if (!entry) throw new Error('MCP configuration was not found. Refresh the list.');
-    if (!entry.data.canCheck) throw new Error('This connection is disabled, managed by its host, or needs configuration.');
+    if (!entry) throw new Error('未找到 MCP 配置。请刷新列表。');
+    if (!entry.data.canCheck) throw new Error('此连接已禁用、由宿主管理，或需要配置。');
     if (this.pending.has(id)) return this.pending.get(id).promise;
-    if (this.pending.size >= 2) throw new Error('Two connection checks are running. Wait for one to finish.');
+    if (this.pending.size >= 2) throw new Error('已有两个连接检查在运行。请等其中一个完成。');
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
     const promise = this.probe(entry, controller.signal).then(result => {
@@ -189,7 +189,7 @@ async function probeServer(entry, signal) {
     transport = entry.data.transport === 'stdio'
       ? new StdioClientTransport({ command: entry.command, args: entry.config.args || [], cwd: entry.cwd, env: entry.env, stderr: 'ignore', maxBufferSize: 8 * 1024 * 1024 })
       : entry.data.transport === 'sse' ? new SSEClientTransport(new URL(entry.config.url), options) : new StreamableHTTPClientTransport(new URL(entry.config.url), options);
-    const cancelled = new Promise((_, reject) => { signal.addEventListener('abort', () => reject(new Error('Check timed out')), { once: true }); });
+    const cancelled = new Promise((_, reject) => { signal.addEventListener('abort', () => reject(new Error('检查超时')), { once: true }); });
     const inspect = async () => {
       await client.connect(transport, { timeout: 12000 });
       const tools = client.getServerCapabilities()?.tools ? await client.listTools({}, { signal, timeout: 10000 }) : null;

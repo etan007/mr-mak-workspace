@@ -18,20 +18,20 @@ interface ModeDef {
 }
 
 const GEOMETRY_MODES: ModeDef[] = [
-  { id: 'wire', label: 'Wireframe', hint: 'The mesh — quads where the export keeps them' },
-  { id: 'solid', label: 'Clay', hint: 'Untextured clay — shape and silhouette only' },
-  { id: 'normals', label: 'Normals', hint: 'Geometry normals — smoothing and flipped faces' },
+  { id: 'wire', label: '线框', hint: '网格本身 — 导出保留四边面时显示四边面' },
+  { id: 'solid', label: '白模', hint: '无贴图白模 — 只看形体和轮廓' },
+  { id: 'normals', label: '法线', hint: '几何法线 — 检查平滑和翻转面' },
 ]
 
 // A channel the generator never baked shows as its flat fallback (blue for a
 // missing normal map, grey for roughness). That is a finding worth filming, so
 // these stay switchable even when the map is absent.
 const TEXTURE_MODES: ModeDef[] = [
-  { id: 'pbr', label: 'Textured', hint: 'Authored materials with environment lighting' },
-  { id: 'albedo', label: 'Base color', hint: 'Base colour map, unlit' },
-  { id: 'normalMap', label: 'Normal map', hint: 'The normal map itself — flat blue means none was baked' },
-  { id: 'rough', label: 'Roughness', hint: 'Roughness map, or the flat material value' },
-  { id: 'metal', label: 'Metalness', hint: 'Metalness map, or the flat material value' },
+  { id: 'pbr', label: '贴图', hint: '原始材质，带环境光照' },
+  { id: 'albedo', label: '基础色', hint: '基础色贴图，无光照' },
+  { id: 'normalMap', label: '法线贴图', hint: '法线贴图本身 — 纯蓝表示没有烘焙' },
+  { id: 'rough', label: '粗糙度', hint: '粗糙度贴图，或材质的固定值' },
+  { id: 'metal', label: '金属度', hint: '金属度贴图，或材质的固定值' },
 ]
 
 const ALL_MODES = [...GEOMETRY_MODES, ...TEXTURE_MODES]
@@ -41,7 +41,7 @@ const fmt = (n: number) => n.toLocaleString('en-US')
 /** 8192 → "8K", 2048 → "2K", 1536 → "1536px". */
 function texLabel(px: number): string | null {
   if (!px) return null
-  return px % 1024 === 0 ? `${px / 1024}K tex` : `${px}px tex`
+  return px % 1024 === 0 ? `${px / 1024}K 贴图` : `${px}px 贴图`
 }
 
 /** One canvas pane. Owns a ModelViewer for its lifetime. */
@@ -129,7 +129,7 @@ function Pane({
               className={`c3d-pane-name c3d-pane-name-btn${redacted ? ' redacted' : ''}`}
               style={accent && !redacted ? { color: accent } : undefined}
               onClick={onToggleReveal}
-              title={redacted ? 'Click to reveal the name' : 'Click to hide the name again'}
+              title={redacted ? '点击显示名称' : '点击再次隐藏名称'}
             >
               {redacted ? alias : label}
             </button>
@@ -137,8 +137,8 @@ function Pane({
               type="button"
               className="c3d-eye"
               onClick={onToggleReveal}
-              aria-label={redacted ? 'Reveal the model name' : 'Hide the model name'}
-              title={redacted ? 'Reveal the model name' : 'Hide the model name'}
+              aria-label={redacted ? '显示模型名称' : '隐藏模型名称'}
+              title={redacted ? '显示模型名称' : '隐藏模型名称'}
             >
               <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden>
                 <path
@@ -162,9 +162,8 @@ function Pane({
         {sublabel && <span className="c3d-pane-sub">{sublabel}</span>}
         {stats && (
           <span className="c3d-pane-stats">
-            {fmt(stats.triangles)} tris · {fmt(stats.vertices)} verts · {stats.meshes}{' '}
-            {stats.meshes === 1 ? 'mesh' : 'meshes'}
-            {texLabel(stats.textureSize) ? ` · ${texLabel(stats.textureSize)}` : ' · untextured'}
+            {fmt(stats.triangles)} 三角面 · {fmt(stats.vertices)} 顶点 · {stats.meshes} 个网格
+            {texLabel(stats.textureSize) ? ` · ${texLabel(stats.textureSize)}` : ' · 无贴图'}
           </span>
         )}
       </div>
@@ -175,12 +174,12 @@ function Pane({
         {status === 'loading' && (
           <div className="c3d-overlay">
             <div className="c3d-spinner" />
-            <span>loading</span>
+            <span>加载中</span>
           </div>
         )}
         {status === 'error' && (
           <div className="c3d-overlay c3d-overlay-error">
-            <strong>Failed to load</strong>
+            <strong>加载失败</strong>
             <span>{errMsg}</span>
           </div>
         )}
@@ -301,7 +300,7 @@ export default function Compare3D({ manifestUrl, baseUrl }: { manifestUrl: strin
   if (loadError) {
     return (
       <div className="c3d-boot c3d-boot-error">
-        <strong>Could not read the comparison manifest</strong>
+        <strong>无法读取对比清单</strong>
         <code>{manifestUrl}</code>
         <span>{loadError}</span>
       </div>
@@ -329,8 +328,8 @@ export default function Compare3D({ manifestUrl, baseUrl }: { manifestUrl: strin
           <button
             className="c3d-step"
             onClick={() => setTestIndex(i => (i - 1 + manifest.tests.length) % manifest.tests.length)}
-            title="Previous test (←)"
-            aria-label="Previous test"
+            title="上一个测试（←）"
+            aria-label="上一个测试"
           >
             ‹
           </button>
@@ -339,7 +338,7 @@ export default function Compare3D({ manifestUrl, baseUrl }: { manifestUrl: strin
             value={testIndex}
             onChange={e => setTestIndex(Number(e.target.value))}
             title={test.note ?? test.name}
-            aria-label="Test"
+            aria-label="测试"
           >
             {manifest.tests.map((t, i) => (
               <option key={t.id} value={i}>
@@ -350,8 +349,8 @@ export default function Compare3D({ manifestUrl, baseUrl }: { manifestUrl: strin
           <button
             className="c3d-step"
             onClick={() => setTestIndex(i => (i + 1) % manifest.tests.length)}
-            title="Next test (→)"
-            aria-label="Next test"
+            title="下一个测试（→）"
+            aria-label="下一个测试"
           >
             ›
           </button>
@@ -360,7 +359,7 @@ export default function Compare3D({ manifestUrl, baseUrl }: { manifestUrl: strin
           </span>
         </div>
 
-        <div className="c3d-modes" role="group" aria-label="Shading mode">
+        <div className="c3d-modes" role="group" aria-label="着色模式">
           {modes.map((m, i) => (
             <button
               key={m.id}
@@ -377,27 +376,27 @@ export default function Compare3D({ manifestUrl, baseUrl }: { manifestUrl: strin
           <button
             className={`c3d-toggle${sync ? ' on' : ''}`}
             onClick={() => setSync(v => !v)}
-            title="Lock both cameras together (S)"
+            title="锁定两侧相机同步（S）"
           >
-            Sync
+            同步
           </button>
           <button
             className={`c3d-toggle${spin ? ' on' : ''}`}
             onClick={() => setSpin(v => !v)}
-            title="Auto-rotate both models (Space)"
+            title="两个模型自动旋转（空格）"
           >
-            Spin
+            旋转
           </button>
-          <button className="c3d-toggle" onClick={resetCameras} title="Re-frame both models (R)">
-            Reset
+          <button className="c3d-toggle" onClick={resetCameras} title="重新取景两个模型（R）">
+            重置
           </button>
           {test?.input && (
             <button
               className={`c3d-toggle${showInput ? ' on' : ''}`}
               onClick={() => setShowInput(v => !v)}
-              title="Show the reference image this test was generated from (I)"
+              title="显示此测试的生成参考图（I）"
             >
-              Input
+              参考图
             </button>
           )}
 
@@ -426,8 +425,8 @@ export default function Compare3D({ manifestUrl, baseUrl }: { manifestUrl: strin
 
         {test.input && showInput && (
           <div className="c3d-input" onClick={() => setShowInput(false)} role="presentation">
-            <img src={`${baseUrl}/${test.input}`} alt={`Reference image for ${test.name}`} />
-            <span className="c3d-input-cap">reference — click or I to close</span>
+            <img src={`${baseUrl}/${test.input}`} alt={`${test.name} 的参考图`} />
+            <span className="c3d-input-cap">参考图 — 点击或按 I 关闭</span>
           </div>
         )}
 

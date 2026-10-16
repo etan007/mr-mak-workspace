@@ -1,121 +1,121 @@
-# Self-Correction Loop Reference
+# 自我修正循环参考
 
-Use this reference when a model construction pass has just finished.
+当一个模型构建 pass 刚刚完成时，使用本参考。
 
-## Transparency and Process Debugging (Critical — from Bowie Knife reconstruction)
+## 透明度与流程调试（关键——来自 Bowie Knife 重建）
 
-**The problem:** When the user cannot tell what was done or where something went wrong, they cannot debug the process. Over-claiming (reporting success when features still don't match) destroys trust and makes iterative improvement impossible.
+**问题：** 当用户无法知道做了什么、哪里出了错时，他们就无法调试这个流程。过度声称（在特征仍不匹配时报告成功）会摧毁信任，使迭代改进无从进行。
 
-**Rule:** Be transparent + don't over-claim. State exactly what changed each pass, with evidence, and name what still doesn't match:
-- After each pass, explicitly list what changed: "Updated guard shape to extend left edge from -0.56 to -0.48 for handle overlap"
-- Provide evidence: reference the specific values, coordinates, or parameters that changed
-- Name what still doesn't match: "Handle silhouette traced but still flat plane (no Z palm-swell), procedural crosshatch not reference's exact dot-grid knurl"
-- Explain why a change was made: "Extended guard left edge because handle ends at X=-0.42 and guard ended at X=-0.20, causing visual gap"
-- Never claim a feature is "done" when it's only "improved" — use precise language
-- When a gate passes but visual inspection shows issues, explain the limitation: "2D gate passed (fidelity 0.83) but three-quarter render shows blade reads as toy (no grind wedge) — 2D gates are blind to 3D realism"
+**规则：** 保持透明 + 不要过度声称。准确说明每个 pass 改了什么、给出证据，并指出仍不匹配的地方：
+- 每个 pass 之后，明确列出改动内容："将护手形状的左边缘从 -0.56 延伸到 -0.48，以与握把重叠"
+- 提供证据：引用发生变化的具体数值、坐标或参数
+- 指出仍不匹配的地方："握把轮廓已描出，但仍是平面（没有 Z 向掌部鼓起），程序化交叉纹不是参考图中精确的点阵滚花"
+- 解释为何做此修改："延伸护手左边缘，因为握把止于 X=-0.42 而护手止于 X=-0.20，造成视觉间隙"
+- 只是"有所改进"时，绝不要声称某个特征"已完成"——用精确的措辞
+- 当门禁通过但目视检查发现问题时，说明其局限："2D 门禁通过（fidelity 0.83），但四分之三视角渲染显示刀身看起来像玩具（没有研磨楔面）——2D 门禁对 3D 真实感是盲的"
 
-**The user needs to be able to debug the process, not just the output.** If something is wrong, they should be able to trace which decision led to the error and correct it. Opaque processes force restarts; transparent processes enable refinement.
+**用户需要能调试的是流程，而不仅仅是输出。** 如果出了问题，他们应能追溯到是哪个决策导致了错误并加以纠正。不透明的流程只能推倒重来；透明的流程才能逐步细化。
 
-## Review Order
+## 评审顺序
 
-1. Capture or collect a rendered screenshot for the current browser view.
-2. Select at most five critical semantic systems for the current pass and only the suspicious important systems.
-3. Create one full reference/render comparison sheet with `stage4_review/make_comparison_sheet.py`.
-4. Inspect the sheet once with your agent's vision and score the global image, relevant visual layers, and each selected semantic feature visible in that pair.
-5. Compare the rendered result to current `ObjectSculptSpec`.
-6. Decide whether the mismatch is caused by the spec, the implementation, lighting/camera, missing evidence, or performance tradeoff.
-7. Choose exactly one action:
+1. 为当前浏览器视角截取或收集一张渲染截图。
+2. 为当前 pass 选出至多五个关键语义系统，以及仅那些可疑的重要系统。
+3. 用 `stage4_review/make_comparison_sheet.py` 生成一张完整的参考/渲染对比图。
+4. 用代理的视觉能力检查该对比图一次，为全局图像、相关视觉层以及该图像对中可见的每个选定语义特征打分。
+5. 将渲染结果与当前 `ObjectSculptSpec` 比较。
+6. 判断不匹配的原因是 spec、实现、光照/相机、证据缺失，还是性能取舍。
+7. 恰好选择一个动作：
    - `continue`
    - `refine-spec`
    - `refine-code`
    - `request-input`
    - `stop`
-8. Record the screenshot paths, comparison image, overall score, layer scores, feature scores, and AI critique in `reviewHistory`.
+8. 在 `reviewHistory` 中记录截图路径、对比图、总分、分层分数、特征分数和 AI 评语。
 
-For visual passes, `continue` requires a rendered screenshot, a comparison image, a global AI vision score at or above threshold, and every critical feature at or above its own threshold. Without them, the review is not evidence-backed enough. Pixel comparison code is never the acceptance authority.
+对视觉 pass，`continue` 需要一张渲染截图、一张对比图、不低于阈值的全局 AI 视觉分数，以及每个关键特征都不低于其自身阈值。缺少这些，评审就没有足够的证据支撑。像素比较代码永远不是验收的权威。
 
-## Root Cause Guide
+## 根因指南
 
-Use `refine-spec` when:
+以下情况使用 `refine-spec`：
 
-- a component is missing or invented incorrectly
-- the primitive family is wrong
-- proportions or coordinate frame are wrong
-- material layer is under-specified
-- local features are missing from the spec
-- evidence refs are absent or contradict the image
-- user expectation cannot be represented by current build passes
+- 某个组件缺失或被错误地凭空添加
+- 基本体类别选错
+- 比例或坐标系错误
+- 材质层描述不足
+- spec 中缺少局部特征
+- 证据引用缺失或与图像矛盾
+- 当前构建 pass 无法表达用户的期望
 
-Use `refine-code` when:
+以下情况使用 `refine-code`：
 
-- the spec is clear but generated geometry is wrong
-- material parameters were not implemented
-- local masks/noise/wear are missing in code
-- hierarchy/pivots do not match the spec
-- browser render has obvious artifacts
-- performance can be improved without changing the spec
+- spec 清楚，但生成的几何体错误
+- 材质参数未被实现
+- 代码中缺少局部遮罩/噪声/磨损
+- 层级/pivot 与 spec 不一致
+- 浏览器渲染有明显伪影
+- 可以在不改动 spec 的前提下提升性能
 
-Use `request-input` when:
+以下情况使用 `request-input`：
 
-- the image hides essential geometry
-- material cannot be inferred from the provided view
-- exact branding/text/ornament is required
-- the requested fidelity is incompatible with a single image
+- 图像遮挡了关键几何
+- 无法从提供的视角推断材质
+- 需要精确的品牌/文字/纹饰
+- 所要求的保真度与单张图像不相容
 
-Use `stop` when:
+以下情况使用 `stop`：
 
-- target fidelity is reached
-- user accepted current approximation
-- remaining issues require new references, manual modeling, or non-procedural assets
+- 已达到目标保真度
+- 用户接受了当前的近似结果
+- 剩余问题需要新的参考图、手工建模或非程序化资产
 
-## Fidelity Estimate
+## 保真度估计
 
-Use a practical 0-1 scale:
+使用实用的 0-1 量表：
 
-- `0.2`: only rough primitive placeholder
-- `0.4`: silhouette recognizable, structure incomplete
-- `0.6`: macro and meso forms mostly correct, material/detail weak
-- `0.75`: object reads correctly, local details approximate
-- `0.85`: strong procedural match for real-time use
-- `0.95`: near-reference, usually requires multiple views or manual art
+- `0.2`：只有粗略的基本体占位
+- `0.4`：轮廓可辨认，结构不完整
+- `0.6`：宏观和中观形体基本正确，材质/细节薄弱
+- `0.75`：物体读起来正确，局部细节为近似
+- `0.85`：程序化匹配度高，适合实时使用
+- `0.95`：接近参考图，通常需要多个视角或手工美术
 
-Do not claim `0.9+` from a single ambiguous image unless the object is simple and symmetrical.
-
----
-
-## Divine Eye caveat — photo-vs-procedural reconstruction (must read)
-
-When the reference is a **photograph** and the render is a **procedural reconstruction**, the pixel-aligned signals (`ssim`, `edgeOverlap`) and the silhouette-IoU hard gate are dominated by **framing + background + scale + lighting** differences, NOT fidelity. Confirmed on two objects: a faithful BMX scored `reject/0.53`, a clear M9 bayonet scored `reject/IoU 0.165` (white-bg photo vs dark render).
-
-**Do not chase the Eye's global score in this mode** — optimising toward it distorts the model trying to pixel-match a photo (impossible) and makes it worse. Instead:
-- Judge each pass against its **own goal** with agent vision (silhouette reads? part present? palette on-tone?).
-- Trust the **palette ΔE / phash / part-presence**, and IoU only **after** scale+translation alignment.
-- Treat `ssim`/`edgeOverlap` vs a photo as advisory, never a hard fail.
-
-The proper fix is a Divine-Eye **reconstruction mode** (reference==photo ⇒ drop pixel-aligned signals, align-then-IoU, palette+objectness) — this is exactly what the deferred **OSIM** objectness signal targets (feature-map similarity is invariant to lighting/background). See `docs/PLAN_1.3_FINAL.md` review log + ws-memories atom `divine-eye-photo-vs-procedural-miscalibration`.
-
-**Update (2026-07-22): the reconstruction-mode rescue now exists.** `divine_eye.py` computes a stdlib
-`objectness` signal (`objectness.py`, OSIM-lite — bg/pose/scale/brightness-invariant HOG cosine) and,
-when a photo-vs-procedural render fails *only* the IoU hard gate but objectness says "same object"
-(≥0.48), it downgrades the confident reject to `probe` and sets `reconstructionModeSuspected:true`. So the
-Eye no longer hard-rejects a faithful reconstruction on framing alone — but still never auto-passes it.
+除非物体简单且对称，否则不要从单张有歧义的图像声称 `0.9+`。
 
 ---
 
-## 2D Gates Are Blind to 3D Realism (Critical — from Bowie Knife reconstruction)
+## Divine Eye 注意事项——照片 vs 程序化重建（必读）
 
-**The problem:** 2D visual gates (Divine Eye, diagnose_render) only measure silhouette + colour + tone. They cannot see:
-- Edge sharpness (a constant-thickness slab reads as a toy cutout even with perfect silhouette)
-- Cross-section thickness (blade grind, taper, bevel quality)
-- Material realism (metal vs plastic reflection, surface texture response)
-- True 3D form beyond the silhouette plane
+当参考图是**照片**而渲染是**程序化重建**时，像素对齐类信号（`ssim`、`edgeOverlap`）和轮廓 IoU 硬门禁主要受**取景 + 背景 + 尺度 + 光照**差异支配，而非保真度。已在两个物体上确认：一辆忠实还原的 BMX 得分 `reject/0.53`，一把清晰的 M9 刺刀得分 `reject/IoU 0.165`（白底照片 vs 深色渲染）。
 
-**Consequence:** A strict-PASS at fidelity 0.83 can still read as a flat toy in a three-quarter render.
+**在这种模式下不要追逐 Eye 的全局分数**——朝它优化会为了与照片做像素匹配（不可能）而扭曲模型，使其更糟。正确做法：
+- 用代理视觉按每个 pass **自身的目标**评判（轮廓是否可读？部件是否存在？调色板色调是否对？）。
+- 信任**调色板 ΔE / phash / 部件存在性**，IoU 只在完成尺度+平移对齐**之后**才可信。
+- 把与照片比较的 `ssim`/`edgeOverlap` 视为参考性信息，绝不作为硬失败。
 
-**Rule:** NEVER report a 2D-gate PASS as "done". Always judge 3D realism on a three-quarter render, and explicitly state what the gate does/doesn't measure in your review notes. When a gate passes but the 3D render looks wrong, the gate measurement was insufficient — not the reconstruction.
+真正的修复是 Divine Eye 的**重建模式**（reference==photo ⇒ 丢弃像素对齐信号、先对齐再算 IoU、调色板+物体性）——这正是被推迟的 **OSIM** 物体性信号所针对的（特征图相似度对光照/背景不变）。见 `docs/PLAN_1.3_FINAL.md` 的评审日志 + ws-memories 条目 `divine-eye-photo-vs-procedural-miscalibration`。
 
-**Verification cues:** A procedural object is failing 3D realism when:
-- The silhouette matches but edges are perfectly sharp/flat (no grind, taper, or bevel)
-- Material has correct color but wrong surface response (plastic when should be metal, etc.)
-- Reference depth cues (grind transitions, material thickness, edge bevels) are missing or flat
-- The gate score is high but the object reads as "toy-like" or "cardboard" in angled views
+**更新（2026-07-22）：重建模式的挽救机制现已存在。** `divine_eye.py` 计算一个仅用标准库实现的
+`objectness` 信号（`objectness.py`，OSIM-lite——对背景/姿势/尺度/亮度不变的 HOG 余弦相似度）；当
+照片 vs 程序化渲染*只*未通过 IoU 硬门禁、而 objectness 判定为"同一物体"（≥0.48）时，它会把高置信度
+的拒绝降级为 `probe`，并设置 `reconstructionModeSuspected:true`。因此 Eye 不再仅因取景而硬性拒绝一个
+忠实的重建——但仍绝不会自动放行它。
+
+---
+
+## 2D 门禁对 3D 真实感是盲的（关键——来自 Bowie Knife 重建）
+
+**问题：** 2D 视觉门禁（Divine Eye、diagnose_render）只测量轮廓 + 颜色 + 色调。它们看不到：
+- 边缘锐度（厚度恒定的板片，即使轮廓完美，看起来也像玩具剪纸）
+- 截面厚度（刀身研磨、渐缩、倒角质量）
+- 材质真实感（金属 vs 塑料的反射、表面纹理响应）
+- 轮廓平面之外的真实 3D 形体
+
+**后果：** 在 fidelity 0.83 下严格通过（strict-PASS）的模型，在四分之三视角渲染中仍可能看起来像扁平玩具。
+
+**规则：** 绝不要把 2D 门禁的 PASS 报告为"完成"。始终在四分之三视角渲染上评判 3D 真实感，并在评审备注中明确说明门禁测量了什么、没测量什么。当门禁通过但 3D 渲染看起来不对时，是门禁的测量不充分——而不是重建通过了。
+
+**验证线索：** 出现以下情况时，程序化物体在 3D 真实感上是失败的：
+- 轮廓匹配，但边缘完全锐利/平直（没有研磨、渐缩或倒角）
+- 材质颜色正确，但表面响应错误（本应是金属却像塑料等）
+- 参考图中的深度线索（研磨过渡、材料厚度、边缘倒角）缺失或扁平
+- 门禁分数很高，但物体在倾斜视角下看起来"像玩具"或"像纸板"

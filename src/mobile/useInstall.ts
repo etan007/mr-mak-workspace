@@ -35,7 +35,7 @@ export function useInstall() {
       const choice = await event.userChoice
       if (choice.outcome === 'accepted') setInstalled(true)
       else dismiss()
-    } catch { setError('Installation could not open. Use your browser’s Install app or Add to Home Screen menu.') }
+    } catch { setError('无法打开安装界面。请使用浏览器菜单中的“安装应用”或“添加到主屏幕”。') }
     finally { setBusy(false) }
   }
   return { available: available && !installed, installed, dismissed, busy, error, dismiss, install }

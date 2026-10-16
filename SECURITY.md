@@ -1,27 +1,21 @@
-# Security reports
+# 安全报告
 
-Please report suspected vulnerabilities through
-[GitHub private vulnerability reporting](https://github.com/witnesstodark/mr-mak-workspace/security/advisories/new).
-Keep reproduction steps and patches private until we have reviewed the report
-and agreed on disclosure. Do not put credentials or personal project content
-in a public issue.
+请通过 [GitHub 私密漏洞报告](https://github.com/witnesstodark/mr-mak-workspace/security/advisories/new)
+提交疑似漏洞。在我们审阅报告并商定披露方式之前，请勿公开复现步骤和补丁。不要在
+公开 issue 中放入凭据或个人项目内容。
 
-Include the app version, operating system, affected feature, expected permission
-behavior, and the smallest reproduction you can provide. Remove real tokens,
-account details, and private files from logs or screenshots.
+请注明应用版本、操作系统、受影响的功能、预期的权限行为，以及能提供的最小复现。
+从日志或截图中移除真实的令牌、账号信息和私有文件。
 
-We review reports against the latest release. Older releases may need an update
-to receive a fix. A public issue acknowledging a report does not mean that the
-underlying vulnerability has been resolved.
+我们以最新发布版本为基准审阅报告。旧版本可能需要更新才能获得修复。公开 issue
+确认收到报告，并不代表底层漏洞已经修复。
 
-## Local service and permissions
+## 本地服务与权限
 
-Mr. Mak runs on the current user's machine and starts CLI tools as that user.
-The CLI's own permission and sandbox settings remain important. Bypass is an
-explicit choice and is off by default. Mr. Mak is not an operating-system
-sandbox for arbitrary programs running under the same account.
+Mr. Mak 在当前用户的机器上运行，并以该用户身份启动 CLI 工具。CLI 自身的权限和
+沙箱设置依然重要。跳过权限确认是显式选择，默认关闭。对于以同一账号运行的任意
+程序，Mr. Mak 不是操作系统级沙箱。
 
-The desktop service listens on loopback. Do not expose it through a public
-proxy, tunnel, or network interface. Its diagnostic `runtime.json` contains the
-process ID and local origin, not the credentials used by the desktop windows.
-Keep `.env`, local state and native CLI histories out of shared repositories.
+桌面服务只监听回环地址。不要通过公共代理、隧道或网络接口暴露它。其诊断文件
+`runtime.json` 包含进程 ID 和本地 origin，不包含桌面窗口使用的凭据。`.env`、
+本地状态和原生 CLI 历史不要放进共享仓库。

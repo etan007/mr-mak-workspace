@@ -1,61 +1,49 @@
 ---
 name: game-animation-integration
-description: Integrate approved character clips into a game's movement and combat systems, including turn compensation, gait phase, event timing and interruptions. Use after animation authoring or to repair runtime transitions.
+description: 将已批准的角色动画片段集成到游戏的移动与战斗系统中，包括转身补偿、步态相位、事件时机和打断。用于动画制作完成后，或修复运行时过渡。
 ---
 
-# Game animation integration
+# 游戏动画集成
 
-Start with the approved rig, runtime export and clip manifest. Inspect the
-existing animation player and movement authority before replacing anything.
-Confirm forward/up axes, scale, bone paths, import type, bind pose, clips, loop
-flags and event times. Keep source animation approval separate from import
-verification and in-game visual acceptance.
+从已批准的绑定、运行时导出和动画片段 manifest 开始。替换任何东西之前，先检查现有
+动画播放器和移动权威方。确认前向 / 上方向轴、缩放、骨骼路径、导入类型、绑定姿势、
+动画片段、循环标记和事件时间。源动画批准、导入验证和游戏内视觉验收三者分开。
 
-## Separate movement, facing and authored motion
+## 分离移动、朝向与制作的动作
 
-Choose which system owns translation and yaw. Applying controller rotation and
-the same authored turn twice produces a false turn. Keep uncompensated source
-clips for pure previews where useful; document the compensated gameplay route.
-Record heading samples and their frame/time origin. Derive sample spacing from
-the actual count and duration, not a presumed integer or quarter-frame step.
+明确由哪个系统负责位移和 yaw。控制器旋转与同一个制作好的转身同时生效，会产生虚假
+转身。必要时保留未补偿的源动画片段用于纯预览；记录补偿后的玩法路径。记录朝向采样
+及其帧 / 时间原点。采样间隔由实际采样数和时长推导，不要假定整数或四分之一帧步长。
 
-Do not change base movement speed, attack cadence or navigation responsiveness
-incidentally. A character need not complete an entire turn clip before obeying
-a new movement or combat order. Keep visual stepping speed, gameplay facing and
-speed recovery independently configurable.
+不要顺带改变基础移动速度、攻击节奏或导航响应。角色不必播完整个转身动画片段才响应
+新的移动或战斗指令。视觉步伐速度、玩法朝向和速度恢复应可分别配置。
 
-## Match the pose at a transition
+## 过渡时匹配姿势
 
-If leaving a partial turn causes a foot swap, longer crossfading alone may not
-fix it. Compare the last evaluated pose with sampled gait phases in a shared
-body-local space, excluding world placement and controller yaw. Select a nearby
-phase at the handoff, then advance normally. Preserve an already better phase.
+如果离开未完成的转身导致换脚，单靠延长交叉淡化可能解决不了。在共享的身体局部空间中
+（排除世界位置和控制器 yaw）比较最后一次求值的姿势与采样的步态相位。在交接时选择
+邻近相位，然后正常推进。已有更好的相位时予以保留。
 
-Build a mapping for the actual anatomy: two feet/knees for a biped can be useful;
-four-legged rigs need all relevant paws and support joints. Do not prescribe one
-sample count, stride or blend duration for every rig. Bake reusable pose tables
-at import/update time; cache bones and avoid allocating or searching each frame.
-Rebuild when the rig, clips or coordinate convention changes.
+针对实际解剖结构建立映射：双足角色用两只脚 / 膝盖可能就够；四足绑定需要所有相关
+爪子和支撑关节。不要为所有绑定规定统一的采样数、步幅或混合时长。在导入 / 更新时
+烘焙可复用的姿势表；缓存骨骼，避免每帧分配内存或查找。绑定、动画片段或坐标约定
+变化时重建。
 
-Verify intermediate transforms during a finite transition, including upper-body
-settling. A correct mixer weight does not prove a continuous visible pose. Keep
-straight and steering variants phase-compatible. Document any root-motion or
-contact-IK system separately from phase selection.
+在有限时长的过渡中验证中间变换，包括上半身的稳定过程。混合器权重正确不代表可见姿势
+连续。直行与转向变体保持相位兼容。根运动或接触 IK 系统与相位选择分开记录。
 
-## Bind events and validate
+## 绑定事件并验证
 
-Use actual contact/release markers and the game's authoritative clock. Some
-custom animation players do not dispatch imported AnimationEvents; verify the
-chosen route rather than assuming it. Cancellation must suppress events that
-have not happened. Check attack variants, death, pauses and repeated commands.
+使用实际的接触 / 释放标记和游戏的权威时钟。部分自定义动画播放器不会派发导入的
+AnimationEvent；要验证所选路径，不要想当然。取消操作必须抑制尚未发生的事件。检查
+攻击变体、死亡、暂停和重复指令。
 
-Exercise left/right, small/large and reversed turns; Walk/Run exits; Stop/arrival;
-turn-to-attack; death; disable/re-enable and any storage flow. Review normal speed
-from the game camera as well as isolated clip playback. Preserve material/team
-bindings, existing prefab GUIDs and unchanged gameplay values.
+测试左 / 右、小 / 大和反向转身；Walk / Run 退出；Stop / 到达；转身接攻击；死亡；
+禁用 / 重新启用以及任何存储流程。除了单独播放动画片段，也要从游戏镜头以正常速度
+审查。保留材质 / 队伍绑定、现有 prefab GUID 和未改动的玩法数值。
 
-Deliver the bone/clip mapping, runtime configuration, source contact times,
-verified interruption cases and native evidence. Mark missing clips explicitly.
-Example: integrate a robot's quarter-turns without changing its movement speed;
-prove a partial turn can enter Run without swapping the supporting foot.
-Dependencies: approved clips, their editable source/manifest and engine access.
+交付骨骼 / 动画片段映射、运行时配置、源接触时间、已验证的打断用例和原生证据。明确
+标注缺失的动画片段。
+示例：集成机器人的四分之一转身，不改变其移动速度；证明未完成的转身可以进入 Run 而
+不换支撑脚。
+依赖：已批准的动画片段、其可编辑源文件 / manifest 以及引擎访问。

@@ -44,7 +44,7 @@ export class MobileGateway {
     this.server.on('upgrade', (request, socket, head) => {
       try {
         this.checkRequest(request, true);
-        if (new URL(request.url, this.origin).pathname !== '/mobile/events') fail('Not found', 404);
+        if (new URL(request.url, this.origin).pathname !== '/mobile/events') fail('未找到', 404);
         const device = this.device(request);
         this.wss.handleUpgrade(request, socket, head, ws => this.connect(ws, device));
       } catch { socket.destroy(); }
@@ -95,13 +95,13 @@ export class MobileGateway {
   async disable() {
     if (this.enabling) await this.enabling.catch(() => {});
     this.active = false; this.state.enabled = false; this.pairing = null; this.pending.clear(); this.uploads.clear();
-    for (const ws of this.clients) ws.close(1008, 'Mobile access disabled');
+    for (const ws of this.clients) ws.close(1008, '手机访问已禁用');
     await this.save(); this.notify();
     await this.transport.disable(this.state.route).catch(() => {});
     return this.status();
   }
   async newPairing() {
-    if (!this.active) fail('Enable mobile access first.');
+    if (!this.active) fail('请先启用手机访问。');
     const token = secret(), code = String(randomInt(10000000, 100000000)), expires = Date.now() + PAIR_TTL;
     this.pairing = { hash: digest(token), codeHash: digest(code), expires };
     const url = `${this.origin}/mobile/#pair=${token}`;
@@ -109,12 +109,12 @@ export class MobileGateway {
   }
   rateLimit() {
     if (Date.now() - this.rate.at > 60000) this.rate = { at: Date.now(), count: 0 };
-    if (++this.rate.count > 60) fail('Too many pairing attempts. Wait a minute and try again.', 429);
+    if (++this.rate.count > 60) fail('配对尝试次数过多。请等一分钟后重试。', 429);
   }
   claim(data) {
     this.rateLimit();
-    if (typeof data.token !== 'string' || !this.pairing || this.pairing.expires < Date.now() || !(equalSecret(this.pairing.hash, digest(data.token)) || equalSecret(this.pairing.codeHash, digest(data.token)))) fail('This QR code has expired or was already used. Create a new one in Chats.', 403);
-    if (this.state.devices.filter(item => item.expires > Date.now()).length >= 8) fail('Disconnect an old device before adding another.');
+    if (typeof data.token !== 'string' || !this.pairing || this.pairing.expires < Date.now() || !(equalSecret(this.pairing.hash, digest(data.token)) || equalSecret(this.pairing.codeHash, digest(data.token)))) fail('此二维码已过期或已被使用。请在对话窗口中重新生成。', 403);
+    if (this.state.devices.filter(item => item.expires > Date.now()).length >= 8) fail('请先断开一台旧设备，再添加新设备。');
     this.pairing = null;
     const id = randomUUID(), claim = secret(), code = String(randomInt(100000, 1000000));
     const name = String(data.name || 'My phone').replace(/[\x00-\x1f\x7f<>]/g, '').trim().slice(0, 60) || 'My phone';
@@ -123,7 +123,7 @@ export class MobileGateway {
   }
   async approve(id) {
     const item = this.pending.get(id);
-    if (!item || item.expires < Date.now()) fail('This connection request has expired.');
+    if (!item || item.expires < Date.now()) fail('此连接请求已过期。');
     if (!item.approved) {
       const credential = secret();
       this.state.devices.push({ id, name: item.name, hash: digest(credential), createdAt: new Date().toISOString(), lastSeen: null, expires: Date.now() + DEVICE_TTL });
@@ -135,7 +135,7 @@ export class MobileGateway {
   async revoke(id) {
     this.readAloud.revoke(id); this.dictation.revoke(id); this.conversationMedia.revoke(id);
     this.pending.delete(id); this.state.devices = this.state.devices.filter(item => item.id !== id);
-    for (const ws of this.clients) if (ws.deviceId === id) ws.close(1008, 'Device disconnected');
+    for (const ws of this.clients) if (ws.deviceId === id) ws.close(1008, '设备已断开');
     await this.save(); this.notify(); return this.status();
   }
   cookie(value, remove = false) {
@@ -143,15 +143,15 @@ export class MobileGateway {
   }
   device(request) {
     const credential = String(request.headers.cookie || '').split(';').map(item => item.trim()).find(item => item.startsWith(`${COOKIE}=`))?.slice(COOKIE.length + 1);
-    if (!credential || credential.length > 100) fail('Connect this phone from the QR code in Mr. Mak Chats.', 401);
+    if (!credential || credential.length > 100) fail('请扫描 Mr. Mak 对话窗口中的二维码连接此手机。', 401);
     const hash = digest(credential), device = this.state.devices.find(item => item.expires > Date.now() && equalSecret(item.hash, hash));
-    if (!device) fail('This phone is disconnected. Scan a new QR code in Chats.', 401);
+    if (!device) fail('此手机已断开连接。请在对话窗口中扫描新的二维码。', 401);
     return device;
   }
   checkRequest(request, mutation = false) {
-    if (!this.active) fail('Mobile access is off. Enable it in Mr. Mak Chats.', 503);
-    if (request.headers.host !== new URL(this.origin).host) fail('Unexpected host', 403);
-    if ((mutation || request.headers.origin) && request.headers.origin !== this.origin) fail('Unexpected origin', 403);
+    if (!this.active) fail('手机访问已关闭。请在 Mr. Mak 对话窗口中启用。', 503);
+    if (request.headers.host !== new URL(this.origin).host) fail('意外的 host', 403);
+    if ((mutation || request.headers.origin) && request.headers.origin !== this.origin) fail('意外的 origin', 403);
     // QR scanners can open the public app shell as a cross-site navigation.
     // This exception never applies to API calls, embedded pages or WebSockets.
     const pathname = new URL(request.url, this.origin).pathname;
@@ -163,7 +163,7 @@ export class MobileGateway {
   }
   session(id) {
     const session = this.sessions.get(id);
-    if (session.agent === 'shell') fail('Mobile access supports agent chats.', 403);
+    if (session.agent === 'shell') fail('手机访问只支持代理对话。', 403);
     return session;
   }
   list() { return this.sessions.list().filter(item => item.agent !== 'shell'); }
@@ -183,29 +183,29 @@ export class MobileGateway {
           if (ws.sessionId === event.id) send(ws, { type: 'snapshot', ...snapshot });
         } else if (event.type === 'seen' && ws.sessionId === event.id) this.sessions.seen(event.id, event.completionVersion);
         else if (event.type === 'ping') send(ws, { type: 'pong' });
-        else fail('This mobile action is not available.');
+        else fail('此手机操作不可用。');
       } catch (error) { send(ws, { type: 'error', error: publicError(error) }); }
     });
     ws.on('close', () => { this.clients.delete(ws); this.notify(); }); ws.on('error', () => {});
   }
   async submit(device, id, data) {
-    if (!uuid(data.requestId)) fail('A message ID is required.');
+    if (!uuid(data.requestId)) fail('需要消息 ID。');
     const text = typeof data.text === 'string' ? data.text : '';
-    if (text.length > 60000 || !Array.isArray(data.images || []) || (data.images || []).length > 12) fail('Message is too large.');
+    if (text.length > 60000 || !Array.isArray(data.images || []) || (data.images || []).length > 12) fail('消息过大。');
     const images = data.images || [];
     const key = `${device.id}:${data.requestId}`, hash = digest(JSON.stringify({ id, text, images }));
     const existing = this.state.receipts.find(item => item.key === key);
-    if (existing && existing.hash !== hash) fail('This message ID already belongs to different text.', 409);
+    if (existing && existing.hash !== hash) fail('此消息 ID 已对应另一段文本。', 409);
     if (this.inflight.has(key)) return this.inflight.get(key);
     if (existing) return existing;
     const session = this.session(id);
-    if (!session.process) fail('Resume this chat before sending a message.');
+    if (!session.process) fail('请先恢复此对话再发送消息。');
     const paths = images.map(image => {
       const item = this.uploads.get(image);
-      if (!item || item.deviceId !== device.id || item.expires < Date.now()) fail('An attachment expired. Attach the image again.');
+      if (!item || item.deviceId !== device.id || item.expires < Date.now()) fail('附件已过期。请重新附加图片。');
       return item.path;
     });
-    if (!text.trim() && !paths.length) fail('Write a message or attach an image.');
+    if (!text.trim() && !paths.length) fail('请输入消息或附加图片。');
     const receipt = { key, hash, requestId: data.requestId, sessionId: id, status: 'sending', at: new Date().toISOString() };
     const operation = (async () => {
       this.state.receipts.push(receipt);
@@ -219,16 +219,16 @@ export class MobileGateway {
       const previous = this.queues.get(id) || Promise.resolve();
       const delivery = previous.catch(() => {}).then(async () => {
         const current = this.session(id), process = current.process;
-        if (!process) { receipt.status = 'failed'; receipt.error = 'The chat stopped before delivery.'; return; }
-        if (!this.active || !this.state.devices.some(item => item.id === device.id)) { receipt.status = 'failed'; receipt.error = 'This phone was disconnected before delivery.'; return; }
+        if (!process) { receipt.status = 'failed'; receipt.error = '对话在送达前已停止。'; return; }
+        if (!this.active || !this.state.devices.some(item => item.id === device.id)) { receipt.status = 'failed'; receipt.error = '此手机在送达前已断开连接。'; return; }
         const clean = `${text}${paths.length ? '\n' + attachmentText(paths, current.agent) : ''}`.replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '').replaceAll('\r', '');
         try {
           // A whole prompt is pasted in one write; desktop selection/geometry is untouched.
           this.sessions.input(id, `\x1b[200~${clean}\x1b[201~`);
           await sleep(500);
-          if (current.process !== process) throw new Error('The terminal changed during delivery.');
+          if (current.process !== process) throw new Error('送达过程中终端发生了变化。');
           this.sessions.input(id, '\r'); receipt.status = 'delivered';
-        } catch { receipt.status = 'uncertain'; receipt.error = 'Check the terminal before sending again. Delivery could not be confirmed.'; }
+        } catch { receipt.status = 'uncertain'; receipt.error = '无法确认是否送达。再次发送前请检查终端。'; }
       });
       this.queues.set(id, delivery);
       try { await delivery; await this.save(); return receipt; }
@@ -246,13 +246,13 @@ export class MobileGateway {
       const url = new URL(request.url, this.origin), route = url.pathname, method = request.method;
       if (route.startsWith('/mobile/api/')) {
         const binary = route === '/mobile/api/images' || route === '/mobile/api/transcribe';
-        if (mutation && !binary && !String(request.headers['content-type'] || '').startsWith('application/json')) fail('JSON is required', 415);
+        if (mutation && !binary && !String(request.headers['content-type'] || '').startsWith('application/json')) fail('需要 JSON', 415);
         const data = mutation && !binary ? await body(request, 256 * 1024) : {};
         if (method === 'POST' && route === '/mobile/api/pair') return json(response, 200, this.claim(data));
         if (method === 'POST' && route === '/mobile/api/pair/finish') {
           this.rateLimit();
           const pending = this.pending.get(data.id);
-          if (!pending || pending.expires < Date.now() || typeof data.claim !== 'string' || !equalSecret(pending.claimHash, digest(data.claim))) fail('Connection request expired. Scan a new QR code.', 403);
+          if (!pending || pending.expires < Date.now() || typeof data.claim !== 'string' || !equalSecret(pending.claimHash, digest(data.claim))) fail('连接请求已过期。请扫描新的二维码。', 403);
           if (!pending.approved) return json(response, 202, { status: 'waiting' });
           response.setHeader('Set-Cookie', this.cookie(pending.credential));
           return json(response, 200, { status: 'connected' });
@@ -269,15 +269,15 @@ export class MobileGateway {
         if (method === 'GET' && route === '/mobile/api/bootstrap') return json(response, 200, { sessions: this.list(), agents: inventory().filter(item => item.id !== 'shell'), device: { id: device.id, name: device.name }, defaultAgent: this.settings().defaultAgent, defaultBypass: this.settings().defaultBypass, dictation: await this.dictation.status() });
         if (method === 'POST' && route === '/mobile/api/disconnect') { await this.revoke(device.id); response.setHeader('Set-Cookie', this.cookie('', true)); return json(response, 200, { disconnected: true }); }
         if (method === 'POST' && route === '/mobile/api/images') {
-          if (this.uploads.size >= 150) fail('Too many pending images. Try again later.', 429);
+          if (this.uploads.size >= 150) fail('待处理图片过多。请稍后重试。', 429);
           const chunks = []; let size = 0;
-          for await (const chunk of request) { size += chunk.length; if (size > MAX_IMAGE_BYTES) fail('Choose an image smaller than 25 MB.', 413); chunks.push(chunk); }
+          for await (const chunk of request) { size += chunk.length; if (size > MAX_IMAGE_BYTES) fail('请选择小于 25 MB 的图片。', 413); chunks.push(chunk); }
           const image = await this.attachments.save(Buffer.concat(chunks), decodeURIComponent(request.headers['x-file-name'] || 'Phone image'));
           const id = randomUUID(); this.uploads.set(id, { ...image, deviceId: device.id, expires: Date.now() + 24 * 60 * 60 * 1000 });
           return json(response, 201, { id, name: image.name });
         }
         if (method === 'POST' && route === '/mobile/api/sessions') {
-          if (!inventory().some(item => item.id !== 'shell' && item.id === data.agent && item.available)) fail('Choose an installed agent.');
+          if (!inventory().some(item => item.id !== 'shell' && item.id === data.agent && item.available)) fail('请选择已安装的代理。');
           return json(response, 201, await this.sessions.create({ agent: data.agent, name: data.name, cwd: this.repo, bypass: this.settings().defaultBypass === true }));
         }
         const match = /^\/mobile\/api\/sessions\/([a-f0-9-]{36})\/(messages|send|resume|close|key|read-aloud)$/.exec(route);
@@ -290,7 +290,7 @@ export class MobileGateway {
             response.once('close', abort);
             try {
               const audio = await this.readAloud.synthesize(device.id, data, controller.signal);
-              if (!this.active || !this.state.devices.some(item => item.id === device.id && item.expires > Date.now())) fail('Phone disconnected', 401);
+              if (!this.active || !this.state.devices.some(item => item.id === device.id && item.expires > Date.now())) fail('手机已断开', 401);
               complete = true; response.writeHead(200, { 'Content-Type': 'audio/wav', 'Content-Length': audio.length, 'Cache-Control': 'no-store' }); response.end(audio); return;
             } finally { response.off('close', abort); }
           }
@@ -299,13 +299,13 @@ export class MobileGateway {
           if (method === 'POST' && match[2] === 'close') return json(response, 200, await this.closeChat(session.id));
           if (method === 'POST' && match[2] === 'key') {
             const keys = { enter: '\r', escape: '\x1b', up: '\x1b[A', down: '\x1b[B', left: '\x1b[D', right: '\x1b[C', tab: '\t', interrupt: '\x03' };
-            if (!Object.hasOwn(keys, data.key)) fail('Unknown terminal key.');
+            if (!Object.hasOwn(keys, data.key)) fail('未知的终端按键。');
             this.sessions.input(session.id, keys[data.key]); return json(response, 200, { delivered: true });
           }
         }
-        fail('Mobile action not found', 404);
+        fail('未找到手机操作', 404);
       }
-      if (!['GET', 'HEAD'].includes(method)) fail('Not allowed', 405);
+      if (!['GET', 'HEAD'].includes(method)) fail('不允许', 405);
       if (route === '/mobile/manifest.webmanifest') {
         response.writeHead(200, { 'Content-Type': 'application/manifest+json' });
         response.end(JSON.stringify({ id: '/mobile/', name: 'Mr. Mak Mobile', short_name: 'Mr. Mak', start_url: '/mobile/', scope: '/mobile/', display: 'standalone', background_color: '#0d0e12', theme_color: '#0d0e12', icons: [{ src: '/assets/mak-mobile-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: '/assets/mak-mobile-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' }] })); return;
@@ -315,9 +315,9 @@ export class MobileGateway {
         response.end(await readFile(new URL('./mobile-sw.js', import.meta.url), 'utf8')); return;
       }
       const relative = route === '/mobile/' || route === '/mobile' ? 'index.html' : route.startsWith('/assets/') ? decodeURIComponent(route.slice(1)) : null;
-      if (!relative) fail('Not found', 404);
+      if (!relative) fail('未找到', 404);
       const { file, info } = await realFile(this.uiDir, relative);
-      if (!info.isFile()) fail('Not found', 404);
+      if (!info.isFile()) fail('未找到', 404);
       await serveFile(request, response, file, info, {
         'Cache-Control': route.startsWith('/assets/') ? 'private, max-age=3600' : 'no-store', 'X-Frame-Options': 'DENY',
         'Content-Security-Policy': `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' ${this.origin.replace(/^http/, 'ws')}; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'`,

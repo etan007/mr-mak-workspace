@@ -1,76 +1,75 @@
-# Object Image Validation Rubric
+# 物体图像校验评分标准
 
-Use this reference when the suitability decision is unclear.
+当适用性判断不明确时，使用本参考。
 
-## Pass
+## Pass（通过）
 
-- one obvious target object
-- object occupies enough of the frame
-- at least one strong silhouette
-- major materials are visible
-- hidden side can be reasonably inferred
-- target can be approximated with procedural primitives
+- 有一个明确的目标物体
+- 物体在画面中占比足够
+- 至少有一个清晰有力的轮廓
+- 主要材质可见
+- 隐藏的一侧可以合理推断
+- 目标可以用程序化基本体近似
 
-## Conditional
+## Conditional（有条件通过）
 
-- one view only but object has rotational symmetry
-- some occlusion but macro shape is clear
-- fine surface detail can be represented with procedural texture
-- target is organic but user accepts stylization
-- exact brand/logo/text fidelity is not required
+- 只有一个视角，但物体具有旋转对称性
+- 有部分遮挡，但宏观形状清楚
+- 精细表面细节可以用程序化纹理表现
+- 目标是有机物，但用户接受风格化
+- 不要求精确还原品牌/logo/文字
 
-## Reject
+## Reject（拒绝）
 
-- target object is ambiguous
-- photo is a scene, not an object reference
-- important shape is hidden, cropped, blurred, or transparent
-- request demands exact mesh extraction or manufacturing-grade dimensions
-- object relies primarily on smoke, liquid, glass caustics, or lace (no reconstruction path exists for these)
+- 目标物体有歧义
+- 照片是场景，而非物体参考
+- 重要形状被遮挡、裁掉、模糊或透明
+- 需求要求精确的网格提取或制造级尺寸
+- 物体主要依赖烟雾、液体、玻璃焦散或蕾丝（这些没有可行的重建路径）
 
-## Character / Human Suitability
+## 角色 / 人物适用性
 
-Do not blanket-reject a subject for being hair- or cloth-fold-dominant. If the form language is character-like (humanoid silhouette, skin/cloth/hair materials), classify it `character-conditional -> stylized` instead of `reject`. Route through `grimoire/character/reconstruction.md` (proportions, landmarks, pose, stylized materials) by default.
+不要因为对象以头发或布料褶皱为主就一律拒绝。若形体语言是类角色的（人形轮廓、皮肤/布料/头发材质），应归类为 `character-conditional -> stylized`，而不是 `reject`。默认经由 `grimoire/character/reconstruction.md`（比例、关键点、姿势、风格化材质）处理。
 
-- **character-conditional -> stylized**: humanoid subject, at least one clear frontal view, pose readable, hair/cloth is present but the user accepts the stylized-clump/fold-normal treatment rather than photoreal strands or drape simulation. Proceed with the standard character pipeline.
-- **character-conditional -> maximum likeness**: user explicitly wants the closest possible match to a specific person/character. Confirm this intent before starting, then route through `grimoire/character/likeness_maximization.md` (projection-first: template fit, camera match, de-lighting, texture projection). State up front that a single image cannot guarantee 100 percent likeness; report per-region confidence instead of claiming an exact match.
-- **still reject**: no humanoid silhouette is discernible at all, the figure is fully occluded/cropped below usable proportions, or the request demands photoreal skin/hair microstructure from a single low-resolution image with no willingness to provide more views or accept stylization.
+- **character-conditional -> stylized**：人形对象，至少有一个清晰的正面视角，姿势可读，存在头发/布料，但用户接受风格化发块/褶皱法线的处理方式，而非照片级发丝或垂坠模拟。按标准角色流水线进行。
+- **character-conditional -> maximum likeness**：用户明确希望尽可能贴近某个特定人物/角色。开始前先确认这一意图，然后经由 `grimoire/character/likeness_maximization.md` 处理（投影优先：模板拟合、相机匹配、去光照、纹理投影）。事先说明单张图像无法保证 100% 相似；报告分区域置信度，而不是声称完全匹配。
+- **仍然拒绝**：完全辨认不出人形轮廓；人物被完全遮挡/裁切到无法使用的比例；或需求要求从单张低分辨率图像得到照片级皮肤/头发微结构，且不愿提供更多视角或接受风格化。
 
-Before committing to a character spec:
+在确定角色 spec 之前：
 
-- confirm which stylization level the user accepts (realistic ~7.5 heads / stylized 5-6 / chibi 2-3) — do not assume realistic by default
-- request front, side, and back (or full-body) views whenever the visible view cannot support pose, proportion, or back-of-head/body inference
-- if maximum likeness is requested but only one low-quality view is available, say so explicitly and offer the stylized fallback as the practical alternative
+- 确认用户接受的风格化程度（写实约 7.5 头身 / 风格化 5-6 / Q 版 2-3）——不要默认写实
+- 只要可见视角无法支撑姿势、比例或后脑/背部推断，就请求正面、侧面和背面（或全身）视角
+- 若要求最大相似度但只有一个低质量视角，要明确说明，并提供风格化方案作为可行的替代
 
-## Ask For Better Input
+## 请求更好的输入
 
-Ask for:
+请求：
 
-- front, side, and back views
-- a neutral background
-- higher resolution
-- close-ups of material/detail
-- desired style: realistic, stylized, low-poly, game prop, hero render
+- 正面、侧面和背面视角
+- 中性背景
+- 更高分辨率
+- 材质/细节特写
+- 期望风格：写实、风格化、low-poly、游戏道具、主视觉渲染
 
-## Complex Object Detail Standard
+## 复杂物体细节标准
 
-For objects with many details, require:
+对细节繁多的物体，要求：
 
-- macro components for the overall mass
-- meso components for visible sub-assemblies
-- micro components or local features for repeated/tiny details
-- material layer stack for every visually distinct surface
-- local overrides for stains, scratches, dirt, color changes, wear, bumps, and roughness shifts
-- confidence per component or feature
-- evidence refs to image regions
+- 表达整体体量的宏观组件
+- 表达可见子组件的中观组件
+- 表达重复/微小细节的微观组件或局部特征
+- 每个视觉上不同的表面都有材质层堆栈
+- 针对污渍、划痕、污垢、颜色变化、磨损、凸起和粗糙度变化的局部覆盖层
+- 每个组件或特征的置信度
+- 指向图像区域的证据引用
 
-If these cannot be inferred from the image, mark the spec `conditional` and list missing views or close-ups.
+若无法从图像推断出这些内容，将 spec 标记为 `conditional`，并列出缺失的视角或特写。
 
 ---
 
-## Catalogued items: get the real identity before authoring
+## 已编目物品：编写前先获取真实身份
 
-When an item exists in a catalogue -- a game skin, a product SKU, a model number -- the name in the
-image is not the identity. Ask the user for the exact catalogue name up front, and pull the official
-and vanilla references BEFORE authoring geometry: they show base-model features the name never
-reveals. Never infer stock features from a name alone. A domain plugin that serves such a catalogue
-ships the lookup tooling and states the rule in its own contract.
+当物品存在于某个目录中——游戏皮肤、商品 SKU、型号——图像中的名称并不等于其身份。事先向用户询问
+确切的目录名称，并在编写几何体**之前**获取官方参考图和原版（vanilla）参考图：它们会展示名称本身
+永远不会透露的基础模型特征。绝不要仅凭名称推断原厂特征。为此类目录提供服务的领域插件会自带查询
+工具，并在其自己的契约中写明这条规则。

@@ -1,16 +1,16 @@
-# Stage 2B · Supplementary multi-view character sheet (3 projections + accessories laid out)
+# 阶段 2B · 补充多视图角色设定图（3 个投影 + 配饰平铺）
 
-**Model:** GPT-Image-2.5 (primary since Sep 2026, source workflow choice; fal id `openai/gpt-image-2.5/flare/*`) | GPT-Image-2, then Seedream V5 Lite (fallbacks) — the GPT-Image family is best at composing multiple framed projections in one image
-**Aspect:** 16:9 landscape
-**Reference:** the user's input character image + the Stage 2A strict-front A-pose sheet (attach both)
+**模型：** GPT-Image-2.5（2026 年 9 月起为首选，源工作流的选择；fal id `openai/gpt-image-2.5/flare/*`）| GPT-Image-2，再到 Seedream V5 Lite（备选）——GPT-Image 系列最擅长在一张图里排布多个分格投影
+**画幅：** 16:9 横版
+**参考图：** 用户输入的角色图 + 阶段 2A 的严格正视 A-pose 设定图（两张都附上）
 
-## Purpose
+## 用途
 
-This is the **visual aid for the user** — a single 16:9 image showing the character in three orthographic projections (front, side, back) plus accessories laid out separately to the side. Large items like hats, weapons, capes, and backpacks are drawn isolated next to the figure so the user can point to them precisely during the parts-confirmation gate.
+这是**给用户看的视觉辅助**——一张 16:9 图，展示角色的三个正交投影（正、侧、背），配饰单独平铺在旁边。帽子、武器、披风、背包等大件单独画在人物旁，便于用户在部件确认环节准确指认。
 
-It is NOT used as direct input to part extraction (Stage 2A's image is). It exists for human reference and as a downstream pose-match reference during multi-view extraction.
+它**不**直接作为部件提取的输入（输入是阶段 2A 的图）。它用于人工参考，并在多视图提取时作为下游的姿势匹配参考。
 
-## Prompt skeleton
+## 提示词骨架
 
 ```
 A clean orthographic character sheet of {CHARACTER_DESCRIPTION}, 16:9 landscape composition, white background (#FFFFFF) throughout. Show the character in THREE views, each in A-pose, laid out left-to-right across the sheet:
@@ -26,29 +26,29 @@ To the right of the figure (or above/below if space requires), lay out the chara
 Neutral diffuse flat lighting throughout, no shadow on the ground, no cinematic mood. Character identity, proportions, color palette, and accessories match the reference image EXACTLY across all three projections. Sharp focus, reference-grade clarity. Same character in all three views — verifiably the same proportions and face.
 ```
 
-## Substitution rules
+## 替换规则
 
-- `{CHARACTER_DESCRIPTION}` — same description used in Stage 2A
-- `{ACCESSORY_LIST}` — every separable accessory detected during intake (hat, weapon, backpack, jewelry, cape, etc.). If no accessories, omit the accessory layout instruction entirely.
+- `{CHARACTER_DESCRIPTION}`——与阶段 2A 使用的描述相同
+- `{ACCESSORY_LIST}`——接收阶段识别出的所有可拆分配饰（帽子、武器、背包、首饰、披风等）。若无配饰，整段删除配饰平铺指令。
 
-## Negatives
+## 负面提示词
 
 ```
 no inconsistent character across views, no different face between views, no different proportions, no different outfit, no different colors, no overlapping views, no cropping of any view, no environment, no background props, no shadow gradient on ground, no dramatic lighting, no rim light, no cinematic mood, no perspective camera, no foreshortening, no missing accessories, no merged accessories, no labels missing
 ```
 
-## Quality checklist
+## 质量检查清单
 
-- [ ] All three views present and clearly separated
-- [ ] Each view is strict orthographic (front = dead front, side = dead profile, back = dead back)
-- [ ] Same character verifiably across views (same face proportions, same outfit, same colors)
-- [ ] A-pose held in all three views
-- [ ] Accessories laid out separately and labeled
-- [ ] White background, no shadow, no environment
-- [ ] 16:9 aspect held cleanly with no cropping
-- [ ] Reference-grade clarity (used as visual reference, not input — but still needs to read clearly)
-- [ ] If composition fails (overlap, different faces between views): retry. If after 2 retries still failing, fall back to Seedream V5 Lite. If still failing, escalate.
+- [ ] 三个视图齐全且清楚分隔
+- [ ] 每个视图都是严格正交（正视 = 正对、侧视 = 正侧、背视 = 正背）
+- [ ] 各视图可确认是同一角色（脸部比例、服装、颜色相同）
+- [ ] 三个视图都保持 A-pose
+- [ ] 配饰单独平铺并加标注
+- [ ] 白色背景，无阴影，无环境
+- [ ] 16:9 画幅干净，无裁切
+- [ ] 参考级清晰度（作为视觉参考而非输入，但仍需清晰可读）
+- [ ] 若构图失败（视图重叠、各视图脸不同）：重试。2 次重试后仍失败，退回 Seedream V5 Lite。仍失败则上报。
 
-## Why GPT-Image-2 and not Nano Banana Pro for this stage
+## 为什么此阶段用 GPT-Image-2 而不用 Nano Banana Pro
 
-Nano Banana Pro is the workhorse for single-character-single-pose at strict orthographic. But it struggles with multi-panel layouts that hold character identity across panels. GPT-Image-2 is more reliable at composing 3 distinct framed views of the same character on one canvas with consistent identity — and that's the only job for Stage 2B.
+Nano Banana Pro 是严格正交下单角色单姿势的主力，但在多分格布局中难以跨格保持角色一致。GPT-Image-2 在同一画布上排布同一角色的 3 个分格视图并保持一致身份更可靠——而这正是阶段 2B 唯一的任务。

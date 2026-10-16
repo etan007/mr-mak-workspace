@@ -35,9 +35,9 @@ export function useReadAloud(sessionId: string) {
     return () => { run.current++; request.current?.abort(); if (playback.current) void playback.current.close().catch(() => {}); window.removeEventListener(readingVoiceChanged, stop) }
   }, [stop])
   function read(id: string, text: string) {
-    if (!supported) { setError('Audio playback is unavailable in this browser.'); return }
+    if (!supported) { setError('此浏览器不支持音频播放。'); return }
     stop(); setError('')
-    if (!text.trim()) { setError('This reply has no text to read aloud.'); return }
+    if (!text.trim()) { setError('此回复没有可朗读的文本。'); return }
     const audio = new AudioContext(); context.current = audio
     const unlocked = audio.resume(), run = generation.current, queue = chunks(text), voice = savedReadingVoice()
     setActiveId(id)
@@ -48,20 +48,20 @@ export function useReadAloud(sessionId: string) {
       try {
         await unlocked
         const response = await fetch(`/mobile/api/sessions/${sessionId}/read-aloud`, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ voice, text: part }), signal: controller.signal })
-        if (!response.ok) { const result = await response.json(); throw new Error(result.error || 'Speech generation failed.') }
+        if (!response.ok) { const result = await response.json(); throw new Error(result.error || '语音生成失败。') }
         const data = await response.arrayBuffer()
         if (generation.current !== run) return
         const buffer = await audio.decodeAudioData(data)
         if (generation.current !== run) return
         const source = audio.createBufferSource(); source.buffer = buffer; source.connect(audio.destination)
         source.onended = () => { if (generation.current === run) void next() }; source.start()
-      } catch (cause) { if (generation.current !== run) return; stop(); setError(cause instanceof Error ? cause.message : 'Read aloud could not start.') }
+      } catch (cause) { if (generation.current !== run) return; stop(); setError(cause instanceof Error ? cause.message : '无法开始朗读。') }
     }
     void next()
   }
   function togglePause() {
     const audio = context.current; if (!audio) return
-    void (paused ? audio.resume() : audio.suspend()).catch(() => { stop(); setError('Audio playback could not continue.') }); setPaused(!paused)
+    void (paused ? audio.resume() : audio.suspend()).catch(() => { stop(); setError('音频无法继续播放。') }); setPaused(!paused)
   }
   return { supported, activeId, paused, error, read, stop, togglePause }
 }

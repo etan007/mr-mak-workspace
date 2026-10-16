@@ -1,43 +1,35 @@
-# Export and integration checks
+# 导出与集成检查
 
-## Preserve the authoring source
+## 保留创作源文件
 
-Normalize or prune weights on a runtime copy according to the target's influence
-limit. Do not silently alter approved source skinning to satisfy an export test.
-Inspect deformed surfaces between keys: wrists above the floor do not prove that
-forearms clear the torso, and a valid rest mesh does not prove a valid animation.
+在运行时副本上按目标的影响骨骼数上限归一化或裁剪权重。不要为了通过导出测试而悄悄
+修改已批准的源蒙皮。检查关键帧之间的变形表面：手腕高于地面不代表前臂不穿躯干，
+静止网格合法也不代表动画合法。
 
-If an editable pose view is requested, use real rig controls and save the chosen
-reference locally. Keep this view independent of approved Actions and restore
-ordinary playback when leaving it. Avoid automatic handlers that overwrite the
-user's pose or repeatedly change the scene range.
+如果要求可编辑的姿势视图，使用真实的绑定控制器，并把选定的参考保存在本地。该视图
+独立于已批准的 Action，离开时恢复常规播放。避免使用会覆盖用户姿势或反复修改场景
+范围的自动 handler。
 
-## Verify independent clip files
+## 验证独立的动画片段文件
 
-When the model and animation files are separate, verify that their skeletons
-share the same bind basis. A clip exported from a posed rig can import without
-errors yet drive the model incorrectly. Compare evaluated poses on the actual
-model, including the first frame and contacts. If the exporter requires bind
-geometry, include the same skinned bind mesh in each clip file; consume those
-files as animation sources in the engine while keeping one runtime model.
+模型和动画分文件时，验证两者骨架共享同一绑定基准。从摆了姿势的绑定导出的动画片段
+可能无报错导入，却错误驱动模型。在实际模型上比较求值后的姿势，包括首帧和接触帧。
+如果导出器需要绑定几何，在每个动画片段文件中包含同一个带蒙皮的绑定网格；在引擎中
+把这些文件作为动画源使用，同时只保留一个运行时模型。
 
-Use relative texture paths and one documented texture set. Copy the entire
-delivery to a fresh directory before reimporting, so tests cannot accidentally
-resolve missing files from the author's original machine.
+使用相对贴图路径和一套有文档记录的贴图。重新导入前把整个交付物复制到新目录，避免
+测试意外从作者原机器上解析到缺失文件。
 
-Record source and export frame ranges, fps, sample count, duration, looping,
-root displacement, bone mapping and event markers. Do not infer sample count
-from a rounded duration. Compare source and reimported geometry in the same
-space with a tolerance appropriate to the target scale; document the tolerance.
+记录源与导出的帧范围、fps、采样数、时长、循环、根位移、骨骼映射和事件标记。不要
+从取整后的时长推断采样数。在同一空间中比较源几何与重新导入的几何，使用与目标尺度
+相符的容差，并记录该容差。
 
-## Hand over runtime transitions
+## 交接运行时过渡
 
-Keep navigation heading, clip yaw and model-forward correction separate to
-avoid applying the same rotation twice. A turn exit should match the last
-evaluated pose and contact phase, including a turn interrupted midway. Do not
-assume every turn reaches its final sample or every Walk can restart at frame
-zero. Use the receiving project's locomotion system and anatomy mapping.
+导航朝向、动画片段 yaw 和模型前向修正分开处理，避免同一旋转被应用两次。转身退出
+应匹配最后一次求值的姿势和接触相位，包括中途被打断的转身。不要假设每个转身都会
+播到最后一个采样，也不要假设每个 Walk 都能从第 0 帧重新开始。使用接收项目的移动
+系统和解剖映射。
 
-Send this manifest and evidence to `game-animation-integration`. Preserve the
-project's actual rotation rates, event times and control rules; record unknown
-values as unresolved instead of inventing universal defaults.
+把这份 manifest 和证据交给 `game-animation-integration`。保留项目实际的旋转速率、
+事件时间和控制规则；未知值记为未解决，不要臆造通用默认值。

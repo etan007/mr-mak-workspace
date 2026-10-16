@@ -1,49 +1,43 @@
-# Prompting and review
+# 提示词与审查
 
-## Concepts and accepted designs
+## 概念与已接受的设计
 
-For exploration, vary meaningful design dimensions: silhouette, proportions,
-construction, palette or mood. Label candidates so a user can select one without
-retyping its prompt. Use the requested number of variations; a model's ability
-to generate more is not a reason to expand the batch.
+探索时，改变有意义的设计维度：轮廓、比例、构造、配色或氛围。给候选项加标签，
+让用户无需重新输入提示词就能选择。按要求的变体数量生成；模型能生成更多不是扩大
+批次的理由。
 
-For faithful editing, name what stays and the precise change. Reuse the accepted
-image rather than rebuilding it from a long prose description. When combining
-references, assign each a role: body from image A, material from image B, or pose
-from image C. Preserve the chosen framing and exclude unrelated style cues.
+忠实编辑时，说明哪些保持不变以及精确的改动。复用已接受的图像，而不是用长篇
+文字描述重建它。组合多个参考时，为每个参考指定角色：机身取自图 A，材质取自图 B，
+姿势取自图 C。保留选定的构图，排除无关的风格线索。
 
-Material-only edits keep the mesh, silhouette, camera and background stable.
-A supplementary character sheet is not automatically the source for isolated
-parts. Neutral reference work needs flat light and readable anatomy; cinematic
-hero lighting can hide structure or bake misleading shadows into the reference.
+仅材质编辑时，网格、轮廓、镜头和背景保持稳定。补充性的角色设定图不会自动成为
+单独部件的来源。中性参考需要平光和清晰的解剖结构；电影感的主角光可能掩盖结构，
+或把误导性的阴影烘焙进参考图。
 
-## Materials and meshes
+## 材质与网格
 
-Patina-style material generation, mesh retexturing and mesh generation solve
-different problems. Discover the current endpoint and its input schema for the
-selected operation. Do not substitute a texture generator for a requested mesh
-or promise a game-ready mesh from a high-poly generation alone.
+Patina 式材质生成、网格重新贴图和网格生成解决的是不同问题。为选定操作查明当前
+端点及其输入 schema。不要用贴图生成器代替要求的网格，也不要仅凭高模生成就承诺
+可直接用于游戏的网格。
 
-For PBR maps, identify each channel, resolution, UV use and color space. Inspect
-tiling and roughness response in the target renderer. Normal conventions and
-packed channels differ between engines. Preserve high-poly texture detail when
-baking onto an unwrapped low-poly mesh; verify the exported material separately.
+PBR 贴图需确认每个通道、分辨率、UV 用途和色彩空间。在目标渲染器中检查平铺和
+粗糙度表现。法线约定和通道打包在不同引擎间有差异。烘焙到已展 UV 的低模时保留
+高模贴图细节；导出的材质需单独验证。
 
-## Motion references
+## 动作参考
 
-Specify the opening pose, action, contact/recovery, camera and duration. Reuse
-an accepted video as motion authority when the request is a human or costume
-transfer. A newly generated clip is a visual reference, not measured mocap data.
-Keep readable source motion separate from shorter gameplay timing.
+说明起始姿势、动作、接触/恢复、镜头和时长。如果请求是人物或服装迁移，以已接受的
+视频作为动作依据。新生成的片段是视觉参考，不是实测的动捕数据。可读的源动作与
+更短的游戏玩法节奏分开保存。
 
-## Delivery review
+## 交付审查
 
-- Compare the result with the input and brief at full size, not only a thumbnail.
-- Check count, framing, identity, missing parts and unintended additions.
-- Check that each saved file opens and that the report links to its actual file.
-- Keep one review verdict per output and record why a take was accepted/rejected.
-- When revising, change the failed criterion without discarding approved features.
-- Stop at the requested result; additional attempts need a reason and available
-  task budget. Never hide failed takes or call an unchecked batch approved.
+- 以完整尺寸对照输入和需求说明检查结果，不能只看缩略图。
+- 检查数量、构图、身份一致性、缺失部件和意外添加。
+- 检查每个保存的文件都能打开，且报告链接指向真实文件。
+- 每个输出保留一个审查结论，并记录接受/拒绝某个版本的原因。
+- 修改时只修正未通过的标准，不丢弃已批准的特征。
+- 达到要求的结果即停止；额外尝试需要理由和可用的任务预算。绝不隐藏失败的版本，
+  也不把未检查的批次称为已批准。
 
-Examples in this package are neutral instructions, not paid generation results.
+本包中的示例是中性说明，不是付费生成的结果。

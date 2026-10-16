@@ -1,268 +1,222 @@
-# Mobile access
+# 手机访问
 
-Mobile access connects a phone to the agent chats running in Mr. Mak Desktop.
-The computer keeps the CLI processes, their sign-ins and project files. The
-phone can read conversations, dictate drafts, send messages and images, resume a saved chat,
-start an installed agent, and read Workspace reports.
+手机访问让手机连接到 Mr. Mak Desktop 中运行的代理对话。
+CLI 进程、登录状态和项目文件都留在电脑上。手机可以阅读对话、听写草稿、
+发送消息和图片、恢复已保存的对话、启动已安装的代理，以及阅读工作区报告。
 
-## First connection
+## 首次连接
 
-1. Install [Tailscale](https://tailscale.com/download) on your computer and phone.
-   Sign in to the same Tailscale account on both and keep them connected.
-2. Open Mr. Mak **Chats** and select the **phone icon** in the top bar.
-3. Choose **Enable & show QR code**. If Tailscale requests HTTPS permission,
-   follow its [Serve setup](https://tailscale.com/docs/features/tailscale-serve)
-   and try again. On Windows, Tailscale may require administrator permission
-   to configure Serve. You do not need to run agent chats as administrator.
-4. Open your phone camera or QR scanner and point it at the code on the computer
-   screen. Tap the detected link to open your browser. Name the device and
-   select **Request connection**.
-5. Compare the six-digit confirmation code on both screens, then choose
-   **Connect phone** in Chats. A QR code alone does not grant access.
-6. After connecting, tap Install when the browser makes installation available, or open Phone settings for Install Mr. Mak. Not now dismisses the invitation for this browser session; the settings button remains available. You can also use your browser’s Install app or Add to Home Screen menu (Safari’s Share menu on iPhone). If the installed
-   web app asks to connect again, enter the eight-digit connection code shown
-   under a fresh desktop QR code and confirm it on the computer.
+1. 在电脑和手机上安装 [Tailscale](https://tailscale.com/download)。
+   两端登录同一个 Tailscale 账号并保持连接。
+2. 打开 Mr. Mak **对话**窗口，选择顶栏中的**手机图标**。
+3. 选择**启用并显示二维码**。如果 Tailscale 请求 HTTPS 权限，
+   按其 [Serve 配置说明](https://tailscale.com/docs/features/tailscale-serve)
+   操作后重试。在 Windows 上，Tailscale 配置 Serve 可能需要管理员权限。
+   代理对话本身无需以管理员身份运行。
+4. 打开手机相机或二维码扫描器，对准电脑屏幕上的二维码。点击识别出的链接，
+   在浏览器中打开。为设备命名，然后选择**请求连接**。
+5. 核对两块屏幕上的六位确认码，然后在对话窗口中选择**连接手机**。
+   仅凭二维码不会授予访问权限。
+6. 连接后，若浏览器提供安装入口，点击“安装”；也可打开**手机设置**中的“安装 Mr. Mak”。“暂不”会在本次浏览器会话中关闭该邀请，设置中的按钮仍然可用。也可以使用浏览器的“安装应用”或“添加到主屏幕”菜单（iPhone 上为 Safari 的“分享”菜单）。如果已安装的
+   网页应用要求重新连接，请输入电脑上新生成的二维码下方显示的八位连接码，
+   并在电脑上确认。
 
-Every owner connects their own devices. Typed chat access needs no shared Mr. Mak
-server, public domain or new model API key. Existing CLI account limits still apply.
-The optional microphone button uses a separately billed transcription API.
-Mr. Mak configures a private Tailscale Serve route on an available HTTPS port
-between 8443 and 8446. It preserves existing routes and never enables Funnel.
+每位所有者各自连接自己的设备。文字对话访问无需共享的 Mr. Mak 服务器、
+公网域名或新的模型 API key。现有 CLI 账号的额度限制依然适用。
+可选的麦克风按钮使用单独计费的转写 API。
+Mr. Mak 会在 8443 到 8446 之间的可用 HTTPS 端口上配置一条私有 Tailscale Serve 路由。
+它会保留已有路由，且从不启用 Funnel。
 
-## Using the phone
+## 使用手机
 
-- **Active / History:** select a conversation. Pinned chats come first.
-- **Conversation:** recent user and assistant messages from Codex or Claude's
-  local history. Tool output stays in the terminal. The view is bounded to the
-  recent transcript; native CLI history remains on the computer.
-- **Terminal:** the real CLI screen for any supported agent, with scrolling,
-  copy and buttons for Enter, Escape, all four arrows, Tab and Stop. Use left
-  and right to change choices in CLI menus, including reasoning effort. Wide lines scroll
-  sideways so opening a phone does not resize the desktop terminal.
-- **Close chat:** use the cross in the chat header and confirm. This also
-  closes its desktop tab and stops that CLI process. The conversation stays
-  in **History**, where you can open it and choose **Resume chat**. Other chats
-  keep running; your unsent phone draft is kept.
-- **Send:** sends a complete prompt to the selected CLI. Enter in the phone's
-  text field adds a line break; use Send to submit. Your keyboard's dictation
-  works in the same field.
-- **Microphone:** record a thought, tap Stop, then review the transcription in
-  your draft. It does not send a message or start an agent task automatically.
-- **Attach images:** uploads an image to the computer's `inbox/attachments`
-  and inserts its path with the message. Other file types and a full remote
-  file manager are not part of this version.
-- **Results:** read active Workspace cards and their HTML or Markdown tabs.
-  HTML previews are isolated and can read only their own report folder and
-  the shared report styling. Desktop-only API calls, external embedded frames
-  and reports outside the repository are not available in this viewer.
+- **活动 / 历史：** 选择一个对话。置顶的对话排在最前。
+- **对话：** 显示 Codex 或 Claude 本地历史中最近的用户与助手消息。
+  工具输出留在终端中。该视图只显示最近的对话记录；完整的原生 CLI 历史仍保存在电脑上。
+- **终端：** 任一受支持代理的真实 CLI 画面，支持滚动、复制，
+  并提供 Enter、Escape、四个方向键、Tab 和 Stop 按钮。用左右方向键
+  切换 CLI 菜单中的选项，包括推理强度。过宽的行可横向滚动，
+  因此在手机上打开不会改变桌面终端的尺寸。
+- **关闭对话：** 点击对话标题栏中的叉号并确认。这也会关闭桌面端对应的
+  标签页并停止该 CLI 进程。对话仍保留在**历史**中，可在其中打开并选择
+  **继续对话**。其他对话继续运行；手机上未发送的草稿会保留。
+- **发送：** 将完整的提示发送到所选 CLI。在手机文本框中按 Enter
+  会换行；用“发送”提交。键盘自带的语音听写也可在同一输入框中使用。
+- **麦克风：** 录下想法，点击“停止”，然后在草稿中检查转写结果。
+  它不会自动发送消息或启动代理任务。
+- **附加图片：** 将图片上传到电脑的 `inbox/attachments`，
+  并随消息插入其路径。本版本不支持其他文件类型，也没有完整的远程文件管理器。
+- **结果：** 阅读工作区中活动的卡片及其 HTML 或 Markdown 标签页。
+  HTML 预览是隔离的，只能读取自身的报告文件夹和共享的报告样式。
+  仅限桌面端的 API 调用、外部嵌入框架以及仓库外的报告在此查看器中不可用。
 
-Selecting a tab, scrolling or opening a report on the phone does not select a
-different tab on the desktop. Conversation contents and task activity are shared.
-Reading a completed turn marks it seen across devices.
+在手机上切换标签页、滚动或打开报告，不会改变桌面端选中的标签页。
+对话内容和任务活动在两端共享。阅读已完成的一轮回复后，所有设备都会将其标为已读。
 
-## Voice input
+## 语音输入
 
-1. On the computer, complete the optional [local voice setup](#local-voice-setup-on-the-computer), or select your existing paid provider in Phone settings.
-2. Open a chat on the phone and tap the microphone beside the attachment button.
-   Allow microphone access. Use the private HTTPS page in Chrome or Safari.
-3. Speak, then tap **Stop**. Each recording is limited to two minutes.
-4. Review or edit the text, then press **Send** yourself.
+1. 在电脑上完成可选的[本地语音配置](#在电脑上配置本地语音)，或在**手机设置**中选择你已有的付费服务商。
+2. 在手机上打开对话，点击附件按钮旁的麦克风。
+   允许麦克风访问。请在 Chrome 或 Safari 中使用私有 HTTPS 页面。
+3. 说话，然后点击**停止**。每段录音最长两分钟。
+4. 检查或编辑文本，然后自己按**发送**。
 
-Fresh installations default to free local Whisper on your computer, using CPU int8.
-Updates retain your previous provider and model. The phone
-uploads audio over the paired private connection; transcription runs offline on
-the computer after setup. No transcription API key or credit is needed. The PC
-must remain running and reachable. Temporary server audio is removed after each
-attempt. Recordings that have not yet become text remain recoverable on the
-recording device until transcribed or discarded.
+全新安装默认使用电脑上免费的本地 Whisper（CPU int8）。
+更新会保留你之前的服务商和模型。手机通过已配对的私有连接上传音频；
+配置完成后，转写在电脑上离线运行，不需要转写 API key 或额度。电脑必须
+保持运行且可访问。服务器上的临时音频在每次尝试后删除。尚未转成文字的
+录音会保存在录音设备上，可随时恢复，直到转写完成或被丢弃。
 
-### Local voice setup on the computer
+### 在电脑上配置本地语音
 
-Install Python 3.10-3.12 (3.12 recommended). From the repository folder on
-Windows, use these commands; on macOS/Linux, replace `python` with `python3`:
+安装 Python 3.10-3.12（推荐 3.12）。在 Windows 上于仓库文件夹中运行以下命令；
+在 macOS/Linux 上将 `python` 替换为 `python3`：
 
 ```sh
 python scripts/setup-local-voice.py dictation
 python scripts/setup-local-voice.py read-aloud
 ```
 
-Each command is optional. It creates a separate environment under `.cache`,
-installs pinned Python packages and verifies the model files against SHA-256
-checksums. Whisper's model download is about 486 MB; the reading model and
-voices total about 142 MB, plus Python dependencies. Setup checks that the
-model can load on your computer. It does not restart Mr. Mak. Refresh Phone
-settings afterward and select your provider. Windows PowerShell wrappers
-`setup-local-dictation.ps1` and `setup-local-read-aloud.ps1` call the same setup.
-Nothing is downloaded automatically by opening the app.
+两条命令都是可选的。每条命令会在 `.cache` 下创建独立环境，安装固定版本的
+Python 包，并用 SHA-256 校验和验证模型文件。Whisper 模型下载约 486 MB；
+朗读模型及音色合计约 142 MB，另加 Python 依赖。配置过程会检查模型能否在
+你的电脑上加载。它不会重启 Mr. Mak。完成后刷新**手机设置**并选择服务商。
+Windows PowerShell 封装脚本 `setup-local-dictation.ps1` 和
+`setup-local-read-aloud.ps1` 调用的是同一套配置。打开应用不会自动下载任何内容。
 
-Desktop chats offer a microphone in the chat toolbar. Transcription pastes
-directly into the terminal input without pressing Enter. The Workspace's Mak composer
-also supports dictation; its Send button remains a separate action. No hotkeys
-are rebound. This feature is separate from conversational Talk to Mak.
+桌面端对话的工具栏中提供麦克风。转写结果直接粘贴到终端输入中，不会按 Enter。
+工作区的 Mak 输入框也支持听写；其“发送”按钮仍是单独的操作。不会重新绑定任何
+快捷键。此功能与对话式的 Talk to Mak 相互独立。
 
-Local transcription preserves the detected language; it does not translate.
-Test names and mixed-language phrases on your own microphone before relying on
-it. Optional `MRMAK_WHISPER_PYTHON` and `MRMAK_WHISPER_MODEL` point to an existing
-Python executable and downloaded model directory.
+本地转写保留识别出的语言，不做翻译。依赖它之前，请先用自己的麦克风测试人名和
+混合语言的语句。可选的 `MRMAK_WHISPER_PYTHON` 和 `MRMAK_WHISPER_MODEL` 分别指向
+已有的 Python 可执行文件和已下载的模型目录。
 
-To switch between Free and Paid, open the **phone icon at the top right**.
-On desktop this opens **Phone settings**, combining pairing, devices and
-speech-to-text. On mobile it opens the same provider choice alongside install
-and disconnect controls. Desktop **Settings → Speech-to-text** also has it.
-Choose **Local Whisper · Free**, **OpenAI · Paid**, **OpenRouter · Paid**, or **Off**.
-The saved choice is shared by desktop and all paired phones, updates immediately,
-and applies to the next transcription. An in-progress request finishes using
-its existing provider. Missing setup or API keys are shown beside the choice;
-keys are entered only in the computer's ignored `.env`.
+要在免费和付费之间切换，打开**右上角的手机图标**。
+在桌面端会打开**手机设置**，其中集成了配对、设备和语音转文字。
+在手机端会打开同样的服务商选项，旁边是安装和断开连接的控件。
+桌面端的**设置 → 语音转文字**中也有此选项。
+可选择**本地 Whisper · 免费**、**OpenAI · 付费**、**OpenRouter · 付费**或**关闭**。
+保存的选择由桌面端和所有已配对的手机共享，立即生效，并用于下一次转写。
+正在进行的请求会用原服务商完成。缺少配置或 API key 时会在选项旁提示；
+key 只在电脑上被 git 忽略的 `.env` 中填写。
 
-Paid providers remain opt-in. There is no automatic fallback to a cloud provider:
+付费服务商需主动开启。不会自动回退到云端服务商：
 
 ```dotenv
 MRMAK_TRANSCRIBE_PROVIDER=openrouter
 MRMAK_TRANSCRIBE_MODEL=openai/gpt-4o-transcribe
 ```
 
-For direct OpenAI, use `openai` and `gpt-4o-transcribe`. Set the provider to
-`off` to disable this microphone feature. `OPENROUTER_KEY` and `OPENAI_KEY` are
-also accepted as legacy key names. Reopen the mobile page after changing keys
-or settings; the desktop reads them without a restart.
+直接使用 OpenAI 时，填写 `openai` 和 `gpt-4o-transcribe`。将服务商设为
+`off` 可禁用此麦克风功能。`OPENROUTER_KEY` 和 `OPENAI_KEY` 作为旧版 key 名
+也可识别。修改 key 或设置后请重新打开手机页面；桌面端无需重启即可读取。
 
-Stopped recordings are saved on the phone until transcription succeeds or you
-choose **Discard recording**. If transcription fails, use **Transcribe
-recording** to retry, or **Download audio** to keep a copy. Switching chats or
-putting the page in the background stops the microphone and retains the
-unfinished recording in its original chat. Clearing browser data removes local
-drafts and recordings. If the browser cannot save audio, keep the page open and
-download it before leaving.
+停止后的录音会保存在手机上，直到转写成功或你选择**丢弃录音**。转写失败时，
+用**转写录音**重试，或用**下载音频**保留副本。切换对话或将页面切到后台会停止
+麦克风，未完成的录音保留在原对话中。清除浏览器数据会删除本地草稿和录音。
+如果浏览器无法保存音频，请保持页面打开，并在离开前下载。
 
-Retries reuse a successful transcription for up to ten minutes while the desktop
-service stays running and its bounded cache retains it. After a desktop restart
-or cache expiry, retrying runs transcription again (billable only for an explicitly
-selected cloud provider). Local transcription uses a temporary audio file on the
-computer and deletes it after the attempt; pending recordings stay in the
-recording device's browser storage.
-Your phone keyboard's microphone remains an alternative without configuring
-Mr. Mak's transcription service.
+桌面服务保持运行且其有限缓存仍保留结果时，十分钟内的重试会复用已成功的转写。
+桌面重启或缓存过期后，重试会重新转写（仅当明确选择了云端服务商时才会计费）。
+本地转写在电脑上使用临时音频文件，尝试结束后删除；待处理的录音保存在
+录音设备的浏览器存储中。
+无需配置 Mr. Mak 的转写服务，手机键盘自带的麦克风也可作为替代方案。
 
-## Connections and delivery
+## 连接与送达
 
-Keep the computer awake, online and running Mr. Mak. Minimizing or hiding its
-windows is fine. Quitting Mr. Mak or letting the computer sleep makes it
-unavailable; closing the phone does not stop agents.
+保持电脑唤醒、在线并运行 Mr. Mak。最小化或隐藏其窗口没有影响。
+退出 Mr. Mak 或让电脑休眠会导致无法访问；关闭手机不会停止代理。
 
-After a restart, open Mr. Mak on the computer and the same mobile shortcut on
-the phone. The saved pairing is reused. Tailscale must be connected on both
-devices; opening Mr. Mak restores its private route. If Tailscale was not ready
-when Mr. Mak started, enable mobile access again from the phone panel in Chats.
-Mr. Mak does not add itself to operating-system startup automatically.
-On Android, use the system's Always-on VPN option for Tailscale if you want it
-to start with the phone; some devices also need background autostart permission.
-See [Android VPN settings](https://developer.android.com/develop/connectivity/vpn#always-on)
-and [Tailscale on Windows](https://tailscale.com/docs/how-to/run-unattended).
+重启后，在电脑上打开 Mr. Mak，在手机上打开同一个快捷方式。已保存的配对会被复用。
+两台设备都必须连接 Tailscale；打开 Mr. Mak 会恢复其私有路由。如果 Mr. Mak 启动时
+Tailscale 尚未就绪，请在对话窗口的手机面板中重新启用手机访问。
+Mr. Mak 不会自动将自己加入操作系统开机启动项。
+在 Android 上，如果希望 Tailscale 随手机启动，请使用系统的“始终开启的 VPN”选项；
+部分设备还需要后台自启动权限。
+参见 [Android VPN 设置](https://developer.android.com/develop/connectivity/vpn#always-on)
+和 [Windows 上的 Tailscale](https://tailscale.com/docs/how-to/run-unattended)。
 
-Drafts stay on the phone per chat. After a lost connection, **Retry** checks the
-same message ID. The computer keeps a delivery receipt before writing to the
-terminal. **Delivered to terminal** confirms the terminal write, not that an
-agent accepted or completed the task. If delivery is uncertain, inspect the
-terminal before unlocking the draft for a new attempt. Unsynchronised terminal
-keystrokes should be entered from one device at a time.
+草稿按对话分别保存在手机上。连接中断后，**重试**会检查同一个消息 ID。
+电脑在写入终端前会先保存送达回执。**已送达终端**仅确认已写入终端，
+不代表代理已接受或完成任务。如果无法确定是否送达，请先检查终端，
+再解锁草稿重新发送。未同步的终端按键输入应一次只在一台设备上进行。
 
-The phone button in Chats shows connected and paired devices. **Disconnect**
-revokes a device and closes its connections. **Turn off mobile access** stops
-the mobile surface without stopping agent chats; paired devices can reconnect
-when it is enabled again. Pairing codes expire after five minutes. A device's
-pairing expires after 180 days and can be renewed with a new QR code.
+对话窗口中的手机按钮显示已连接和已配对的设备。**断开连接**会撤销设备授权
+并关闭其连接。**关闭手机访问**会停止手机端入口，但不会停止代理对话；
+重新启用后，已配对的设备可以重新连接。配对码五分钟后过期。
+设备的配对 180 天后过期，可用新的二维码续期。
 
-Mobile access is off by default. Device credentials are stored as hashes in
-the ignored runtime state; the phone holds its own HttpOnly session cookie.
-It never receives the desktop control token or model API keys. A paired phone
-can ask agents to act with their existing permissions, so disconnect a lost
-device from Chats or remove it from your Tailscale account.
+手机访问默认关闭。设备凭据以哈希形式保存在被 git 忽略的运行时状态中；
+手机持有自己的 HttpOnly 会话 cookie。手机永远不会收到桌面控制令牌或模型 API key。
+已配对的手机可以让代理以其现有权限执行操作，因此设备丢失时，请在对话窗口中
+断开它，或将其从你的 Tailscale 账号中移除。
 
-## Developing and checking the mobile client
+## 开发与检查手机客户端
 
-The mobile React entry is `src/mobile/`. The isolated service is
-`desktop/service/mobile.mjs`, with separate Tailscale, transcript and report
-adapters. It binds only to loopback. The desktop administrative API manages
-pairing; the mobile API exposes selected chat actions and read-only reports.
+手机端 React 入口是 `src/mobile/`。隔离服务是
+`desktop/service/mobile.mjs`，Tailscale、对话记录和报告各有独立的适配器。
+它只绑定到回环地址。桌面管理 API 负责配对；手机 API 只暴露选定的对话操作
+和只读报告。
 
-Run `npm test` for pairing, origin checks, delivery recovery, report boundaries
-and route ownership. After `npm run build`, run
-`node desktop/service/test/mobile-ui.mjs` for two-client browser checks. These
-tests use an isolated transport and stub CLI processes, without touching your
-Tailscale setup or starting a model request. A real phone and Tailscale sign-in
-are still required to verify the complete remote connection on your network.
+运行 `npm test` 检查配对、来源校验、送达恢复、报告边界和路由归属。
+`npm run build` 之后，运行 `node desktop/service/test/mobile-ui.mjs`
+进行双客户端浏览器检查。这些测试使用隔离的传输层和桩 CLI 进程，
+不会触碰你的 Tailscale 配置，也不会发起模型请求。要在你的网络中验证完整的
+远程连接，仍需真实手机和 Tailscale 登录。
 
-Recent activity in mobile Conversation starts collapsed. Tap its heading to expand
-or collapse the latest tool names and statuses. Automatic refresh keeps the current
-choice; opening another chat starts collapsed.
+手机端“对话”中的最近活动默认折叠。点击其标题可展开或折叠最新的工具名称和状态。
+自动刷新会保持当前选择；打开另一个对话时默认折叠。
 
-Conversation displays PNG, JPEG, WebP, GIF and BMP images explicitly shared in
-Claude/Codex messages, Markdown image links, and structured image tool results.
-Tap an image to open a separate full-screen viewer. Pinch to zoom the image,
-drag to pan, double-tap to zoom/reset, or use the zoom buttons. Close returns
-to the same conversation. Download saves the image. Local images are served
-through the paired connection with an expiring, device-and-chat-specific file
-grant; missing or unsupported images show an unavailable notice. Image-only
-messages are retained. External image URLs are not fetched, and terminal-only
-pixels without a saved file or transcript image record cannot be recovered.
+“对话”会显示 Claude/Codex 消息中明确分享的 PNG、JPEG、WebP、GIF 和 BMP 图片、
+Markdown 图片链接以及结构化的图片工具结果。点击图片打开独立的全屏查看器。
+双指缩放图片，拖动平移，双击缩放/复位，或使用缩放按钮。“关闭”返回同一对话。
+“下载”保存图片。本地图片通过已配对的连接提供，并附带有时效、绑定设备和对话的
+文件授权；缺失或不支持的图片会显示不可用提示。仅含图片的消息会保留。
+不会抓取外部图片 URL；终端中没有保存文件或对话记录图片条目的像素内容无法恢复。
 
-A speaker icon appears once at the end of the latest agent message, after its
-media. Tap it to read; during playback it becomes Pause/Resume, with a Stop icon.
-It reads your most recent message and all following agent messages through that
-reply, with Pause, Resume and Stop controls. New replies do not extend speech
-already playing; tap Read aloud again to include them.
-Speech is generated locally on your computer with Kokoro ONNX. Phone settings
-has exactly Michael (US man) and Emma (UK woman); the choice is saved on that
-phone. Browser voice lists and other accents are not used. No API key or paid
-speech provider is required. Run `python scripts/setup-local-voice.py read-aloud` (`python3` on macOS/Linux) once on
-Windows to install an isolated CPU environment and download the official model.
-After setup, inference is offline; text/audio are not sent to a cloud provider.
-The phone receives short WAV segments through its paired, authenticated session.
-Audio and text are kept in memory and discarded after playback. Stop cancels
-in-progress synthesis; disconnecting the phone revokes it. Code, tables and
-images are skipped. Playback starts only after a tap and stops when changing
-chats, opening Terminal or leaving Conversation.
+扬声器图标只出现一次，位于最新一条代理消息末尾、其媒体之后。点击即可朗读；
+播放时它变为暂停/继续，并附带停止图标。它会朗读你最近的一条消息及之后直到该回复
+为止的所有代理消息，提供暂停、继续和停止控制。新回复不会追加到正在播放的语音中；
+再次点击朗读即可包含它们。
+语音由 Kokoro ONNX 在你的电脑上本地生成。**手机设置**中只有 Michael（美式男声）
+和 Emma（英式女声）两种；选择保存在该手机上。不使用浏览器的语音列表和其他口音。
+不需要 API key 或付费语音服务商。在 Windows 上运行一次
+`python scripts/setup-local-voice.py read-aloud`（macOS/Linux 上用 `python3`），
+即可安装独立的 CPU 环境并下载官方模型。
+配置完成后，推理离线进行；文本/音频不会发送给云端服务商。
+手机通过已配对、已认证的会话接收短 WAV 片段。音频和文本只保存在内存中，播放后丢弃。
+“停止”会取消正在进行的合成；断开手机会撤销其授权。代码、表格和图片会被跳过。
+只有点击后才开始播放，切换对话、打开终端或离开“对话”时停止。
 
-Voice definitions: [Kokoro voice catalogue](https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md).
+音色定义：[Kokoro 音色目录](https://huggingface.co/hexgrad/Kokoro-82M/blob/main/VOICES.md)。
 
-Returning from phone sleep immediately replaces the stale connection without
-reloading the app. The current view, selected chat, draft and scroll position stay
-in place. Online and restored-page events use the same recovery; old bootstrap
-replies are ignored, connection attempts have a deadline, and failed attempts
-retry while the app is visible. The nose button reconnects in place as well.
+手机从休眠中返回时，会立即替换失效的连接，无需重新加载应用。当前视图、所选对话、
+草稿和滚动位置保持不变。网络恢复和页面恢复事件使用同样的恢复流程；旧的引导响应
+会被忽略，连接尝试有超时期限，应用可见时失败的尝试会自动重试。
+鼻子按钮同样会原地重连。
 
-Recorded local videos linked explicitly in Conversation (MP4, WebM, MOV or M4V)
-appear as video cards. Tap to open a separate player with playback controls,
-seeking and download. Video files stream with byte-range support and a 512 MB
-limit, using the same paired-device/chat grants as images. Playback depends on
-the phone supporting the recorded codec. External video URLs and arbitrary
-paths printed in terminal tool logs are not fetched. Agents should share
-recordings as a Markdown link to the saved file.
+“对话”中明确链接的本地录制视频（MP4、WebM、MOV 或 M4V）显示为视频卡片。
+点击打开独立播放器，支持播放控制、拖动进度和下载。视频文件支持字节范围流式传输，
+上限 512 MB，并使用与图片相同的设备/对话授权。能否播放取决于手机是否支持
+录制所用的编码。不会抓取外部视频 URL 和终端工具日志中打印的任意路径。
+代理应以指向已保存文件的 Markdown 链接分享录像。
 
-Mobile saves its selected chat, app section, History choice and each chat's
-Conversation/Terminal mode on that phone. Reloading or reopening restores the
-saved chat and mode; Conversation remembers whether you were following the
-latest reply or reading history. Chats returns to the selected chat after
-Workspace; Back to chats opens the list. Missing chats return to the list without
-selecting a different agent. Drafts remain per-chat, and desktop selection stays
-independent. Disconnect clears the saved mobile navigation state. Workspace independently remembers its selected card, each card's report tab,
-and reading position. Switching sections keeps both views mounted. HTML readers
-restore their saved route, window and nested scroll positions after reopening
-through an origin-checked, scroll-only sandbox message bridge. Terminal mode
-also remembers its scrollback line and fit setting. Use All workspaces to return
-to the card list; tapping Workspace itself never closes the selected report.
+手机端会在该手机上保存所选对话、应用分区、历史选择，以及每个对话的“对话/终端”
+模式。重新加载或重新打开时会恢复已保存的对话和模式；“对话”会记住你是在跟随
+最新回复还是在阅读历史。从工作区返回“对话”时会回到所选对话；“返回对话”打开列表。
+已不存在的对话会返回列表，而不会选中其他代理。草稿仍按对话分别保存，
+桌面端的选择相互独立。“断开连接”会清除保存的手机端导航状态。工作区独立记住所选卡片、每张卡片的报告标签页
+和阅读位置。切换分区时两个视图都保持挂载。HTML 阅读器重新打开后，会通过一个
+校验来源、仅传递滚动信息的沙箱消息桥，恢复已保存的路由、窗口和嵌套滚动位置。
+终端模式也会记住回滚行位置和适配设置。使用“全部工作区”返回卡片列表；
+点击“工作区”本身永远不会关闭所选报告。
 
-Each mobile message to an agent includes a small reference to the selected
-Workspace card and report tab. It includes the viewer page and section anchor
-when the report bridge has reported them; older services supply only the report
-entry page. These are viewer references, not filesystem paths. Report content is
-not copied or read to build this note. The note says this is the current Workspace
-where you are working and tells the agent to read, open or investigate it only
-when your request asks for it. Clearing the Workspace selection sends a null
-reference so an earlier card is no longer treated as current.
+手机发给代理的每条消息都附带一段简短引用，指向所选的工作区卡片和报告标签页。
+报告桥已上报时，还会包含查看器页面和章节锚点；旧版服务只提供报告入口页面。
+这些是查看器引用，不是文件系统路径。生成这段说明时不会复制或读取报告内容。
+说明会告知代理这是你当前所在的工作区，并要求仅在你的请求需要时才去阅读、
+打开或调查它。清除工作区选择会发送空引用，之前的卡片将不再被视为当前卡片。
 
-Delivery retries retain the original Workspace reference, even after switching
-pages or reloading. The automatic note stays in the native agent transcript,
-while mobile displays and reads aloud your original message. Shell input and
-native slash commands are sent unchanged. Desktop messages remain independent.
+送达重试会保留原始的工作区引用，即使切换了页面或重新加载。自动附加的说明
+保留在原生代理对话记录中，而手机端显示和朗读的是你的原始消息。Shell 输入
+和原生斜杠命令原样发送。桌面端消息不受影响。

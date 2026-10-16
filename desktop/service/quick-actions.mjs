@@ -40,7 +40,7 @@ export class QuickActions {
     this.file = path.join(stateDir, 'quick-operations.json'); this.operations = new Map(); this.pending = new Map(); this.saves = Promise.resolve();
   }
   async init() {
-    for (const item of await readJson(this.file, [])) this.operations.set(item.id, item.status === 'running' ? { ...item, status: 'interrupted', result: 'The app restarted during this action. Check its current state before repeating it.' } : item);
+    for (const item of await readJson(this.file, [])) this.operations.set(item.id, item.status === 'running' ? { ...item, status: 'interrupted', result: '执行此操作期间应用已重启。重复操作前请检查当前状态。' } : item);
     return this;
   }
   save() { this.saves = this.saves.catch(() => {}).then(() => saveJson(this.file, [...this.operations.values()].slice(-100))); return this.saves; }
@@ -53,7 +53,7 @@ export class QuickActions {
     if (date && /что|чем|делал|работ|what|work|activity|history/iu.test(text)) return async () => {
       const result = await this.workspace.activity(date);
       const titles = result.cards.slice(0, 12).map(item => `• ${item.title}`).join('\n');
-      return result.cards.length ? `Found ${result.cards.length} cards for ${date} in Workspace dates and Git history:\n${titles}${result.cards.length > 12 ? '\nMore cards are available.' : ''}` : `No Workspace or Git history entries were found for ${date}. Unsaved work is not included.`;
+      return result.cards.length ? `在工作区日期和 Git 历史中找到 ${date} 的 ${result.cards.length} 张卡片：\n${titles}${result.cards.length > 12 ? '\n还有更多卡片。' : ''}` : `未在工作区或 Git 历史中找到 ${date} 的记录。未保存的工作不包括在内。`;
     };
     const cards = await this.workspace.list();
     const currentId = decodeURIComponent(/^#\/([^/]+)/.exec(state.route || '')?.[1] || '');
@@ -65,40 +65,40 @@ export class QuickActions {
       return card && chat ? {} : { card, chat };
     };
     let match = /^(?:архивируй|заархивируй|отправь в архив|archive)\s+(.+)$/iu.exec(text);
-    if (match) { const { card } = resolve(match[1]); return card ? async () => { await call('update_workspace', { entityId: card.id, status: 'archived' }); return `Archived the card "${card.title}".`; } : null; }
+    if (match) { const { card } = resolve(match[1]); return card ? async () => { await call('update_workspace', { entityId: card.id, status: 'archived' }); return `已归档卡片“${card.title}”。`; } : null; }
     match = /^(?:верни из архива|разархивируй|unarchive)\s+(.+)$/iu.exec(text);
-    if (match) { const { card } = resolve(match[1]); return card ? async () => { await call('update_workspace', { entityId: card.id, status: 'active' }); return `The card "${card.title}" is active again.`; } : null; }
+    if (match) { const { card } = resolve(match[1]); return card ? async () => { await call('update_workspace', { entityId: card.id, status: 'active' }); return `卡片“${card.title}”已恢复为活动状态。`; } : null; }
     match = /^(?:отметь|пометь|mark)\s+(.+?)\s+(?:как\s+|as\s+)?(готовой|готово|завершенной|завершено|done|активной|active)$/iu.exec(text);
-    if (match) { const { card } = resolve(match[1]), status = /актив|active/iu.test(match[2]) ? 'active' : 'done'; return card ? async () => { await call('update_workspace', { entityId: card.id, status }); return `"${card.title}": ${status}.`; } : null; }
+    if (match) { const { card } = resolve(match[1]), status = /актив|active/iu.test(match[2]) ? 'active' : 'done'; return card ? async () => { await call('update_workspace', { entityId: card.id, status }); return `“${card.title}”：${status === 'active' ? '活动' : '已完成'}。`; } : null; }
     match = /^(закрепи|открепи|pin|unpin)\s+(.+)$/iu.exec(text);
     if (match) {
       const { card, chat } = resolve(match[2]), pinned = /^(?:закрепи|pin)$/iu.test(match[1]);
-      if (card || chat) return async () => { await call(card ? 'update_workspace' : 'pin_chat', card ? { entityId: card.id, pinned } : { id: chat.id, pinned }); return `"${card?.title || chat.name}": ${pinned ? 'pinned' : 'unpinned'}.`; };
+      if (card || chat) return async () => { await call(card ? 'update_workspace' : 'pin_chat', card ? { entityId: card.id, pinned } : { id: chat.id, pinned }); return `“${card?.title || chat.name}”：${pinned ? '已置顶' : '已取消置顶'}。`; };
     }
     match = /^(?:закрой|close)\s+(.+)$/iu.exec(text);
-    if (match) { const { chat } = resolve(match[1]); return chat ? async () => { await call('close_chat', { id: chat.id }); return `Closed "${chat.name}". It is saved in History.`; } : null; }
+    if (match) { const { chat } = resolve(match[1]); return chat ? async () => { await call('close_chat', { id: chat.id }); return `已关闭“${chat.name}”，已保存在历史中。`; } : null; }
     match = /^(?:открой|покажи|open|show|switch to|переключись на)\s+(.+)$/iu.exec(text);
     if (match && !/новый|new|создай/iu.test(match[1])) {
       const subject = match[1];
       const { chat, card } = resolve(subject);
-      if (chat) return async () => { await call('focus_chat', { id: chat.id }); return `Opened the chat "${chat.name}".`; };
-      if (/^(?:workspace|воркспейс|рабочее пространство)$/iu.test(subject)) return async () => { await call('show_workspace', {}); return 'Workspace is open.'; };
-      if (card) return async () => { await call('show_workspace', { entityId: card.id }); return `Opened the card "${card.title}".`; };
+      if (chat) return async () => { await call('focus_chat', { id: chat.id }); return `已打开对话“${chat.name}”。`; };
+      if (/^(?:workspace|воркспейс|рабочее пространство)$/iu.test(subject)) return async () => { await call('show_workspace', {}); return '工作区已打开。'; };
+      if (card) return async () => { await call('show_workspace', { entityId: card.id }); return `已打开卡片“${card.title}”。`; };
     }
     match = /^(?:прочитай|прочти|что в|read|summarize)\s+(.+)$/iu.exec(text);
     if (match) { const { card } = resolve(match[1]); return card ? async () => { const value = await call('read_workspace', { entityId: card.id }); return `${value.title}\n${value.description || ''}\n\n${value.text.slice(0, 4000)}${value.note ? '\n' + value.note : ''}`; } : null; }
-    if (/^(?:покажи |список |list |show )?(?:все |all )?(?:чаты|chats)$/iu.test(text)) return async () => state.chats.length ? state.chats.map(({ name, attention }) => `• ${name}${attention ? ' — needs attention' : ''}`).join('\n') : 'There are no open chats.';
-    if (/^(?:покажи |список |list |show )?(?:все |all )?(?:карточки|cards)$/iu.test(text)) return async () => `${cards.length} Workspace cards:\n${cards.slice(0, 15).map(({ title }) => `• ${title}`).join('\n')}`;
+    if (/^(?:покажи |список |list |show )?(?:все |all )?(?:чаты|chats)$/iu.test(text)) return async () => state.chats.length ? state.chats.map(({ name, attention }) => `• ${name}${attention ? ' — 需要处理' : ''}`).join('\n') : '没有已打开的对话。';
+    if (/^(?:покажи |список |list |show )?(?:все |all )?(?:карточки|cards)$/iu.test(text)) return async () => `工作区共 ${cards.length} 张卡片：\n${cards.slice(0, 15).map(({ title }) => `• ${title}`).join('\n')}`;
     match = /^(?:создай|открой|create|open)\s+(?:новый |new )?(?:(codex|кодекс|claude|клод|antigravity|agy|opencode|kimi)\s+)?(?:чат|chat)\s+(?:с названием |под названием |named |called )?[«"“]([^»"”]+)[»"”]$/iu.exec(text);
     if (match) {
       let name; try { name = taskTitle(match[2]); } catch { return null; }
       const agent = /claude|клод/iu.test(match[1] || '') ? 'claude' : /antigravity|agy/iu.test(match[1] || '') ? 'antigravity' : /opencode/iu.test(match[1] || '') ? 'opencode' : /kimi/iu.test(match[1] || '') ? 'kimi' : 'codex';
-      return async () => { const chat = await call('open_chat', { agent, name, effort: defaultWorkerEffort }); return `Created "${chat.name}". The agent is starting.`; };
+      return async () => { const chat = await call('open_chat', { agent, name, effort: defaultWorkerEffort }); return `已创建“${chat.name}”，代理正在启动。`; };
     }
     return null;
   }
   ask(request) {
-    if (!request.id || typeof request.text !== 'string' || !request.text.trim() || request.text.length > 30000) return Promise.reject(new Error('A request ID and a non-empty message are required'));
+    if (!request.id || typeof request.text !== 'string' || !request.text.trim() || request.text.length > 30000) return Promise.reject(new Error('需要请求 ID 和非空消息'));
     if (this.pending.has(request.id)) return this.pending.get(request.id);
     if (this.operations.has(request.id)) return Promise.resolve(this.operations.get(request.id));
     const promise = (async () => {

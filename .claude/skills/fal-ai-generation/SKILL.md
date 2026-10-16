@@ -1,69 +1,62 @@
 ---
 name: fal-ai-generation
-description: Generate and edit images, create video, audio, 3D assets or material maps through fal.ai MCP or the Python queue client. Use for fal model discovery, reference uploads, generation, recovery and local delivery.
+description: 通过 fal.ai MCP 或 Python 队列客户端生成和编辑图像，创建视频、音频、3D 资产或材质贴图。用于 fal 模型发现、参考图上传、生成、任务恢复和本地交付。
 ---
 
-# fal.ai generation
+# fal.ai 生成
 
-Turn the user's brief and supplied references into downloaded, reviewed assets.
-Use the connected fal.ai MCP when available. The included Python helper handles
-local uploads and queue recovery when MCP cannot access the local filesystem.
-This skill and its relative resources can be copied into another project.
+把用户的需求说明和提供的参考转化为已下载、已审查的资产。
+有已连接的 fal.ai MCP 时优先使用。MCP 无法访问本地文件系统时，
+由随附的 Python 辅助脚本处理本地上传和队列恢复。
+本技能及其相对路径资源可复制到其他项目。
 
-## Choose the operation
+## 选择操作
 
-Distinguish concept exploration, faithful editing, reference-sheet preparation,
-motion generation, mesh generation and material creation. Preserve a selected
-provider, model, accepted image, pose, camera and requested output count.
-An edit changes the requested feature; it does not redesign the whole asset.
+区分概念探索、忠实编辑、参考图集准备、动作生成、网格生成和材质创建。
+保留已选定的提供方、模型、已接受图像、姿势、镜头和要求的输出数量。
+编辑只改动要求的特征，不重新设计整个资产。
 
-When no model is selected, call `recommend_model` with the actual task. Then read
-`get_model_schema` for the exact endpoint. Similar display names on different
-providers are not interchangeable endpoint IDs. Inspect pricing for the planned
-batch, especially video or 3D; use existing task authorization without asking
-again for already-approved work. Defaults in an old script are not a model choice.
+未选定模型时，用实际任务调用 `recommend_model`，再为确切端点读取
+`get_model_schema`。不同提供方上相似的显示名称不是可互换的端点 ID。
+检查计划批次的价格，视频和 3D 尤其要查；已获批准的工作沿用现有任务授权，
+不再重复询问。旧脚本里的默认值不等于模型选择。
 
-Read [MCP calls](references/mcp-workflow.md) for parameter examples and recovery.
-Read [prompting and review](references/prompting-and-review.md) for concept,
-reference-edit and material decisions. Read [setup](references/setup.md) when
-connecting another machine. Each recipient uses their own account and credentials.
+参数示例和恢复方法见 [MCP 调用](references/mcp-workflow.md)。
+概念、参考编辑和材质决策见 [提示词与审查](references/prompting-and-review.md)。
+在另一台机器上连接时见 [设置](references/setup.md)。每个使用者使用自己的账号和凭据。
 
-## Run and retain the job
+## 运行并保留任务
 
-1. Inspect the selected input files. Upload only the references needed for the
-   requested task. A hosted MCP cannot read a local Windows path: use the upload
-   helper or a client-side upload tool, then pass the resulting URL.
-2. Prepare inputs from the live schema. Fields such as `image_urls`, `image_url`,
-   `aspect_ratio`, `image_size`, `resolution` and duration differ by endpoint.
-   Do not pass every model the same argument object. Do not add web search,
-   background removal, extra views or video unless they serve this task.
-3. Prefer `submit_job` for long operations; `run_model` is convenient for images.
-   Immediately save endpoint, request ID, returned status/result URLs and the
-   input parameters in the task directory. `processing` is normal, not failure.
-4. Continue with `check_job`, then `get_job_result` when complete. Prefer the
-   canonical URLs returned by the service. A wait timeout does not authorize a
-   duplicate submission. A terminal result can still contain a provider error.
-   If submission returned no ID, inspect request history before trying again.
-5. Download the outputs before relying on a CDN link. Inspect each requested
-   asset, preserve rejected takes with their reasons, and make the chosen result
-   easy to open and download. Record technical completion separately from visual
-   acceptance. A generated mesh still needs its own rig/topology/export checks.
+1. 检查选定的输入文件。只上传当前任务需要的参考。托管 MCP 无法读取
+   本地 Windows 路径：用上传辅助脚本或客户端上传工具，再传入得到的 URL。
+2. 按实时 schema 准备输入。`image_urls`、`image_url`、`aspect_ratio`、
+   `image_size`、`resolution` 和时长等字段因端点而异。
+   不要给每个模型传同一个参数对象。除非服务于本任务，否则不要添加网页搜索、
+   背景移除、额外视角或视频。
+3. 长时间操作优先用 `submit_job`；图像用 `run_model` 较方便。
+   立即在任务目录中保存端点、请求 ID、返回的 status/result URL 和输入参数。
+   `processing` 是正常状态，不是失败。
+4. 用 `check_job` 继续跟进，完成后调用 `get_job_result`。优先使用服务返回的
+   规范 URL。等待超时不代表可以重复提交。终态结果仍可能包含提供方错误。
+   如果提交没有返回 ID，先查看请求历史再重试。
+5. 依赖 CDN 链接前先下载输出。检查每个要求的资产，保留被拒的版本及原因，
+   让选定结果易于打开和下载。技术完成与视觉验收分开记录。
+   生成的网格仍需单独做绑定/拓扑/导出检查。
 
-Keep the prompt, source filenames or hashes, model ID, request ID, local outputs
-and review verdict together. Credentials and raw signed links do not belong in a
-shareable report. In Mr. Mak, use the current Workspace card and its shared image
-viewer; elsewhere use the recipient's requested output directory.
+把提示词、源文件名或哈希、模型 ID、请求 ID、本地输出和审查结论放在一起。
+凭据和原始签名链接不应出现在可分享的报告中。在 Mr. Mak 中，使用当前工作区卡片
+及其共享图像查看器；其他环境使用接收方要求的输出目录。
 
-## Included tools and examples
+## 随附工具与示例
 
-- [Queue helper](scripts/fal_job.py): `--help`, upload, submit, status and result
-  download. One receipt per job; an existing receipt blocks another submission.
-- [Python dependencies](scripts/requirements.txt).
-- [Concept input](examples/concept.json) and [edit input](examples/edit.json):
-  neutral requests, with no private artwork or working account URLs.
-- [Example task](examples/WALKTHROUGH.md): a non-spending rehearsal followed by
-  the commands for an explicitly requested generation.
+- [队列辅助脚本](scripts/fal_job.py)：`--help`、上传、提交、状态查询和结果下载。
+  每个任务一份回执；已有回执会阻止再次提交。
+- [Python 依赖](scripts/requirements.txt)。
+- [概念输入](examples/concept.json) 和 [编辑输入](examples/edit.json)：
+  中性请求，不含私有作品或可用的账号 URL。
+- [示例任务](examples/WALKTHROUGH.md)：一次不消耗额度的演练，以及明确请求生成时
+  使用的命令。
 
-Resolve these paths against this skill directory. Run `--help` or `submit
---dry-run` to check installation without a generation. Runtime keys come from
-the environment or an explicitly selected `.env`; never print their values.
+这些路径相对于本技能目录解析。运行 `--help` 或 `submit
+--dry-run` 可在不生成的情况下检查安装。运行时密钥来自环境变量或明确选定的
+`.env`；绝不打印其值。

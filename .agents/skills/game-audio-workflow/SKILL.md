@@ -1,59 +1,48 @@
 ---
 name: game-audio-workflow
-description: Build and review game sound banks, map chosen takes to real events, and prepare or verify runtime playback with timing, repetition and mix limits. Use for unit voices, foley, impacts, UI cues and ambience.
+description: 构建并审查游戏音效库，把选定的录音条目映射到真实事件，准备或验证运行时播放的时机、重复和混音限制。用于单位语音、拟音、冲击、UI 提示音和环境音。
 ---
 
-# Game audio workflow
+# 游戏音频工作流
 
-Start with an event inventory and native motion/gameplay references. Separate
-unit voice, movement/gear, weapon air, material impact, victim reaction, UI,
-strategic alerts, music and ambience. A good recording can still be wrong for
-the event, camera distance or crowd mix.
+从事件清单和原生动作 / 玩法参考开始。区分单位语音、移动 / 装备、武器破空、材质
+冲击、受击反应、UI、战略警报、音乐和环境音。录音再好，也可能不适合该事件、镜头
+距离或群体混音。
 
-## Prepare and select material
+## 准备与挑选素材
 
-For each event, record its meaning, motion anchor, source or generation route,
-desired length and review state. Reuse the user's chosen provider, voice and
-references. Inspect current tool capabilities instead of copying a stale model
-identifier. Keep generation IDs to recover pending jobs without duplicating them.
+为每个事件记录其含义、动作锚点、来源或生成途径、期望长度和审查状态。沿用用户选定的
+服务商、音色和参考。检查工具当前能力，不要照抄过时的模型标识符。保留生成 ID，以便
+恢复待处理任务而不重复生成。
 
-Use stable take IDs and direct local playback. Keep source, audition edit and
-runtime file distinct. Record cut points, fades, gain/pitch/time changes and
-source hashes. A compressed preview is not a lossless production master.
-Review actual samples for clipping, silence, format, duration and loop seams;
-technical checks do not establish the desired performance or tone.
+使用稳定的录音条目 ID 和直接的本地播放。源文件、试听剪辑和运行时文件三者分开。记录
+剪切点、淡入淡出、增益 / 音高 / 时间修改和源文件哈希。压缩的预览不是无损的制作母版。
+审查实际采样的削波、静音、格式、时长和循环接缝；技术检查不能证明表演或音色符合期望。
 
-Keep candidate, liked-for-comparison, accepted, integrated and mix-reviewed
-states separate. Preserve rejected history without presenting it as selected.
-Do not normalize or replace an accepted original silently. One accepted source
-may map to multiple events without duplicate files.
+候选、喜欢待比较、已采纳、已集成和已混音审查这几种状态分开。保留被否决的历史，但
+不要把它们当作已选。不要悄悄归一化或替换已采纳的原始文件。一个已采纳的源可以映射到
+多个事件，无需复制文件。
 
-## Follow the real event
+## 跟随真实事件
 
-Split an attack into optional effort, swing air, confirmed material contact and
-recipient reaction. A cancelled attack produces no contact sound. A death voice
-is separate from the body's actual landing. Footsteps follow planted-foot events
-or the project's verified distance/phase system; an arbitrary timer or a full
-audition loop may drift from the animation.
+把攻击拆分为可选的发力声、挥动破空、确认的材质接触和受击方反应。被取消的攻击不产生
+接触声。死亡语音与身体实际落地声是两回事。脚步声跟随落脚事件或项目已验证的距离 /
+相位系统；任意计时器或完整的试听循环可能与动画逐渐错位。
 
-Play one appropriate speaker for a group command, with per-speaker repetition
-limits. Repeated path updates may affect movement without repeating the voice.
-Choose concurrency, variation and distance limits from the actual mix. Coalesce
-related alerts and fire a match result once from the authoritative result event,
-not whenever the HUD refreshes. Do not add a parry cue without a real parry event.
+群体指令只播放一个合适的说话者，并设置每个说话者的重复限制。反复的路径更新可以影响
+移动而不重复语音。并发、变体和距离限制依据实际混音来定。合并相关警报，比赛结果只
+从权威结果事件触发一次，而不是每次 HUD 刷新都触发。没有真实格挡事件就不要加格挡
+提示音。
 
-## Integrate and listen
+## 集成与试听
 
-Use the project's mixer groups and persistent settings. Verify pause, mute,
-scene changes, interruption, visibility and source cleanup. Audition at gameplay
-distance and with a representative crowd, then check normal device output.
-Preserve the user's mix; do not replay unrelated narration during a focused test.
+使用项目的混音器分组和持久化设置。验证暂停、静音、场景切换、打断、可见性和音源清理。
+在游戏距离下、带有代表性的群体时试听，再检查常规设备输出。保留用户的混音；聚焦测试
+时不要重放无关旁白。
 
-Deliver an event-to-file manifest, provenance/licences, original and derived
-files, selected states, event anchors, native listening capture and open mix
-decisions. Name which checks were technical and which were listened to.
+交付事件到文件的 manifest、来源 / 许可、原始与派生文件、选定状态、事件锚点、原生
+试听录制和尚未决定的混音事项。注明哪些检查是技术检查，哪些是实际听过的。
 
-Example: a robot's walk, swing, metal impact and shutdown. Successful delivery
-keeps the impact conditional on a hit, aligns steps, limits crowd repetition and
-preserves the approved takes. Dependencies: an audio editor or FFmpeg for edits,
-chosen generation/stock tools when requested, and engine access for integration.
+示例：机器人的行走、挥动、金属冲击和关机。成功交付需要冲击声仅在命中时触发、脚步
+对齐、限制群体重复，并保留已批准的录音条目。依赖：用于剪辑的音频编辑器或 FFmpeg，
+按需使用选定的生成 / 素材库工具，以及用于集成的引擎访问。

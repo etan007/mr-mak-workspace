@@ -1,185 +1,130 @@
-# Hair
+# 头发
 
-How img2threejs reconstructs hair, what it measures, and — as precisely as possible — what it does
-not know.
+img2threejs 如何重建头发、测量什么，以及——尽可能精确地说明——它不知道什么。
 
-## Why hair needed its own subsystem
+## 为什么头发需要独立的子系统
 
-Before this, hair was one ellipsoid (`forge/stage2_spec/new_sculpt_spec.py`, the `("hair", "Hair",
-"ellipsoid", ...)` entry). A grep for `hair` across `forge/` returned 44 lines, all of them tests,
-comments or material ids, and none of them logic. Three pieces existed and were unused: a
-`faceLandmarks.hairline` slot no generator read, a `fiber-strand` topology class with nothing behind
-it, and the `tapered-sweep` primitive with zero specs using it.
+在此之前，头发只是一个椭球体（`forge/stage2_spec/new_sculpt_spec.py` 中的 `("hair", "Hair",
+"ellipsoid", ...)` 条目）。在 `forge/` 中 grep `hair` 返回 44 行，全是测试、注释或材质 id，没有一行是逻辑。有三样东西存在却未被使用：一个没有任何生成器读取的 `faceLandmarks.hairline` 槽位，一个背后什么都没有的 `fiber-strand` 拓扑类别，以及没有任何 spec 使用的 `tapered-sweep` 图元。
 
-The gap that mattered was not geometric. In one session, four separate diagnoses of a single
-hairstyle were wrong, and every one was caught only by measurement after the fact. So the gates were
-built before the generators.
+真正要紧的缺口不在几何上。在一次会话中，对同一个发型的四次独立诊断都是错的，而且每一次都是事后靠测量才发现的。所以门禁先于生成器构建。
 
-## The measurement that set the architecture
+## 决定架构的那次测量
 
-The reference this pipeline calibrates against is
-`public/references/low-poly-humanoid-glb/human_pbr.glb`. Probing it:
+本流水线用于校准的参考是 `public/references/low-poly-humanoid-glb/human_pbr.glb`。探测结果：
 
-| property | value |
+| 属性 | 值 |
 | --- | --- |
-| vertices | 570,400 |
-| triangles | 1,000,000 |
-| meshes / materials | 1 / 1, merged |
-| textures | diffuse, normal, metallic-roughness (PNG) |
-| skins / animations | 0 / 0 |
+| 顶点 | 570,400 |
+| 三角形 | 1,000,000 |
+| 网格 / 材质 | 1 / 1，已合并 |
+| 纹理 | diffuse、normal、metallic-roughness（PNG） |
+| 蒙皮 / 动画 | 0 / 0 |
 
-`forge/stage1_intake/probe_glb.py` reports `"reliableSemanticBoundary": "multipart-glb-required"` —
-the hair cannot be separated from the body by metadata.
+`forge/stage1_intake/probe_glb.py` 报告 `"reliableSemanticBoundary": "multipart-glb-required"`——无法通过元数据把头发与身体分开。
 
-Surface roughness, measured as the radial step between adjacent azimuth bins at each height:
+表面粗糙度，以每个高度上相邻方位角桶之间的径向步长衡量：
 
-| height band | radial step | vs control |
+| 高度分带 | 径向步长 | 相对对照组 |
 | --- | --- | --- |
-| crown / hair | 0.00338 | **+8%** |
-| upper hair | 0.00405 | +30% |
-| hair / brow | 0.00429 | +38% |
-| face / cheek | 0.00385 | +23% |
-| **torso (no hair, control)** | **0.00312** | — |
+| 头顶 / 头发 | 0.00338 | **+8%** |
+| 上部头发 | 0.00405 | +30% |
+| 头发 / 眉 | 0.00429 | +38% |
+| 脸 / 脸颊 | 0.00385 | +23% |
+| **躯干（无头发，对照组）** | **0.00312** | — |
 
-The hair surface is as smooth as a torso. At a head radius of ~0.10 that is roughly 3.4 mm of
-undulation, where a real lock is 10–30 mm. **The reference contains no lock geometry.** Its entire
-strand appearance is in the diffuse and normal textures.
+头发表面和躯干一样平滑。头部半径约 0.10 时，这大约是 3.4 mm 的起伏，而真实的一缕头发是 10–30 mm。**参考中没有任何发缕几何。** 它所有的发丝外观都在 diffuse 和 normal 纹理里。
 
-Two consequences follow, and they run in opposite directions to the obvious plan:
+由此得出两个推论，方向都与显而易见的方案相反：
 
-1. Since img2threejs emits code and no textures, the strand impression must come from **faceting and
-   material response**, not from adding lock geometry.
-2. The reference **cannot calibrate lock parameters**, because it has none to measure.
+1. 由于 img2threejs 输出代码而不输出纹理，发丝的观感必须来自**刻面和材质响应**，而不是添加发缕几何。
+2. 参考**无法校准发缕参数**，因为它根本没有可测的发缕。
 
-## Representation tiers
+## 表示层级
 
-| tier | what it is | calibration |
+| 层级 | 是什么 | 校准 |
 | --- | --- | --- |
-| `shell` (default) | a faceted mass hugging the scalp | measurable against the reference |
-| `masses` | a shell plus a few named regional masses | envelope measurable |
-| `locks` | individual tapered locks | **no ground truth available** |
+| `shell`（默认） | 贴合头皮的刻面团块 | 可对照参考测量 |
+| `masses` | 一层壳加几个具名的区域团块 | 包络可测 |
+| `locks` | 单独的渐细发缕 | **没有可用的真值** |
 
-`locks` is not forbidden. It emits a warning naming exactly why its numbers are derived rather than
-observed. Unblocking it needs a multipart GLB with a separated, named hair mesh.
+`locks` 并未被禁止。它会输出一条警告，确切说明为什么它的数值是推导所得而非观测所得。解锁它需要一个带有独立、具名头发网格的多部件 GLB。
 
-## Primitives
+## 图元
 
-| primitive | verdict |
+| 图元 | 结论 |
 | --- | --- |
-| `tapered-sweep` | preferred — curved spine, parallel transport, reaches a true point |
-| `curve-sweep`, `lathe`, `ellipsoid` | allowed |
-| `instanced-cluster` | allowed, for distant strand impressions only |
-| `plane-card` | **rejected** — needs an alpha texture, which this pipeline cannot emit |
-| `tube` | **rejected** — constant radius, reads as a noodle |
-| `box` | **rejected** |
+| `tapered-sweep` | 首选——弯曲脊线、平行传输、能收成真正的尖端 |
+| `curve-sweep`、`lathe`、`ellipsoid` | 允许 |
+| `instanced-cluster` | 允许，仅用于远处的发丝观感 |
+| `plane-card` | **拒绝**——需要 alpha 纹理，而本流水线无法输出 |
+| `tube` | **拒绝**——半径恒定，看起来像面条 |
+| `box` | **拒绝** |
 
-Enforced in `forge/stage2_spec/hair_profile.py` and again per-component in
-`validate_sculpt_spec.py`.
+在 `forge/stage2_spec/hair_profile.py` 中强制执行，并在 `validate_sculpt_spec.py` 中逐组件再执行一次。
 
-## The stages
+## 各阶段
 
-### Stage 1 — `extract_hair_evidence.py`
+### Stage 1——`extract_hair_evidence.py`
 
-Measures from reference images: hair/skin split (Otsu, not a percentile — see below), banded dark
-coverage across crown/mid/jaw, the hairline (writing the `faceLandmarks.hairline` slot that has
-existed unfilled since v1.2), the specular band position, and the root-to-tip luminance delta.
+从参考图测量：头发/皮肤分割（Otsu，而不是百分位数——见下文）、头顶/中部/下颌各分带的深色覆盖率、发际线（写入自 v1.2 以来一直存在却从未填充的 `faceLandmarks.hairline` 槽位）、高光带位置，以及发根到发梢的亮度差。
 
-It reports `notObserved` explicitly. A frontal-only set states that the rear of the head was never
-seen, so nothing downstream authors a nape as if it were measured.
+它会显式报告 `notObserved`。只有正面的图集会声明后脑从未被看到，这样下游就不会把后颈当作测量所得来编写。
 
-> **A trap worth recording.** The first implementation thresholded at a fixed percentile. That makes
-> the reported hair fraction true by construction: it read 0.380, 0.384 and 0.382 across three
-> different views of the same subject, which looks like agreement and is arithmetic. Otsu's
-> between-class variance split fixed it, and the same three views now read 0.387 / 0.592 / 0.747 —
-> front lowest because the face occupies it, rear highest.
+> **一个值得记录的陷阱。** 第一版实现在固定百分位数处取阈值。这使得报告的头发占比在构造上必然成立：同一主体的三个不同视角读数为 0.380、0.384 和 0.382，看起来像是一致，其实只是算术。改用 Otsu 类间方差分割后修复了这个问题，同样三个视角现在读数为 0.387 / 0.592 / 0.747——正面最低因为脸占了画面，背面最高。
 
-### Stage 2 — `hair_profile.py`
+### Stage 2——`hair_profile.py`
 
-**This stage defines and validates a schema. It does not compile one.** There is no
-profile-to-`componentTree` compiler yet; a spec still authors its hair components directly, and the
-profile's rules are enforced by the validator plus the `standProud` march the generator emits.
-Writing that compiler is the next piece of work, and it is called out here because a schema reads
-exactly like a working feature and this one is not one yet.
+**这个阶段定义并校验一个 schema。它不编译 schema。** 目前还没有从 profile 到 `componentTree` 的编译器；spec 仍直接编写其头发组件，profile 的规则由校验器加上生成器输出的 `standProud` 推进来强制执行。编写该编译器是下一项工作；之所以在这里特别指出，是因为 schema 读起来和一个可用的功能一模一样，而这个还不是。
 
-The schema has four blocks: `scalpComponentId` (the head component whose ring stack the scalp is
-derived from, never authored twice), `hairline` (control points in scalp `(u, v)`), `flowField`
-(part line, whorls, gravity, sweep — about six numbers, which is what makes a wide range of styles
-reachable without authoring a direction per mass), and `masses[]`.
+schema 有四个块：`scalpComponentId`（头皮从其环栈派生的那个头部组件，绝不编写两遍）、`hairline`（头皮 `(u, v)` 中的控制点）、`flowField`（分缝线、发旋、重力、梳向——大约六个数字，正是它让广泛的发型无需为每个团块单独编写方向就能实现），以及 `masses[]`。
 
-**Roots are `(u, v)` on the scalp, never absolute positions.** An absolute root is a hard validation
-error. This is the same binding Blender uses for hair, where a curve root is a
-`surface_uv_coordinate` on the emitter mesh, and it makes the recorded failure structurally
-impossible rather than a matter of authoring care.
+**发根是头皮上的 `(u, v)`，绝不是绝对位置。** 绝对坐标的发根是硬性校验错误。这与 Blender 对头发使用的绑定方式相同——曲线根部是发射网格上的 `surface_uv_coordinate`——它让那次记录在案的失败在结构上不可能发生，而不是依赖编写时的小心。
 
-### Stage 3 — `standProud` and the clearance march
+### Stage 3——`standProud` 与间隙推进
 
-A component declares `standProud: {againstComponentId, clearance, maxPush}`. The generator emits
-`applyStandProud`, which pushes every vertex outward along its **own radial spoke** until a signed
-distance field reads at least `clearance`, capped at `maxPush`.
+组件声明 `standProud: {againstComponentId, clearance, maxPush}`。生成器输出 `applyStandProud`，它把每个顶点沿其**自身的径向辐条**向外推，直到有符号距离场读数至少为 `clearance`，上限为 `maxPush`。
 
-This is `hug` from the hand-written showcase demo, generalised into the skill. In that demo the
-garment held its clearance as a measurement and worked; the hair held the same requirement as a
-comment and broke. `maxPush` is required, not optional: an uncapped march walks inner vertices
-through the target and out the far side.
+这就是手写 showcase demo 中的 `hug`，被泛化进了本技能。在那个 demo 中，衣物把间隙要求当作测量来维持，因此有效；头发把同样的要求只写成注释，因此出了问题。`maxPush` 是必需的，不是可选的：不设上限的推进会让内部顶点穿过目标，从另一侧穿出去。
 
-Hair material comes from `hair.human.code-only` in the material reference — no maps, higher sheen
-and anisotropy than the textured profile, because with no `anisotropyMap` and no `normalMap` those
-are the only carriers left. A `rootTipGradient` emits vertex colours along the mass's own axis.
+头发材质来自材质参考中的 `hair.human.code-only`——没有贴图，sheen 和各向异性高于带纹理的 profile，因为没有 `anisotropyMap` 也没有 `normalMap` 时，它们是仅剩的载体。`rootTipGradient` 沿团块自身的轴输出顶点颜色。
 
-### Stage 4 — the gates
+### Stage 4——门禁
 
-| gate | kind | catches |
+| 门禁 | 类型 | 捕获什么 |
 | --- | --- | --- |
-| `scalp_exposure.py` | **hard** | skull showing through, geometrically, before any render |
-| `hair_gate.py` | soft | banded coverage delta, hairline offset, highlight-band offset |
+| `scalp_exposure.py` | **硬** | 颅骨露出，在任何渲染之前从几何上判断 |
+| `hair_gate.py` | 软 | 分带覆盖率差、发际线偏移、高光带偏移 |
 
-The hard/soft split is the point. A bald patch is always wrong; a coverage shortfall is often the
-right compromise. Conflating them is what produced the recorded regression: a shortfall was answered
-by widening the masses, which pushed them off the skull.
+硬/软之分正是关键。秃斑永远是错的；覆盖率不足往往是正确的折中。把二者混为一谈，正是那次记录在案的退化的成因：用加宽团块来回应覆盖率不足，结果把团块推离了颅骨。
 
-`scalp_exposure` only counts hair that is **outside** the skull. A nearest-neighbour test would have
-passed the failing build, because the vertices were still nearby — they had sunk below the surface.
+`scalp_exposure` 只统计位于颅骨**外部**的头发。最近邻测试会让那次失败的构建通过，因为顶点仍在附近——它们只是沉到了表面以下。
 
-### Stage 5 — rigging
+### Stage 5——绑定
 
-Hair is **rigidly parented**, never smooth-skinned. `geodesic_skinning.RIGID_ROLES` excludes
-`hair`, `detail`, `decal` and `panel`.
+头发是**刚性父子挂接**的，绝不做平滑蒙皮。`geodesic_skinning.RIGID_ROLES` 排除了 `hair`、`detail`、`decal` 和 `panel`。
 
-Measured on the test fixture: the geodesic distance from the neck joint to a crown vertex is 33.6
-voxels against the head bone's 15.0, which at falloff power 3 leaves the **neck holding 8.1% of the
-crown**. Turning the neck would shear the hair against the skull it sits on — and because
-`standProud` and `scalpExposure` are bind-pose checks, no gate would ever see it.
+在测试夹具上测得：从颈部关节到头顶顶点的测地距离为 33.6 个体素，而头部骨骼为 15.0，在衰减幂次为 3 时，**颈部会持有头顶 8.1% 的权重**。转动颈部会让头发相对它所在的颅骨发生剪切——而由于 `standProud` 和 `scalpExposure` 都是绑定姿态下的检查，没有任何门禁会看到它。
 
-Long hair that crosses a joint uses a short chain of bones with one mesh segment rigidly parented
-per bone. Still no blended vertex weights.
+跨越关节的长发使用一条短骨骼链，每根骨骼刚性挂接一段网格。仍然没有混合的顶点权重。
 
-## What this does not know
+## 它不知道什么
 
-- **Lock parameters are derived, not measured.** Taper ratios, cross-section aspect, lock counts,
-  whorl strengths. Listed in `hair_profile.UNCALIBRATED_FIELDS`, and any mass setting one without
-  `uncalibrated: true` gets a warning. Precedent for why: a recovered build had eleven hair locks
-  sharing a tip radius of 0.0327 to four decimal places, and nothing objected.
-- **Every gate threshold in this subsystem is uncalibrated** and reports itself as such.
-- **Dynamics is out of scope.** A single image contains no motion, so any hair simulation would be
-  invention rather than reconstruction.
-- **Strand-level hair is out of scope permanently**, by architecture. No textures, no alpha.
-- **There is no `hairProfile` compiler.** The schema is validated; nothing turns it into components.
-- **The `standProud` march can fail silently-ish.** A vertex that exhausts `maxPush` while still
-  inside the target is counted and warned about at runtime (`geometry.userData.standProud`), but
-  nothing fails the build over it. Measured on the shipped fixture: 2 of 8 sampled hair vertices sat
-  0.059 inside the skull against a 0.04 cap and could never have reached clear.
-- **`scalp_exposure` measures spec-derived points, while the march displaces vertices at runtime.**
-  So the gate does not measure the geometry that ships. Closing that means moving the march into
-  Python at build time — the single largest improvement still available here.
+- **发缕参数是推导所得，而非测量所得。** 渐细比例、截面长宽比、发缕数量、发旋强度。列在 `hair_profile.UNCALIBRATED_FIELDS` 中，任何设置了其中一项却未带 `uncalibrated: true` 的团块都会收到警告。之所以如此，有先例：一次恢复的构建中有十一缕头发共享同一个精确到小数点后四位的发梢半径 0.0327，却没有任何东西提出异议。
+- **本子系统中每个门禁阈值都未经校准**，并且会如实报告这一点。
+- **动力学不在范围内。** 单张图像不包含运动，所以任何头发模拟都是编造而非重建。
+- **发丝级头发永久不在范围内**，这是架构决定的。没有纹理，没有 alpha。
+- **没有 `hairProfile` 编译器。** schema 会被校验；但没有东西把它转成组件。
+- **`standProud` 推进可能近乎静默地失败。** 耗尽 `maxPush` 时仍在目标内部的顶点会在运行时被计数并发出警告（`geometry.userData.standProud`），但没有任何东西会因此让构建失败。在随附夹具上测得：8 个采样头发顶点中有 2 个位于颅骨内 0.059 处，而上限为 0.04，永远不可能推到外面。
+- **`scalp_exposure` 测量的是由 spec 派生的点，而推进是在运行时移动顶点。** 所以门禁测量的并不是最终交付的几何。要弥合这一点，需要把推进移到构建时的 Python 中——这是这里仍可获得的最大一项改进。
 
-## The recorded failure, in full
+## 那次记录在案的失败，完整版
 
-It is referenced throughout the code, so here it is once, completely.
+代码中处处引用它，所以在这里完整地写一次。
 
-The hair side masses of the low-poly humanoid demo were widened by hand to close a measured coverage
-deficit (profile mid band: reference 41.5%, ours 7.8%).
+低多边形人形 demo 的头发侧面团块曾被手工加宽，以弥补测得的覆盖率不足（侧面中部分带：参考 41.5%，我们的 7.8%）。
 
-| view | before | after | delta |
+| 视角 | 之前 | 之后 | 差值 |
 | --- | --- | --- | --- |
 | profile | 46.8% | 43.2% | **−3.6** |
 | left-profile | 61.4% | 59.0% | −2.5 |
@@ -187,23 +132,22 @@ deficit (profile mid band: reference 41.5%, ours 7.8%).
 | front | 38.7% | 38.3% | −0.5 |
 | orbit+35 | 25.7% | 25.3% | −0.4 |
 | rear | 49.9% | 49.8% | −0.0 |
-| **mean** | **42.2%** | **40.9%** | **−1.3** |
+| **平均** | **42.2%** | **40.9%** | **−1.3** |
 
-Worse on all six. Dark coverage went *down*. Crown scalp exposure, measured on the archived captures:
+六个视角全部变差。深色覆盖率反而*下降*了。头顶头皮暴露，在归档的截取上测得：
 
-| view | before | after | delta |
+| 视角 | 之前 | 之后 | 差值 |
 | --- | --- | --- | --- |
 | orbit+35 | 54.0% | 68.9% | **+14.9** |
 | profile | 48.8% | 55.1% | +6.3 |
 | front | 53.3% | 57.6% | +4.3 |
 | orbit−35 | 43.3% | 44.3% | +1.0 |
 
-The cause: `sectionedLoft` has a straight root-to-tip spine while the skull is convex, so thickening
-a section moved the surface sideways rather than outward. The mass slid off the skull, the skull
-became proud of the hair, and the render grew a bare strip. The invariant it broke was already
-written in the file it broke in:
+原因：`sectionedLoft` 的发根到发梢脊线是直的，而颅骨是凸的，所以加厚截面让表面向侧面移动而不是向外移动。团块从颅骨上滑开，颅骨反而凸出于头发之上，渲染中就长出了一条光秃的带子。它破坏的那条不变式，早已写在它出问题的那个文件里：
 
 > EVERY piece must stand proud of the skull at its own height. Where the skull is proud of the hair,
 > the head renders bald there.
+>
+> （每一块都必须在其自身高度上凸出于颅骨之外。颅骨凸出于头发之处，头部就会渲染成秃的。）
 
-Every gate in this subsystem exists to make that sentence arithmetic.
+本子系统中的每个门禁，都是为了把这句话变成可计算的算术。

@@ -1,36 +1,32 @@
 ---
 name: image-reference-workflow
-description: Explore image concepts and make faithful edits of accepted references for 3D or creative production, with explicit model choices and visual review.
+description: 为 3D 或创意制作探索图像概念，并对已接受的参考进行忠实编辑，模型选择明确并做视觉审查。
 ---
 
-# Image references and faithful edits
+# 图像参考与忠实编辑
 
-Choose exploration or editing from the user's request. Exploration varies design
-dimensions; editing preserves an accepted asset and changes a named feature.
-Inspect supplied images before choosing the operation. Respect the requested
-provider, model, output count, aspect ratio and intended use.
+根据用户请求选择探索还是编辑。探索改变设计维度；编辑保留已接受的资产，只改动
+指定特征。选择操作前先检查提供的图像。遵守要求的提供方、模型、输出数量、宽高比
+和预期用途。
 
-For fal.ai execution, use the bundled [fal skill](../fal-ai-generation/SKILL.md).
-Another provider can be used when requested; inspect its live model schema.
+用 fal.ai 执行时，使用随附的 [fal 技能](../fal-ai-generation/SKILL.md)。
+有要求时可使用其他提供方；需检查其实时模型 schema。
 
-For concepts, vary silhouette, construction, proportions or palette deliberately.
-Label candidates with stable names and keep each prompt. For an edit, identify
-what remains unchanged and the exact delta. Use the accepted image as input,
-not a reconstruction of it from text. A two-image merge must explain the role
-of each reference. Avoid injecting extra style adjectives that redesign the asset.
+做概念时，有意识地改变轮廓、构造、比例或配色。用稳定的名称标记候选项，并保留
+每条提示词。做编辑时，明确哪些保持不变以及确切的改动。以已接受的图像作为输入，
+而不是用文字重建它。双图融合必须说明每个参考的角色。避免加入会重新设计资产的
+额外风格形容词。
 
-Choose the camera for the deliverable. A hero concept can use dramatic framing;
-a modeling sheet needs readable parts and neutral light. Do not force the same
-camera on every task. When extraction is requested, use the character-sheet
-module rather than treating a cinematic illustration as a complete parts pack.
+按交付物选择镜头。主视觉概念可用戏剧化构图；建模设定图需要部件清晰可读、光照
+中性。不要对每个任务强制使用同一镜头。需要提取部件时，使用角色设定图模块，
+而不是把电影感插画当作完整的部件包。
 
-Keep prompt, endpoint, seed when available, request ID and downloaded outputs
-together. Review identity, framing, missing parts, unintended additions and the
-requested change. Compare at full size. Keep rejected takes with a short reason,
-and preserve the chosen take while making revisions. Present images with direct
-file access and a useful preview, using the recipient's existing report style.
+把提示词、端点、可用时的 seed、请求 ID 和已下载输出放在一起。审查身份一致性、
+构图、缺失部件、意外添加和要求的改动。以完整尺寸对比。保留被拒版本并附简短原因，
+修改时保留已选定的版本。以直接的文件访问和有用的预览呈现图像，沿用接收方现有的
+报告风格。
 
-Example: "Make two observatory robot concepts with different silhouettes."
-After a selection: "Keep B exactly; change only its blue paint to green."
-Expected review: the edit retains B's shape, camera, materials and small details.
-This is an agent workflow, not an automatic quality classifier.
+示例：“做两个轮廓不同的天文台机器人概念。”
+选定后：“B 完全保持不变；只把它的蓝色涂装改成绿色。”
+预期审查：编辑后保留 B 的形状、镜头、材质和细节。
+这是代理工作流，不是自动质量分类器。

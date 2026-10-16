@@ -1,43 +1,33 @@
 ---
 name: motion-reference-workflow
-description: Prepare and select character motion references, or transfer approved motion to a human reference for a later mocap workflow.
+description: 准备并挑选角色运动参考，或将已认可的运动迁移到真人参考上，供后续动捕流程使用。
 ---
 
-# Motion references
+# 运动参考
 
-Resolve whether the user needs a character reference video for authored animation
-or human footage for a later mocap tool. The camera follows that purpose.
-Character-first and human-first are both valid; preserve the user's chosen route.
+先确定用户需要的是用于手工动画的角色参考视频，还是供后续动捕工具使用的真人素材。
+相机设置服从这一用途。角色优先与真人优先都可行；保留用户选择的路线。
 
-Establish the opening pose, action, contact point, recovery, duration and camera.
-Use the approved character identity. Before a new video, verify its first-frame
-pose instead of relying on a model to invent the correct start. Keep framing
-stable enough to read the relevant limbs and contacts.
+确定起始姿势、动作、接触点、恢复、时长和相机。使用已认可的角色形象。生成新视频前，
+先核实其首帧姿势，而不是依赖模型自行编出正确的起始状态。保持构图足够稳定，以便看清
+相关肢体和接触。
 
-Choose the provider/model from the user's selection or current discovery. Use
-the [fal](../fal-ai-generation/SKILL.md) or
-[Higgsfield](../higgsfield-workflow/SKILL.md) module for execution and recovery.
-The number of candidates comes from the task; do not impose a costly fixed batch.
+按用户的选择或当前查询结果确定服务商/模型。使用 [fal](../fal-ai-generation/SKILL.md)
+或 [Higgsfield](../higgsfield-workflow/SKILL.md) 模块执行和恢复任务。候选数量由任务
+决定；不要强加成本高昂的固定批量。
 
-Review support changes, strike readability, foot contact, impossible joints,
-interpenetration, unwanted camera motion and loop seams. Keep candidate names
-and decisions stable. Preserve longer source motion when creating a shorter
-gameplay variant, and record event times in seconds as well as frames.
+审查支撑切换、打击可读性、脚部接触、不可能的关节、穿插、多余的相机运动和循环接缝。
+保持候选名称和决定稳定。制作更短的游戏版本时保留较长的原始运动，并同时以秒和帧记录
+事件时间。
 
-For an appearance transfer, use the accepted video as motion authority and the
-approved human/reference image for appearance. Preserve camera and timing; do
-not recreate the action from text. Check the transferred limbs and contacts.
-Generated human-looking footage is not itself captured skeleton data. A later
-mocap extraction and its quality checks remain separate work.
+做外观迁移时，以已接受的视频作为运动依据，以已认可的真人/参考图作为外观依据。保留
+相机和时序；不要根据文本重新生成动作。检查迁移后的肢体和接触。生成的真人外观素材本身
+并不是采集到的骨骼数据。后续的动捕提取及其质量检查仍是单独的工作。
 
-Keep a small take ledger: source, prompt or edit intent, provider/model, local
-result, observed problems and decision. Distinguish generated, reviewed,
-selected and approved. Carry the selected take's identity into the animation
-handoff. For a creature-to-human transfer, verify which limb represents each
-contact and reject anatomy changes that destroy the original action. Preserve
-the original and any timed trim; do not replace a motion reference with a new
-performance merely because its appearance is cleaner.
+维护一份小型素材记录（take ledger）：来源、提示词或编辑意图、服务商/模型、本地结果、
+观察到的问题和决定。区分已生成、已审查、已选中和已认可。把选中素材的标识带入动画交接。
+从生物迁移到人类时，核实每个接触由哪条肢体代表，并拒绝破坏原动作的解剖结构改动。保留
+原始素材和任何定时裁剪；不要仅因为新表演外观更干净就替换运动参考。
 
-Example: a two-second robot walk loop with fixed camera and readable foot
-contacts. A successful clip must loop cleanly and retain the approved robot;
-remote completion alone does not establish those properties.
+示例：一段相机固定、脚部接触清晰的两秒机器人行走循环。合格的动画片段必须循环顺畅并
+保留已认可的机器人形象；仅远程任务完成并不能确立这些性质。

@@ -1,63 +1,63 @@
-# Character Reconstruction
+# 角色重建
 
-Use this reference when `objectClass.primaryDomain` is `character` or `hybrid`. It replaces guesswork proportions with a measured system so a generated humanoid actually resembles the reference pose and build.
+当 `objectClass.primaryDomain` 为 `character` 或 `hybrid` 时使用本参考。它用一套测量体系取代凭猜测定比例，使生成的人形角色真正与参考图的姿势和体型相似。
 
-## Proportion System (head-units)
+## 比例体系（头身单位）
 
-Measure everything in head-units (HU): total body height divided by head height. Pick the style axis from the image, do not assume realistic by default:
+一切都以头身单位（HU）度量：身体总高度除以头高。从图像中判断风格轴，不要默认按写实处理：
 
-- realistic: ~7.5 HU (adult human)
-- stylized / anime-adjacent: ~5-6 HU
-- chibi / figurine: ~2-3 HU
+- 写实：~7.5 HU（成年人）
+- 风格化 / 接近动漫：~5-6 HU
+- Q 版 / 手办：~2-3 HU
 
-Record measured ratios, not assumed ones:
+记录实测比值，而不是假定比值：
 
-- `headUnit`: head height as a fraction of total image height
-- `torso`: crown-to-hip distance in HU
-- `legs`: hip-to-floor distance in HU
-- `shoulderWidth`: in HU (roughly 1.5-2 HU realistic, wider for stylized heroic builds)
-- `hipWidth`: in HU
+- `headUnit`：头高占图像总高的比例
+- `torso`：头顶到髋部的距离，以 HU 计
+- `legs`：髋部到地面的距离，以 HU 计
+- `shoulderWidth`：以 HU 计（写实约 1.5-2 HU，风格化英雄体型更宽）
+- `hipWidth`：以 HU 计
 
-If the image crops the legs or feet, mark `legs` and `hipWidth` as inferred and lower confidence rather than guessing a stock adult ratio.
+如果图像裁掉了腿或脚，把 `legs` 和 `hipWidth` 标为推断值并降低置信度，而不是套用一个现成的成年人比例去猜。
 
-## Facial Landmark Layout
+## 面部关键点布局
 
-Store landmarks as normalized coordinates (0-1) relative to head bounding box, not the full image, so they survive scale changes:
+关键点以相对于头部包围盒（而不是整张图）的归一化坐标（0-1）存储，这样缩放后依然有效：
 
-- `hairline`: ~0.0-0.15 from crown depending on hairstyle bulk
-- `eyeLine`: ~0.45-0.55 (near vertical mid-head; lower for chibi, higher forehead for stylized)
-- `eyeSpacing`: horizontal gap between inner eye corners, ~0.2-0.35 of head width (wider spacing reads as more stylized/cute)
-- `noseBase`: ~0.6-0.7
-- `mouthLine`: ~0.75-0.85
-- `earTop` / `earBottom`: roughly bracket `eyeLine` to `noseBase`
+- `hairline`：距头顶 ~0.0-0.15，取决于发型的蓬松程度
+- `eyeLine`：~0.45-0.55（接近头部竖直中线；Q 版更低，风格化额头更高）
+- `eyeSpacing`：两内眼角之间的水平间距，约为头宽的 0.2-0.35（间距越宽越显风格化/可爱）
+- `noseBase`：~0.6-0.7
+- `mouthLine`：~0.75-0.85
+- `earTop` / `earBottom`：大致夹在 `eyeLine` 到 `noseBase` 之间
 
-Pull these from the actual image via `forge/stage1_intake/extract_landmarks.py` overlay, not from a generic face chart. A stylized face with huge eyes will violate realistic ratios on purpose — match what is observed.
+这些值要通过 `forge/stage1_intake/extract_landmarks.py` 的叠加图从实际图像中提取，而不是从通用面部比例图中套用。眼睛巨大的风格化面孔会有意违背写实比例——以观测到的为准。
 
-## Pose / Skeleton
+## 姿势 / 骨架
 
-Define joints as a minimal skeleton, matched to the reference silhouette and limb angles, not a default T-pose:
+把关节定义为一个最小骨架，与参考轮廓和肢体角度匹配，而不是默认的 T-pose：
 
 - root -> neck -> head
-- neck -> left/right shoulder -> elbow -> wrist
-- root -> left/right hip -> knee -> ankle
+- neck -> 左/右 shoulder -> elbow -> wrist
+- root -> 左/右 hip -> knee -> ankle
 
-For each joint record an approximate angle (degrees, relative to rest pose) read off the silhouette. Prioritize matching:
+为每个关节记录一个从轮廓上读出的近似角度（度，相对于静止姿势）。按以下优先级匹配：
 
-1. overall stance (weight distribution, contrapposto vs symmetric)
-2. limb angles at shoulders/hips (these dominate perceived pose match)
-3. hand/foot orientation only if clearly visible
+1. 整体站姿（重心分布，对立式平衡 contrapposto 还是对称站姿）
+2. 肩部/髋部的肢体角度（它们主导姿势匹配的观感）
+3. 手/脚朝向，仅在清晰可见时
 
-If a joint is occluded, do not invent an angle — mark `confidence` low and default to a neutral rest angle for that joint only.
+如果某个关节被遮挡，不要编造角度——把 `confidence` 标低，并仅对该关节默认使用中性静止角度。
 
-## Character Materials (stylized default)
+## 角色材质（风格化默认）
 
-Reuse Track A detail machinery (`grimoire/intake/detail_inventory.md`) for accessories and trims. Base recipes:
+配饰和饰边复用 Track A 细节机制（`grimoire/intake/detail_inventory.md`）。基础配方：
 
-- **Skin**: warm base albedo sampled from the image, low-to-mid roughness, no true subsurface scattering — approximate with a soft rim/backlight term and a slightly desaturated shadow tint. Avoid `MeshPhysicalMaterial.transmission` unless the reference clearly shows translucency (ears, fingers backlit).
-- **Hair**: the single most common failure point for single-image reconstruction. Do NOT attempt strand-level geometry from one photo. Prefer stylized clumps — hair cards or short tube-along-curve locks grouped into 5-15 major masses matching the silhouette's hair shape, layered front-to-back with alpha or hard edges. Match the read silhouette (fringe, part line, volume) over any attempt at individual strands.
-- **Eyes**: a glossy sphere (high specular, low roughness) plus a separate iris disc/decal with darker outline and a small bright catchlight quad or emissive dot offset toward the key light direction. The catchlight is disproportionately important for "looks alive."
-- **Cloth**: extrude or plane panels following the silhouette's fold lines; add normal-map or geometry creasing at obvious fold zones (elbow, waist cinch, knee) rather than a flat plane. Local material overrides handle prints, seams, buttons via the Track A detail inventory.
+- **皮肤**：从图像采样的暖色基础 albedo，低到中等粗糙度，不做真正的次表面散射——用柔和的边缘光/背光项加略微去饱和的阴影色调来近似。除非参考图明确显示半透明（耳朵、被背光照透的手指），否则避免使用 `MeshPhysicalMaterial.transmission`。
+- **头发**：单图重建中最常见的失败点。不要试图从一张照片做出发丝级几何。优先使用风格化发簇——发片（hair card）或沿曲线的短管状发绺，按轮廓的发型归为 5-15 个主要体块，从前到后分层，使用 alpha 或硬边。优先匹配可读出的轮廓（刘海、分缝线、体积），而不是试图做单根发丝。
+- **眼睛**：一个光泽球体（高镜面、低粗糙度），加一个独立的虹膜圆盘/贴花（带较深的描边），再加一个小而亮的眼神光四边形或自发光点，朝主光方向偏移。眼神光对"看起来有生气"的作用大得不成比例。
+- **布料**：沿轮廓的褶皱线挤出面板或使用平面面板；在明显的褶皱区（肘部、腰部收束、膝盖）加入法线贴图或几何褶痕，而不是一块平面。印花、接缝、纽扣通过 Track A 细节清单的局部材质覆盖处理。
 
-## Gate Notes
+## 门禁说明
 
-Proportion and landmark values feed `anatomy` block validation (section 5.3/5.6 of the upgrade plan) — every measured value needs an `evidenceRef` back to the source image region, same discipline as object detail inventory.
+比例与关键点数值会输入 `anatomy` 块校验（升级计划第 5.3/5.6 节）——每个实测值都需要一个指回源图像区域的 `evidenceRef`，纪律与物体细节清单相同。

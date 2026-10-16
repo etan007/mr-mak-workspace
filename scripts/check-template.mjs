@@ -9,7 +9,7 @@ const read = relative => readFile(path.join(root, relative), 'utf8');
 const { entities } = JSON.parse(await read('workspace/workspace.json'));
 const samples = entities.filter(e => e.sample === true);
 assert.equal(samples.length, 4, 'The template must retain exactly four sample cards.');
-assert.deepEqual(samples.filter(e => e.pinned).map(e => e.title), ['My Dream Game']);
+assert.deepEqual(samples.filter(e => e.pinned).map(e => e.title), ['我的梦想游戏']);
 assert.ok(samples.every(e => e.status === 'active'));
 assert.deepEqual(samples.map(e => e.category).sort(), ['dev', 'image-gen', 'project', 'research']);
 const images = new Set(), videos = new Set(), arachneImages = new Set();
@@ -34,7 +34,7 @@ for (const entity of entities) {
     }
     if (entity.id === 'arachne-character') {
       assert.doesNotMatch(content, /lychee|leech|youtube|Discord|\bpoll\b|publication/i);
-      assert.match(content, /<summary>Prompts<\/summary>/, 'Keep the saved generation prompts accessible.');
+      assert.match(content, /<summary>提示词<\/summary>/, 'Keep the saved generation prompts accessible.');
     }
   }
 }
@@ -59,6 +59,6 @@ assert.match(await read('desktop/service/server.mjs'), /defaultBypass: false/);
 assert.match(await read('desktop/service/sessions.mjs'), /bypass: options\.bypass === true/);
 assert.match(await read('desktop/service/sessions.mjs'), /pinned = false, bypass = false/);
 const readme = await read('README.md');
-assert.match(readme, /Mr\. Mak is small\.\s+<img src="docs\/assets\/mr-mak\.png"[^>]+>\s*$/);
+assert.match(readme, /Mr\. Mak 很小。\s+<img src="docs\/assets\/mr-mak\.png"[^>]+>\s*$/);
 await stat(path.join(root, 'docs/assets/mr-mak.png'));
 console.log(`Template passed: four cards, one pin, ${images.size} images, ${videos.size} videos, ${skillNames.length} shared skills, empty connections and account placeholders.`);

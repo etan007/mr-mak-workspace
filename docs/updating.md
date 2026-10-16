@@ -1,85 +1,78 @@
-# Update an existing Workspace
+# 更新现有工作区
 
-The application and your project folder are separate. The Windows installer
-updates the app and its local service. It does not replace your cards, skills,
-context, credentials or agent conversations.
+应用程序与项目文件夹相互独立。Windows 安装程序只更新应用及其本地服务，
+不会替换你的卡片、技能、上下文、凭据或代理对话。
 
-## Application
+## 应用程序
 
-1. Finish active agent tasks, then choose Quit from Mr. Mak's tray menu.
-2. Install **Mr. Mak Workspace 0.5.0** for Windows x64.
-3. Open the same repository you were using before. Your cards, settings and
-   History remain in that folder.
+1. 先完成正在进行的代理任务，然后在 Mr. Mak 托盘菜单中选择 Quit。
+2. 安装适用于 Windows x64 的 **Mr. Mak Workspace 0.5.0**。
+3. 打开之前使用的同一个仓库。你的卡片、设置和历史都保留在该文件夹中。
 
-For a desktop build from source, run `Setup.ps1 -Mode Update` in an external
-Windows PowerShell window opened from Start, outside Mr. Mak. It replaces these steps:
-it builds the current source, waits for you to quit Mr. Mak, installs the build
-silently and starts Mr. Mak again. See [getting started](getting-started.md).
+若从源码构建桌面版，请在 Mr. Mak 之外、从"开始"菜单打开的外部
+Windows PowerShell 窗口中运行 `Setup.ps1 -Mode Update`。它替代上述步骤：
+构建当前源码，等待你退出 Mr. Mak，静默安装构建产物，然后重新启动 Mr. Mak。
+参见[入门指南](getting-started.md)。
 
-The 0.5.1 source update preserves your selected dictation provider, custom model
-and terminal appearance. Fresh setups default to local Whisper, which requires
-the optional [local voice setup](mobile-access.md#local-voice-setup-on-the-computer).
-OpenAI and OpenRouter remain explicit paid choices; a missing local model never
-causes an automatic cloud request. New mobile media previews, report-position
-restore and desktop dictation are included alongside the macOS port.
+0.5.1 源码更新会保留你已选的语音听写提供方、自定义模型和终端外观。
+全新安装默认使用本地 Whisper，需要先完成可选的
+[本地语音设置](mobile-access.md#在电脑上配置本地语音)。
+OpenAI 和 OpenRouter 仍是需显式选择的付费选项；缺少本地模型时绝不会
+自动发起云端请求。本次还随 macOS 移植一起加入了手机端媒体预览、
+报告位置恢复和桌面端语音听写。
 
-Version 0.5.0 adds optional [mobile access](mobile-access.md). After updating,
-use the phone button in Chats to connect your own devices through Tailscale.
-Existing pairings survive application updates. Mobile dictation uses an
-OpenRouter or OpenAI transcription key on the computer; typed messages use
-your existing CLI account. Long links and paths stay within mobile chat cards.
-The Linux AppImage also includes a launcher permission fix.
+0.5.0 版本新增可选的[手机访问](mobile-access.md)。更新后，
+在对话窗口中点击手机按钮，即可通过 Tailscale 连接你自己的设备。
+已有配对在应用更新后仍然有效。手机语音听写使用电脑上的
+OpenRouter 或 OpenAI 转写密钥；输入的文字消息使用你现有的 CLI 账号。
+长链接和长路径不会超出手机端对话卡片。
+Linux AppImage 也包含启动器权限修复。
 
-The History fix can reconnect a Codex conversation whose original native record
-still exists but whose ID was not saved by Mr. Mak. If that native history was
-deleted or belongs to another account, the update cannot recreate it. Use
-New chat > Resume with a known native ID when importing an existing CLI chat.
-Saved terminal screens are retained when automatic recovery is not possible.
+历史修复可以重新关联这样的 Codex 对话：其原生记录仍然存在，但 Mr. Mak
+没有保存其 ID。如果原生历史已被删除或属于其他账号，更新无法重建它。
+导入现有 CLI 对话时，请使用 New chat > Resume 并填写已知的原生 ID。
+无法自动恢复时，已保存的终端画面会被保留。
 
-Version 0.4.18 adds Linux packaging and project/knowledge-provider foundations.
-Windows keeps its native terminal behavior and existing account sign-ins.
-No external integration is connected automatically.
+0.4.18 版本新增 Linux 打包，以及项目/知识提供方的基础能力。
+Windows 保持原生终端行为和现有账号登录状态。
+不会自动连接任何外部集成。
 
-Version 0.4.17 added **Settings > Appearance > Workspace theme**. Choose Light
-for dark text on white, or System to follow your device. Dark remains the default.
-Standard HTML reports follow this preference. For a report with an independent
-visual design, merge its updated source or add `data-mak-theme="custom"` to the
-root element to preserve its palette. See [customization](customization.md).
+0.4.17 版本新增 **设置 > 外观 > 工作区主题**。选择浅色可获得白底黑字，
+选择跟随系统则跟随设备设置。默认仍为深色。
+标准 HTML 报告会遵循此偏好。对于有独立视觉设计的报告，请合并其更新后的源码，
+或在根元素上添加 `data-mak-theme="custom"` 以保留其配色。参见[自定义](customization.md)。
 
-Version 0.4.16 added **OpenCode** to New chat, History and the default-agent
-setting. Install and configure OpenCode separately, then reopen Mr. Mak if the
-command was just added to PATH. Existing Codex and Claude chats keep their login
-and settings. No API key is needed for their subscription-backed CLI chats;
-voice remains optional and uses a separately billed OpenAI API connection.
+0.4.16 版本在 New chat、历史和默认代理设置中加入了 **OpenCode**。
+请单独安装并配置 OpenCode；如果该命令刚加入 PATH，请重新打开 Mr. Mak。
+现有的 Codex 和 Claude 对话保留其登录和设置。基于订阅的 CLI 对话不需要 API 密钥；
+语音仍为可选功能，使用单独计费的 OpenAI API 连接。
 
-## Skills and source
+## 技能与源码
 
-For a browser-only preview, merge the source fixes, stop your Preview server,
-then run `Setup.ps1 -Mode Preview` and reload the browser. Setup runs `npm ci`
-and starts Vite. Rust is not required for this mode. Root `npm ci` also installs
-the local service dependencies.
+如果只使用浏览器预览，请合并源码修复，停止 Preview 服务器，
+然后运行 `Setup.ps1 -Mode Preview` 并刷新浏览器。Setup 会运行 `npm ci`
+并启动 Vite。此模式不需要 Rust。根目录的 `npm ci` 也会安装本地服务的依赖。
 
-The latest source includes a follow-up to the 0.4.15 preview fix: a shared
-stylesheet could prevent the card viewer from loading after normal setup.
-Direct HTML links still worked in that case. Updating the source fixes the
-embedded viewer; downloading an installer alone does not update Preview.
+最新源码包含对 0.4.15 预览修复的后续修复：共享样式表可能导致
+正常安装后卡片查看器无法加载。这种情况下直接打开 HTML 链接仍然可用。
+更新源码即可修复内嵌查看器；仅下载安装程序不会更新 Preview。
 
-An installer alone cannot add the new skills. For a clone that tracks this
-repository, ask your agent to review and merge the release's source changes.
-Keep local work committed or backed up, resolve conflicts deliberately, and
-preserve your own `workspace/workspace.json`, cards, context and connections.
-Do not reset a customized repository to the template to obtain an update.
+仅靠安装程序无法添加新技能。对于跟踪本仓库的克隆，
+请让你的代理审查并合并该发布版本的源码改动。
+先提交或备份本地工作，审慎解决冲突，并保留你自己的
+`workspace/workspace.json`、卡片、上下文和连接。
+不要为了获取更新而把定制过的仓库重置为模板。
 
-For a template-derived repository with unrelated history, use the separate
-**Mr-Mak-Skills-0.4.14.zip** for the workflows. Extract it outside your project,
-read `SKILLS-README.md`, then merge the desired folders. No personal projects,
-keys, CLI logins or MCP definitions are included. The pack does not replace your
-`AGENTS.md` or `CLAUDE.md`.
+对于基于模板创建、历史不相关的仓库，请使用单独的
+**Mr-Mak-Skills-0.4.14.zip** 获取工作流。把它解压到项目之外，
+阅读 `SKILLS-README.md`，然后合并需要的文件夹。其中不含个人项目、
+密钥、CLI 登录信息或 MCP 定义。该技能包不会替换你的
+`AGENTS.md` 或 `CLAUDE.md`。
 
-The maintained skills live in `.agents/skills`; complete Claude copies live in
-`.claude/skills`. Keep both in sync if you use both agents. Dependencies are
-listed in [the skill index](skills.md) and in each skill. A configured Codex CLI, Claude
-Code CLI or OpenCode remains required; optional providers use your own credentials.
+维护中的技能位于 `.agents/skills`；完整的 Claude 副本位于
+`.claude/skills`。如果两种代理都用，请保持两者同步。依赖列在
+[技能索引](skills.md)和各技能中。仍需要已配置的 Codex CLI、Claude
+Code CLI 或 OpenCode；可选的提供方使用你自己的凭据。
 
-If building the desktop from source, rebuild after merging application changes.
-Use the [setup guide](getting-started.md) for the prerequisites.
+如果从源码构建桌面版，合并应用改动后请重新构建。
+前置条件参见[安装指南](getting-started.md)。

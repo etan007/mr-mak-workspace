@@ -2,11 +2,11 @@ import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState
 import { createPortal } from 'react-dom'
 import type { WorkspaceEntity } from '../types'
 import { updateWorkspaceEntity, type EntityPatch } from '../lib/workspace'
-import { CATEGORY_ICONS } from '../lib/categories'
+import { CATEGORY_ICONS, categoryLabel } from '../lib/categories'
 import { isDesktop } from '../desktop/client'
 import './entity-controls.css'
 
-const labels = { active: 'Active', done: 'Done', archived: 'Archived' } as const
+const labels = { active: '进行中', done: '已完成', archived: '已归档' } as const
 const Controls = createContext<{ open: (entity: WorkspaceEntity, button: HTMLButtonElement) => void; editing: string | null } | null>(null)
 type Target = { id: string; button: HTMLButtonElement; anchor: DOMRect }
 
@@ -16,10 +16,10 @@ export function EntityStatusButton({ entity }: { entity: WorkspaceEntity }) {
     <button
       type="button"
       className="entity-status-button"
-      aria-label={`Edit ${entity.title}: ${labels[entity.status]}`}
+      aria-label={`编辑 ${entity.title}：${labels[entity.status]}`}
       aria-haspopup="dialog"
       aria-expanded={controls?.editing === entity.id}
-      title={`${labels[entity.status]} · ${isDesktop ? 'Change status or category' : 'Open the desktop app to edit this card'}`}
+      title={`${labels[entity.status]} · ${isDesktop ? '修改状态或分类' : '在桌面应用中编辑此卡片'}`}
       disabled={!isDesktop}
       onClick={event => controls?.open(entity, event.currentTarget)}
     >
@@ -71,7 +71,7 @@ function EntityMenu({ entity, entities, target, onClose, onChanged }: {
       await onChanged()
       onClose()
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'The card could not be updated. Try again.')
+      setError(reason instanceof Error ? reason.message : '卡片更新失败，请重试。')
     } finally { setSaving(false) }
   }
 
@@ -79,7 +79,7 @@ function EntityMenu({ entity, entities, target, onClose, onChanged }: {
     <dialog
       ref={dialog}
       className="entity-menu"
-      aria-label={`Card settings: ${entity.title}`}
+      aria-label={`卡片设置：${entity.title}`}
       aria-busy={saving}
       onCancel={event => { event.preventDefault(); if (!saving) onClose() }}
       onClick={event => {
@@ -90,11 +90,11 @@ function EntityMenu({ entity, entities, target, onClose, onChanged }: {
       onKeyDown={event => event.stopPropagation()}
     >
       <div className="entity-menu-heading">
-        <div><span>Card settings</span><h2>{entity.title}</h2></div>
-        <button type="button" className="entity-menu-close" aria-label="Close card settings" disabled={saving} onClick={onClose}>×</button>
+        <div><span>卡片设置</span><h2>{entity.title}</h2></div>
+        <button type="button" className="entity-menu-close" aria-label="关闭卡片设置" disabled={saving} onClick={onClose}>×</button>
       </div>
       <fieldset disabled={saving}>
-        <legend>Status</legend>
+        <legend>状态</legend>
         <div className="entity-status-options">
           {(Object.keys(labels) as Array<WorkspaceEntity['status']>).map(status => (
             <button type="button" key={status} aria-pressed={entity.status === status} onClick={() => void save({ status })}>
@@ -106,16 +106,16 @@ function EntityMenu({ entity, entities, target, onClose, onChanged }: {
         </div>
       </fieldset>
       <label className="entity-category-control">
-        Category
-        <select aria-label="Card category" value={category} disabled={saving} onChange={event => void save({ category: event.target.value })}>
-          {categories.map(value => <option key={value} value={value}>{value.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>)}
+        分类
+        <select aria-label="卡片分类" value={category} disabled={saving} onChange={event => void save({ category: event.target.value })}>
+          {categories.map(value => <option key={value} value={value}>{categoryLabel(value).split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</option>)}
         </select>
       </label>
       <button type="button" className="entity-pin-toggle" disabled={saving} onClick={() => void save({ pinned: !entity.pinned })}>
-        {entity.pinned ? 'Unpin card' : 'Pin card'}
+        {entity.pinned ? '取消置顶' : '置顶卡片'}
       </button>
-      <p className="entity-menu-hint">Archived cards keep their files and tabs. Find them in search or Show archive.</p>
-      {saving && <p className="entity-menu-feedback" role="status">Saving…</p>}
+      <p className="entity-menu-hint">归档的卡片会保留其文件和标签页。可通过搜索或“显示归档”找到。</p>
+      {saving && <p className="entity-menu-feedback" role="status">保存中…</p>}
       {error && <p className="entity-menu-error" role="alert">{error}</p>}
     </dialog>, document.body,
   )

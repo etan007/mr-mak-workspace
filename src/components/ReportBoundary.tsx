@@ -14,13 +14,13 @@ export default class ReportBoundary extends Component<{
   render() {
     if (!this.state.error) return this.props.children
     return <div className="report-error" role="alert">
-      <strong>This report could not be opened.</strong>
-      <p>Reload to try again, or return to your Workspace. Your project files have not changed.</p>
+      <strong>无法打开此报告。</strong>
+      <p>重新加载以重试，或返回工作区。你的项目文件没有被修改。</p>
       <div className="report-error-actions">
-        <button onClick={() => window.location.reload()}>Reload page</button>
-        <button onClick={this.props.onHome}>Back to Workspace</button>
+        <button onClick={() => window.location.reload()}>重新加载页面</button>
+        <button onClick={this.props.onHome}>返回工作区</button>
       </div>
-      <details><summary>Error details</summary><pre>{this.state.error.message || String(this.state.error)}</pre></details>
+      <details><summary>错误详情</summary><pre>{this.state.error.message || String(this.state.error)}</pre></details>
     </div>
   }
 }

@@ -1,284 +1,243 @@
-# Creature Head Construction
+# 生物头部构造
 
-Use this alongside `grimoire/character/reconstruction.md` (which fixes body proportions)
-and `grimoire/character/structure_decomposition.md` (which fixes what parts exist). This
-document is about the head specifically, because the head is where likeness lives and
-where proportion error is least forgiving.
+本文与 `grimoire/character/reconstruction.md`（确定身体比例）和
+`grimoire/character/structure_decomposition.md`（确定有哪些部件）配合使用。本文专讲头部，
+因为相似度集中在头部，而且头部对比例误差的容忍度最低。
 
-The worked case is the Vijay Ghume mini-dragon imp. Every number below was measured off
-the reference pixels, not estimated.
+示例案例是 Vijay Ghume 的迷你龙小恶魔。下文每个数值都是从参考图像素上实测得到的，不是估算。
 
-## How these numbers were obtained
+## 这些数值是如何得到的
 
-Reference: `vijay-ghume-mini-dragon-2.jpg`, the pure front view, 1920×1920.
+参考图：`vijay-ghume-mini-dragon-2.jpg`，纯正面视图，1920×1920。
 
-Background was isolated by flood-filling inward from the image corners. The discriminator
-is specific and worth recording, because a naive threshold eats the horns: the studio navy
-has `b − r = +19…+21` at saturation ≈ 0.42, while the black horn keratin has `b − r =
-+2…+9` at saturation 0.09…0.31. A test of `b − r ≥ 13 ∧ max < 78 ∧ sat > 0.32` separates
-them cleanly. Flood-filling rather than thresholding also keeps enclosed dark regions —
-pupils, mouth recess — on the foreground side.
+背景通过从图像四角向内泛洪填充（flood fill）分离。判别条件很具体，值得记录，因为简单阈值会把
+角也吃掉：影棚的藏青色背景在饱和度 ≈ 0.42 时 `b − r = +19…+21`，而黑色角质在饱和度
+0.09…0.31 时 `b − r = +2…+9`。用 `b − r ≥ 13 ∧ max < 78 ∧ sat > 0.32` 即可干净地区分两者。用泛洪填充而不是阈值，
+还能让封闭的暗区——瞳孔、口腔凹陷——保留在前景一侧。
 
-Irises were found by thresholding saturated yellow inside bounded windows so the gold
-jewellery could not contaminate them. Midline landmarks came from a vertical class scan at
-`x = 959`. Widths that cross a *shading* boundary rather than a *silhouette* boundary — the
-skull edge behind the ear, for instance — cannot be scanned and were read off a 25 px
-measuring grid overlaid on the image. Each row below says which method produced it.
+虹膜是在限定窗口内对饱和黄色做阈值找到的，这样金色饰品不会污染结果。中线关键点来自
+`x = 959` 处的纵向分类扫描。跨越*明暗*边界而非*轮廓*边界的宽度——例如耳后的颅骨边缘——
+无法扫描得到，改为从叠加在图像上的 25 px 测量网格读取。下表每一行都注明了所用方法。
 
-**Unit: `HH` = head height = crown to chin at the midline = 377 px.**
+**单位：`HH` = 头高 = 中线处从头顶到下巴 = 377 px。**
 
-## Measured landmarks — front view
+## 实测关键点——正面视图
 
-| Landmark | Pixel | Method |
+| 关键点 | 像素 | 方法 |
 |---|---|---|
-| Horn tip, highest | y = 98 | scan |
-| Crown, top of pink cranium at midline | y = 416 | scan |
-| Frontal boss highlight band | y = 515…526 | scan |
-| Eye line, iris centres | y = 586 | scan |
-| Nostril band | y = 635…655 | grid |
-| Lip ridge at midline | y = 686…690 | scan |
-| Fang tips | y = 705 | grid |
-| Chin / jaw bottom at midline | y = 793 | scan |
-| Iris, left | x 776…876, y 541…629 | scan |
-| Iris, right | x 1038…1141, y 543…631 | scan |
-| Horn bases | centres at x = 959 ± 80, y ≈ 505; ⌀ ≈ 70 | scan |
-| Skull width, widest, ears excluded | 456 | grid |
-| Muzzle width, widest | 395 | grid |
-| Ear tip to ear tip | 830 | grid |
-| Hoof bottom | y = 1620 | grid |
+| 角尖，最高点 | y = 98 | 扫描 |
+| 头顶，中线处粉色颅顶的顶部 | y = 416 | 扫描 |
+| 额隆高光带 | y = 515…526 | 扫描 |
+| 眼线，虹膜中心 | y = 586 | 扫描 |
+| 鼻孔带 | y = 635…655 | 网格 |
+| 中线处唇脊 | y = 686…690 | 扫描 |
+| 獠牙尖 | y = 705 | 网格 |
+| 中线处下巴 / 下颌底部 | y = 793 | 扫描 |
+| 虹膜，左 | x 776…876, y 541…629 | 扫描 |
+| 虹膜，右 | x 1038…1141, y 543…631 | 扫描 |
+| 角根 | 中心位于 x = 959 ± 80, y ≈ 505; ⌀ ≈ 70 | 扫描 |
+| 颅骨宽度，最宽处，不含耳朵 | 456 | 网格 |
+| 吻部宽度，最宽处 | 395 | 网格 |
+| 耳尖到耳尖 | 830 | 网格 |
+| 蹄底 | y = 1620 | 网格 |
 
-The obvious trap: a naive "lowest foreground pixel" scan returns y = 1816 for the feet.
-That is the cast shadow plus the tail's arrow tip, not the hoof. Cropping the leg region
-and reading it directly gives 1620. The difference moves the head-to-body ratio from 3.7
-to 3.2 head-units, so it matters.
+明显的陷阱：简单的"最低前景像素"扫描会给出脚部 y = 1816。那是投影阴影加上尾巴的箭头尖，
+不是蹄。裁出腿部区域直接读取得到 1620。这个差异会把头身比从 3.7 改成 3.2 个头身单位，
+所以很重要。
 
-## Proportion table
+## 比例表
 
-| Ratio | Value | Reading |
+| 比值 | 数值 | 解读 |
 |---|---|---|
-| **Skull width / HH** | **1.21** | the head is 21% wider than it is tall |
-| Muzzle width / HH | 1.05 | the muzzle is as wide as the head is tall |
-| Ear span / HH | 2.20 | the ears more than double the head's width |
-| Interocular, iris centre to centre / HH | 0.70 | |
-| Interocular / skull width | 0.58 | eyes sit in the outer half of the skull |
-| Iris width / HH | 0.265 | roughly 5× the human relative iris size |
-| Iris aspect, h/w | 0.88 | |
-| **Eye line depth from crown** | **0.45** | eyes sit *above* the head's midpoint |
-| Nostril band from crown | 0.63 | |
-| Lip ridge from crown | 0.72 | |
-| Fang tips from crown | 0.77 | |
-| Chin | 1.00 | by definition |
-| Horn length above crown / HH | 0.84 | |
-| Head + horn total height / HH | 1.84 | |
-| Horn base centre from midline | ±0.21 | |
-| Horn base diameter / skull width | 0.15 | |
-| Ear length / HH | 0.85 | |
-| Ear axis rake off vertical | 29° | |
-| Body height, crown to hoof / HH | 3.19 | **pose-dependent** — see below |
+| **颅骨宽度 / HH** | **1.21** | 头宽比头高多 21% |
+| 吻部宽度 / HH | 1.05 | 吻部宽度与头高相当 |
+| 耳展 / HH | 2.20 | 耳朵超过头宽的两倍 |
+| 眼间距，虹膜中心到中心 / HH | 0.70 | |
+| 眼间距 / 颅骨宽度 | 0.58 | 眼睛位于颅骨的外侧半区 |
+| 虹膜宽度 / HH | 0.265 | 约为人类相对虹膜尺寸的 5 倍 |
+| 虹膜宽高比，h/w | 0.88 | |
+| **眼线距头顶深度** | **0.45** | 眼睛位于头部中点*之上* |
+| 鼻孔带距头顶 | 0.63 | |
+| 唇脊距头顶 | 0.72 | |
+| 獠牙尖距头顶 | 0.77 | |
+| 下巴 | 1.00 | 按定义 |
+| 头顶以上角长 / HH | 0.84 | |
+| 头 + 角总高 / HH | 1.84 | |
+| 角根中心距中线 | ±0.21 | |
+| 角根直径 / 颅骨宽度 | 0.15 | |
+| 耳长 / HH | 0.85 | |
+| 耳轴偏离竖直的倾角 | 29° | |
+| 身高，头顶到蹄 / HH | 3.19 | **取决于姿势**——见下文 |
 
-The 3.19 head-units figure is not a design constant. All five reference views share one
-crouched jump pose with the legs folded, so crown-to-hoof is compressed. A proportion
-scaffold should be driven by *segment lengths* (femur, tibia) rather than by posed
-silhouette height.
+3.19 个头身单位这个数字不是设计常量。五张参考视图共用同一个腿部折叠的蹲伏跳跃姿势，所以
+头顶到蹄的距离被压缩了。比例骨架应由*段长*（股骨、胫骨）驱动，而不是由摆姿后的轮廓高度驱动。
 
-## The depth axis is not measurable from this reference set
+## 深度轴无法从这组参考图中测量
 
-There is no orthographic profile view. View `-4` is a three-quarter, so every depth reading
-is a projection of unknown foreshortening. What can be established:
+没有正交侧视图。视图 `-4` 是四分之三视图，所以每个深度读数都是透视缩短程度未知的投影。
+能确定的是：
 
-- The muzzle's frontmost point sits **58 px ahead of the iris centre**, in a view where
-  eye-to-chin is 213 px. Eye-to-chin is 207 px at HH = 377 in the front view, so the two
-  views are within 3% of the same scale. That puts projected protrusion at **0.15 HH**,
-  and correcting for a ~25° turn still only reaches ~0.17 HH.
-- Below the mouth the profile *recedes*: at the chin the frontmost pixel is at x = 142…153
-  against the muzzle's x = 110. **The chin is set back behind the upper lip.**
-- Total head horizontal extent in that view is ≈ 0.62 HH, but the occiput is occluded by
-  the ear and neck, so 0.62 is a lower bound on depth, not a measurement.
+- 吻部最前点位于**虹膜中心前方 58 px**，该视图中眼到下巴为 213 px。正面视图中 HH = 377 时
+  眼到下巴为 207 px，所以两张视图的比例相差在 3% 以内。由此得出投影突出量为 **0.15 HH**，
+  按约 25° 的转角修正后也只到约 0.17 HH。
+- 嘴部以下侧面轮廓*后缩*：下巴处最前像素位于 x = 142…153，而吻部为 x = 110。
+  **下巴缩在上唇之后。**
+- 该视图中头部水平总跨度 ≈ 0.62 HH，但后脑被耳朵和脖子遮挡，所以 0.62 是深度的下限，
+  不是测量值。
 
-**Therefore: muzzle width-to-protrusion ≈ 1.05 / 0.17 ≈ 6 : 1.** This is a wide flat
-frog-or-bat muzzle, not a long dog snout — the single most consequential fact about this
-head, and the one most likely to be got wrong.
+**因此：吻部宽度与突出量之比 ≈ 1.05 / 0.17 ≈ 6 : 1。** 这是宽而扁的青蛙或蝙蝠式吻部，
+不是长长的狗鼻子——这是关于这个头部影响最大的一个事实，也是最容易搞错的一个。
 
-Cranium depth is *inferred*, not measured: **0.75–0.85 HH**, confidence moderate. The
-reasoning is that 1.21 HH of width already supplies braincase volume laterally, so depth
-does not need to compensate, while enough depth must remain behind for the neck joint and
-jaw musculature. Treat it as a constrained assumption and validate by projecting the built
-model back onto view `-4` at a matched camera.
+颅骨深度是*推断*的，不是测量的：**0.75–0.85 HH**，置信度中等。理由是 1.21 HH 的宽度已在
+横向上提供了颅腔体积，深度无需补偿，但后方仍须留出足够深度给颈部关节和颌部肌肉。把它当作
+受约束的假设，并在匹配的相机下把建好的模型投影回视图 `-4` 来验证。
 
-## Block construction
+## 体块构造
 
-Coordinates in HH. Origin at the crown on the midline; **y grows downward**; z forward.
+坐标以 HH 为单位。原点在中线上的头顶；**y 向下增长**；z 向前。
 
-| # | Block | Primitive | Extent | Placement | Join |
+| # | 体块 | 基本体 | 尺寸 | 位置 | 连接方式 |
 |---|---|---|---|---|---|
-| 1 | Cranium | ellipsoid | W 1.21, H 0.60, D ~0.80 | centre y 0.30 | base form |
-| 2 | Upper muzzle | flattened capsule | W 1.05, H 0.30, D ~0.20 | centre y 0.60 | smooth union, **deliberately overlapping the cranium from y 0.45–0.60** |
-| 3 | Lower jaw / chin | ellipsoid | W ~0.80, H 0.25 | centre y 0.875, pushed back in −z | union, tucked under block 2 |
-| 4 | Frontal boss | diamond wedge | W ~0.20, H ~0.25 | midline, y ≈ 0.26 | smooth union |
-| 5 | Brow ridge | V-shaped tube pair | span ~1.10 | from the boss, sweeping down-and-outward | smooth union |
-| 6 | Eye sockets | ellipsoid | — | x ±0.35, y 0.45 | **subtract** |
-| 7 | Nose pad | small flattened capsule | — | midline, y 0.63 | union, sitting on block 2 |
-| 8 | Lip ridge | hard crease, not a block | full muzzle width | y 0.72, corners lifting | crease |
-| 9 | Fangs ×4 | cones | tips at y 0.77 | from the upper lip, pointing **down** | union |
-| 10 | Ears ×2 | curved wedge shells | L 0.85, span 2.20 | base on the rear half of the skull, rake 29° | union |
-| 11 | Horns ×2 | tapered curved capsules | L 0.84, base ⌀ 0.19 | base x ±0.21, y ≈ 0.24 | union |
-| 12 | Mouth bag | inverted shell | — | behind the lip crease | subtract then shell |
+| 1 | 颅骨 | 椭球 | W 1.21, H 0.60, D ~0.80 | 中心 y 0.30 | 基础形体 |
+| 2 | 上吻部 | 压扁的胶囊体 | W 1.05, H 0.30, D ~0.20 | 中心 y 0.60 | 平滑并集，**有意在 y 0.45–0.60 与颅骨重叠** |
+| 3 | 下颌 / 下巴 | 椭球 | W ~0.80, H 0.25 | 中心 y 0.875，沿 −z 后推 | 并集，收在体块 2 下方 |
+| 4 | 额隆 | 菱形楔 | W ~0.20, H ~0.25 | 中线，y ≈ 0.26 | 平滑并集 |
+| 5 | 眉脊 | V 形管对 | 跨度 ~1.10 | 从额隆出发，向下向外扫掠 | 平滑并集 |
+| 6 | 眼窝 | 椭球 | — | x ±0.35, y 0.45 | **减去** |
+| 7 | 鼻垫 | 小的压扁胶囊体 | — | 中线，y 0.63 | 并集，位于体块 2 上 |
+| 8 | 唇脊 | 硬折痕，不是体块 | 吻部全宽 | y 0.72，嘴角上扬 | 折痕 |
+| 9 | 獠牙 ×4 | 圆锥 | 尖端在 y 0.77 | 从上唇长出，指向**下方** | 并集 |
+| 10 | 耳朵 ×2 | 弯曲楔形壳 | L 0.85, 跨度 2.20 | 根部在颅骨后半部，倾角 29° | 并集 |
+| 11 | 角 ×2 | 渐细弯曲胶囊体 | L 0.84, 根部 ⌀ 0.19 | 根部 x ±0.21, y ≈ 0.24 | 并集 |
+| 12 | 口腔袋 | 反向壳体 | — | 位于唇部折痕之后 | 先减去再抽壳 |
 
-The 0.45–0.60 overlap between muzzle and cranium is intentional, not an error: it is what
-produces the cheek swell and the deep-set eye. Blocks that merely abut produce a seam.
+吻部与颅骨之间 0.45–0.60 的重叠是有意的，不是错误：正是它产生了脸颊的隆起和深陷的眼睛。
+仅仅相邻贴合的体块会产生接缝。
 
-## Design logic — what makes it read as "menacing but appealing"
+## 设计逻辑——什么让它读起来"凶狠但讨喜"
 
-Getting this backwards is easy, and an earlier pass of this analysis did get it backwards.
-**Eye-line height is a threat cue here, not a cute cue.** Neoteny requires a *large*
-forehead, which means the eye line sits *low* — around 0.50 for a human adult and 0.60 or
-more for an infant. This head measures **0.45**, a smaller forehead than an adult human's.
-That is a predator signal.
+这一点很容易弄反，本分析的早期版本就弄反了。**在这里，眼线高度是威胁信号，不是可爱信号。**
+幼态（neoteny）需要*大*额头，也就是眼线位置*低*——成年人约 0.50，婴儿 0.60 或更多。
+这个头部测得 **0.45**，额头比成年人还小。这是捕食者信号。
 
-**Appeal comes from:**
-- Interocular 0.58 of skull width — eyes pushed into the outer half, which reads as
-  prey-animal or primitive creature rather than a forward-converging hunter
-- Muzzle 1.05 HH wide at 6:1 width-to-depth — a frog-wide mouth, which cancels the wolf
-- Ear span 2.20 HH at 29° rake — oversized sensory organs read as vulnerable
-- Iris 0.265 HH, roughly 5× human relative scale
-- A small cat-like nose pad, and smooth skin with no scales
+**讨喜感来自：**
+- 眼间距为颅骨宽度的 0.58——眼睛被推到外侧半区，读起来像猎物动物或原始生物，而不是双眼
+  向前汇聚的猎手
+- 吻部宽 1.05 HH，宽深比 6:1——青蛙般宽的嘴，抵消了狼的观感
+- 耳展 2.20 HH，倾角 29°——超大的感官器官显得脆弱
+- 虹膜 0.265 HH，约为人类相对比例的 5 倍
+- 小巧的猫式鼻垫，以及没有鳞片的光滑皮肤
 
-**Threat comes from:**
-- Eye line at 0.45 — compressed forehead
-- A V-shaped supraorbital ridge overhanging the sockets, tilting the eye axis down-inward
-- Horns at 0.84 HH with a base 0.15 of skull width — heavy, weapon-like, not decorative
-- Four maxillary canines pointing down over a closed lower lip
+**威胁感来自：**
+- 眼线在 0.45——额头被压缩
+- V 形眶上脊悬在眼窝上方，使眼轴向下向内倾斜
+- 角长 0.84 HH，根部为颅骨宽度的 0.15——厚重、像武器，不是装饰
+- 四颗上颌犬齿向下指，压在闭合的下唇上
 
-The balance is structural: a predator's *features* mounted on a wide, flat, big-eared
-*armature*. Remove either side and the design collapses into something ordinary.
+平衡是结构性的：捕食者的*特征*安装在宽、扁、大耳朵的*骨架*上。去掉任何一方，设计都会塌陷成
+平庸之物。
 
-## Sensitivity — what breaks likeness fastest
+## 敏感度——什么最快破坏相似度
 
-Ranked by how little error it takes to destroy the read:
+按破坏观感所需误差从小到大排序：
 
-1. **Muzzle width, 1.05 HH.** Narrow it 10–15% and the frog-wide mouth is gone; the
-   character becomes a hellcat or a generic bat.
-2. **Interocular, 0.58 of skull width.** Bring the eyes below 0.50 and the read flips from
-   creature to primate.
-3. **Muzzle protrusion, ~0.17 HH.** Push past 0.25 HH and it is a dog snout. This is the
-   error a modeller trained on human or canine anatomy will make by reflex.
-4. **Skull width, 1.21 HH.** Drop to 1.0 and the head "grows up" into a goblin or orc.
-5. **Eye line, 0.45.** Raise it to 0.35 and the forehead disappears; the character reads
-   as a troll.
-6. **Horn length 0.84 HH and base 0.19 HH.** Thin or shorten them 20% and the triangular
-   silhouette — horn apex spreading down to the ear tips — falls apart, leaving a child in
-   a costume.
+1. **吻部宽度，1.05 HH。** 收窄 10–15%，青蛙般的宽嘴就没了；角色变成地狱猫或普通蝙蝠。
+2. **眼间距，颅骨宽度的 0.58。** 眼睛低于 0.50，观感就从生物翻转为灵长类。
+3. **吻部突出量，~0.17 HH。** 超过 0.25 HH 就成了狗鼻子。这是受过人类或犬类解剖训练的
+   建模师会下意识犯的错误。
+4. **颅骨宽度，1.21 HH。** 降到 1.0，头部就"长大"成哥布林或兽人。
+5. **眼线，0.45。** 升到 0.35，额头消失；角色读起来像巨魔。
+6. **角长 0.84 HH，根部 0.19 HH。** 细化或缩短 20%，三角形轮廓——角的顶点向下展开到耳尖——
+   就会散架，只剩一个穿戏服的小孩。
 
-## Topology requirements
+## 拓扑要求
 
-For a head that must open its mouth, blink and furrow its brow:
+对于需要张嘴、眨眼和皱眉的头部：
 
-- **≥ 4 concentric loops around each eye**, packed tightly at the lid margin.
-- **≥ 3 concentric loops around the mouth**, flowing continuously from the outer lip into
-  the inner mouth bag so no lighting seam forms at the lip.
-- **≥ 3 horizontal compression loops across the muzzle bridge**, so the surface can
-  accordion when the character snarls instead of collapsing.
-- **Poles at every horn and ear base.** Use a downward-pointing four-point transition to
-  step a 12-point cylinder down to 8 points. Without this, loops from the appendages
-  propagate down the neck and into the body.
+- **每只眼睛周围 ≥ 4 圈同心环线**，在眼睑边缘处紧密排列。
+- **嘴部周围 ≥ 3 圈同心环线**，从外唇连续流入内部口腔袋，使唇部不形成光照接缝。
+- **吻梁上横向 ≥ 3 条压缩环线**，使角色龇牙时表面能像手风琴一样折叠而不是塌陷。
+- **每个角根和耳根处设极点。** 用指向下方的四点过渡把 12 点圆柱降到 8 点。否则附属物的环线
+  会沿脖子一路传播进身体。
 
-## Ear structure
+## 耳朵结构
 
-Five cartilage landmarks carry the read: helix (the folded outer rim), antihelix (the
-inner raised ridge, forking into two branches), concha (the deep bowl), tragus and
-antitragus. At 0.85 HH long, this ear needs three geometry layers — front surface, back
-surface for thickness, and extruded ridges for the antihelix. The concha bowl should recess
-roughly **0.15–0.20 HH** into the temporal mass; shallower and the ear reads as a flat
-paddle.
+五个软骨关键点承载观感：耳轮（折叠的外缘）、对耳轮（内侧隆起的脊，分叉成两支）、耳甲腔
+（深碗）、耳屏和对耳屏。耳长 0.85 HH 时，这只耳朵需要三层几何——正面、提供厚度的背面，以及
+为对耳轮挤出的脊。耳甲腔应向颞部体块内凹陷约 **0.15–0.20 HH**；更浅的话耳朵会读成扁平的桨。
 
-## Jaw hinge
+## 下颌铰链
 
-The lifted mouth corners at 0.72 HH, the set-back mandible and the downward maxillary
-canines together imply a **low-set temporomandibular joint** — at or slightly below the
-occlusal plane, the configuration that favours a fast, wide gape over crushing force.
+0.72 HH 处上扬的嘴角、后缩的下颌骨和向下的上颌犬齿共同暗示一个**低位颞下颌关节**——位于
+咬合平面或略低于它，这种构造偏向快速大张口而非咬碎力量。
 
-If the mouth needs to open, place the jaw rotation axis at approximately:
+如果嘴需要张开，下颌旋转轴大致放在：
 
 - y = 0.72–0.75 HH
-- z = −0.10 to −0.20 HH behind the skull centre, leaving room for the temporalis lever
-- x = ±0.45–0.50 HH, out at the skull's lateral edge
+- z = 颅骨中心之后 −0.10 到 −0.20 HH，为颞肌杠杆留出空间
+- x = ±0.45–0.50 HH，位于颅骨外侧边缘
 
-## Build order
+## 构建顺序
 
-Steps marked **[likeness]** tolerate no more than ~5% error; the rest can be refined later.
+标记 **[likeness]** 的步骤容许误差不超过约 5%；其余可以之后再细化。
 
-1. **[likeness] Primary blocks.** Cranium, upper muzzle, lower jaw. Check from *top and
-   bottom* views, not just front — the plan-view outline must be a flattened oval at
-   roughly 1.5:1 width-to-depth. This is where the dog-snout error gets caught.
-2. **[likeness] Eye line and sockets.** Fix y = 0.45, interocular 0.70 HH, then subtract
-   the sockets.
-3. **Brow and boss.** Add the midline diamond, sweep the V ridge down-and-outward. Check
-   that the eye axis now tilts down-inward.
-4. **[likeness] Silhouette appendages.** Horns at x ±0.21 running 0.84 HH; ears on the rear
-   half of the skull at 29° rake, 2.20 HH span. Judge these as a black silhouette only.
-5. **Creases and small forms.** Lip ridge at 0.72, nose pad at 0.63, four fangs with tips
-   at 0.77. The lip is a *crease*, never a pair of fleshy human lips.
-6. **Validate.** Project the model back onto view `-4` at a matched camera to test the
-   depth assumption, which is the only axis the reference cannot pin down.
+1. **[likeness] 主要体块。** 颅骨、上吻部、下颌。不只从正面，还要从*顶视和底视*检查——
+   俯视轮廓必须是宽深比约 1.5:1 的扁椭圆。狗鼻子错误就在这一步被抓住。
+2. **[likeness] 眼线和眼窝。** 固定 y = 0.45、眼间距 0.70 HH，然后减去眼窝。
+3. **眉和额隆。** 加上中线菱形，把 V 形脊向下向外扫掠。检查眼轴此时是否向下向内倾斜。
+4. **[likeness] 轮廓附属物。** 角位于 x ±0.21，长 0.84 HH；耳朵在颅骨后半部，倾角 29°，
+   跨度 2.20 HH。只按黑色剪影判断这些。
+5. **折痕和小形体。** 唇脊在 0.72，鼻垫在 0.63，四颗獠牙尖端在 0.77。唇部是一道*折痕*，
+   绝不是一对肉感的人类嘴唇。
+6. **验证。** 在匹配的相机下把模型投影回视图 `-4`，检验深度假设——这是参考图唯一无法确定的轴。
 
-## Skills to develop, in order
+## 需要依次培养的技能
 
-1. **Camera matching.** Needed because the reference set has no clean profile, so depth can
-   only be validated by projection. *Exercise:* put a box in the scene, load view `-4` as a
-   backplate, and adjust rotation and FOV (35–50 mm range) until the box edges agree with
-   the character's perspective. *Passing:* you can lock a camera that makes the reference
-   silhouette overlay the model consistently.
-2. **Non-human proportion control.** Human-anatomy habit forces a round skull and a
-   protruding snout. This head is 1.21 wide and ~0.8 deep. *Exercise:* sculpt a frog or a
-   ray head; scale on X with Y locked. *Passing:* your top-view outline measures the target
-   ratio without you correcting it afterwards.
-3. **Prognathic head framing.** A human Loomis has a vertical temple slice; this skull needs
-   a horizontal one. *Exercise:* draw the slice plane and the C-curve from ear through
-   cheekbone to chin. *Passing:* the zygomatic angle visibly bisects that C-curve.
-4. **Hybrid anatomy blending.** Joining a reptile's sloped frontal deck to a broad
-   mammalian cheek. *Exercise:* build the nasal deck as a flat plane driving into the wide
-   zygomatic mass. *Passing:* the transition reads as one skull, not two glued halves.
-5. **Hard creases on organic surfaces.** The lip ridge and lid margins are sharp on
-   otherwise soft skin with no scales. *Exercise:* cut a deep crease across a smooth sphere
-   without pinching artefacts at either end. *Passing:* the crease holds under smooth
-   shading and subdivision.
-6. **Deformation topology and appendage transitions.** *Exercise:* retopologise the face
-   mask to 4 eye loops, 3 mouth loops, 3 muzzle compression loops; terminate horn and ear
-   bases with four-point poles. *Passing:* a 45° jaw open produces no stretching at the
-   mouth corners, and no loop from a horn reaches the neck.
+1. **相机匹配。** 之所以需要，是因为这组参考图没有干净的侧视图，深度只能通过投影验证。
+   *练习：*在场景中放一个立方体，把视图 `-4` 加载为背景板，调整旋转和 FOV（35–50 mm 范围），
+   直到立方体边缘与角色透视一致。*通过标准：*你能锁定一台相机，让参考轮廓与模型稳定重合。
+2. **非人类比例控制。** 人体解剖习惯会强行带出圆颅骨和突出的鼻吻。这个头宽 1.21、深约 0.8。
+   *练习：*雕一个青蛙或鳐鱼的头；锁定 Y 轴在 X 方向缩放。*通过标准：*你的顶视轮廓不经事后
+   修正就能测得目标比例。
+3. **突颌式头部框架。** 人类 Loomis 法用竖直的颞部切面；这个颅骨需要水平切面。*练习：*画出
+   切面平面以及从耳朵经颧骨到下巴的 C 形曲线。*通过标准：*颧角明显平分这条 C 形曲线。
+4. **混合解剖融合。** 把爬行动物倾斜的额部平台接到宽阔的哺乳动物脸颊上。*练习：*把鼻部平台
+   建成一个扁平面，推入宽阔的颧部体块。*通过标准：*过渡读起来是一个颅骨，而不是粘起来的两半。
+5. **有机表面上的硬折痕。** 唇脊和眼睑边缘是锐利的，而其余皮肤柔软且无鳞片。*练习：*在光滑
+   球体上切出一道深折痕，两端不产生挤压瑕疵。*通过标准：*折痕在平滑着色和细分下保持住。
+6. **形变拓扑与附属物过渡。** *练习：*把面部遮罩重拓扑为 4 圈眼部环线、3 圈嘴部环线、3 条吻部
+   压缩环线；用四点极点收住角根和耳根。*通过标准：*下颌张开 45° 时嘴角不产生拉伸，且没有任何
+   来自角的环线延伸到脖子。
 
-## Acceptance rubric
+## 验收评分标准
 
-Ten points. **Pass is > 9.0.** The reference head scores 10.
+满分十分。**通过线为 > 9.0。** 参考头部得 10 分。
 
-| # | Criterion | Weight | Full marks | Zero |
+| # | 标准 | 权重 | 满分条件 | 零分条件 |
 |---|---|---|---|---|
-| 1 | Frame widths | 3.0 | skull W 1.19–1.23 HH and muzzle W 1.03–1.07 HH | muzzle W < 1.0 HH |
-| 2 | Eye placement | 2.5 | eye line y 0.44–0.46 HH and interocular 0.56–0.60 of skull width | eye line y > 0.50, or interocular < 0.50 |
-| 3 | Facial flatness | 1.5 | muzzle protrusion 0.15–0.18 HH, width-to-depth ≈ 6:1, chin behind the upper lip | protrusion > 0.25 HH |
-| 4 | Appendage silhouette | 1.5 | horn 0.81–0.87 HH, ear span 2.15–2.25 HH, rake ≈ 29° | −1.0 per failure |
-| 5 | Threat detail | 1.5 | four **upper** canines pointing down (0.5), V brow ridge (0.5), lip crease at y 0.72 (0.5) | fangs rising from the lower jaw scores 0 for that item |
+| 1 | 框架宽度 | 3.0 | 颅骨 W 1.19–1.23 HH 且吻部 W 1.03–1.07 HH | 吻部 W < 1.0 HH |
+| 2 | 眼睛位置 | 2.5 | 眼线 y 0.44–0.46 HH 且眼间距为颅骨宽度的 0.56–0.60 | 眼线 y > 0.50，或眼间距 < 0.50 |
+| 3 | 面部扁平度 | 1.5 | 吻部突出 0.15–0.18 HH，宽深比 ≈ 6:1，下巴在上唇之后 | 突出 > 0.25 HH |
+| 4 | 附属物轮廓 | 1.5 | 角 0.81–0.87 HH，耳展 2.15–2.25 HH，倾角 ≈ 29° | 每项不合格 −1.0 |
+| 5 | 威胁细节 | 1.5 | 四颗**上颌**犬齿向下指 (0.5)，V 形眉脊 (0.5)，唇部折痕在 y 0.72 (0.5) | 獠牙从下颌长出则该项得 0 |
 
-Weights sum to 10.0. Each criterion is checkable by measurement, not opinion — which is
-what makes a 9 mean something.
+权重合计 10.0。每项标准都可以通过测量而非主观意见检查——这正是 9 分有意义的原因。
 
-## Eight common failures
+## 八种常见失败
 
-| Failure | Visible sign | Fix |
+| 失败 | 可见迹象 | 修复 |
 |---|---|---|
-| Dog snout | muzzle juts forward in three-quarter view | flatten in z until width:depth ≈ 6:1 |
-| Convergent eyes | eyes drift toward the midline; creature reads as a primate | restore interocular to 0.70 HH |
-| Lost forehead | reads as an adult goblin or troll | keep y 0…0.45 clear above the eye line |
-| Orc fangs | canines rise from the mandible | remove them; hang four from the maxilla, tips at y 0.77 |
-| Human lips | upper and lower lips carry volume | flatten to a single crease at y 0.72 |
-| Underbite | chin level with or ahead of the upper lip | push the mandible back in −z and blend into the neck |
-| Wrong nose | a raised bridge or a bulbous tip | flatten to a pad with two keyhole nostrils |
-| Narrow horn base | horns cluster on the crown like cattle | separate the bases to x ±0.21 and widen to ⌀ 0.19 HH |
+| 狗鼻子 | 四分之三视图中吻部向前突出 | 沿 z 压扁，直到宽:深 ≈ 6:1 |
+| 双眼内聚 | 眼睛向中线漂移；生物读起来像灵长类 | 把眼间距恢复到 0.70 HH |
+| 额头丢失 | 读起来像成年哥布林或巨魔 | 保持眼线以上 y 0…0.45 空出 |
+| 兽人獠牙 | 犬齿从下颌骨长出 | 删掉；从上颌垂下四颗，尖端在 y 0.77 |
+| 人类嘴唇 | 上下唇有体积 | 压平为 y 0.72 处的一道折痕 |
+| 地包天 | 下巴与上唇齐平或在其前方 | 沿 −z 把下颌骨后推并融入脖子 |
+| 鼻子不对 | 鼻梁隆起或鼻头呈球状 | 压平为带两个锁孔形鼻孔的鼻垫 |
+| 角根过窄 | 角像牛角一样挤在头顶 | 把角根分开到 x ±0.21，并加宽到 ⌀ 0.19 HH |
 
-## Gate notes
+## 门禁说明
 
-Criteria 1–3 are numeric and belong in the spec validator: they can be checked against the
-emitted `RigSpec` and geometry bounds without rendering anything. Criterion 4 is a
-silhouette check and belongs with Divine Eye. Criterion 5 is a part-inventory check — the
-four maxillary canines must exist as L2 parts with the correct parent bone, per
-`structure_decomposition.md`.
+标准 1–3 是数值型的，属于 spec 校验器：无需渲染任何东西，就能对照输出的 `RigSpec` 和几何
+包围盒检查。标准 4 是轮廓检查，归 Divine Eye 负责。标准 5 是部件清单检查——按
+`structure_decomposition.md`，四颗上颌犬齿必须作为 L2 部件存在，并挂在正确的父骨骼上。

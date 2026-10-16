@@ -1,20 +1,15 @@
-# Normalized spec-record vocabulary
+# 规范化 spec 记录词汇表
 
-This directory holds reviewed, committed JSONL records for local specification
-search. Each non-empty line is exactly one UTF-8 JSON object. A collection may
-have no record file yet, but every row in a present record file must satisfy
-this contract.
+本目录存放经过评审并提交的 JSONL 记录，用于本地规格搜索。每个非空行恰好是一个 UTF-8 JSON 对象。
+某个集合可以暂时没有记录文件，但只要记录文件存在，其中每一行都必须满足本约定。
 
-## Future ingestion seam
+## 未来的导入接口
 
-Todo 3 must expose `load_jsonl_records(path: Path)` from
-`forge._shared.spec_search`. It returns validated records and raises
-`SpecRecordValidationError` for malformed JSON, a non-object JSON value, a
-missing required field, or a value with the wrong type. The error identifies
-the input path and one-based line number. Invalid rows are never skipped or
-silently repaired.
+Todo 3 必须从 `forge._shared.spec_search` 暴露 `load_jsonl_records(path: Path)`。它返回经过校验的记录；
+遇到格式错误的 JSON、非对象的 JSON 值、缺少必填字段或类型错误的值时，抛出
+`SpecRecordValidationError`。错误信息指明输入路径和从 1 开始的行号。无效行绝不会被跳过或静默修复。
 
-## Canonical row
+## 标准行
 
 ```json
 {
@@ -46,41 +41,35 @@ silently repaired.
 }
 ```
 
-`record_id` is a stable, lowercase, dot-delimited identifier. It is never
-derived from a display title and must remain stable when wording changes.
-`collection` selects the owning search collection; `domain`, `kind`, and
-`entity` classify the record without imposing a global taxonomy. `title`,
-`aliases`, and `content` are searchable text. `aliases` preserve English and
-Vietnamese terms as authored; normalization and query expansion happen later.
+`record_id` 是稳定的、小写、以点分隔的标识符。它绝不从显示标题派生，措辞变化时也必须保持不变。
+`collection` 指定所属的搜索集合；`domain`、`kind` 和 `entity` 对记录分类，但不强加全局分类体系。
+`title`、`aliases` 和 `content` 是可搜索文本。`aliases` 按编写时原样保留英文和越南语术语；
+规范化和查询扩展在后续环节进行。
 
-## Required fields and stable types
+## 必填字段与稳定类型
 
-| Field | Type | Semantics |
+| 字段 | 类型 | 语义 |
 | --- | --- | --- |
-| `record_id` | non-empty string | Stable unique identifier within a collection. |
-| `collection` | non-empty string | Collection key that owns the record. |
-| `domain` | non-empty string | Domain grouping, such as `weapon-anatomy` or `pbr`. |
-| `kind` | non-empty string | Record category, such as `component`, `material`, or `constraint`. |
-| `entity` | non-empty string | Canonical entity or concept name. |
-| `title` | non-empty string | Human-readable searchable title. |
-| `aliases` | array of strings | Zero or more authored synonyms, including bilingual aliases where known. |
-| `content` | string | Source-backed concise description; may be empty only when structured fields carry the searchable detail. |
-| `constraints` | array of strings | Requirements, prohibitions, or caveats. |
-| `measurements` | array of objects | Each object has non-empty string `name` and `value`; optional `unit` and `context` are strings. Values remain source text rather than invented numbers. |
-| `source_refs` | non-empty array of objects | Provenance for the distilled statement. Every object has non-empty string `path` and may have non-empty string `heading` and/or `key_path`. |
-| `evidence_refs` | array of objects | Supporting provenance. Every object has non-empty string `kind` and `ref`; optional `note` is a string. |
-| `observation_status` | string | One of `observed`, `inferred`, or `unverified`. |
-| `confidence` | number | Inclusive range `0.0` through `1.0`; confidence in the distilled statement, not search relevance. |
-| `assumptions` | array of strings | Explicit assumptions that qualify the record. |
+| `record_id` | 非空字符串 | 在集合内稳定且唯一的标识符。 |
+| `collection` | 非空字符串 | 拥有该记录的集合键。 |
+| `domain` | 非空字符串 | 领域分组，例如 `weapon-anatomy` 或 `pbr`。 |
+| `kind` | 非空字符串 | 记录类别，例如 `component`、`material` 或 `constraint`。 |
+| `entity` | 非空字符串 | 标准实体或概念名称。 |
+| `title` | 非空字符串 | 人类可读的可搜索标题。 |
+| `aliases` | 字符串数组 | 零个或多个编写时给出的同义词，已知时包括双语别名。 |
+| `content` | 字符串 | 有来源依据的简明描述；只有当结构化字段承载了可搜索细节时才可为空。 |
+| `constraints` | 字符串数组 | 要求、禁止项或注意事项。 |
+| `measurements` | 对象数组 | 每个对象有非空字符串 `name` 和 `value`；可选的 `unit` 和 `context` 为字符串。数值保留来源原文，不得臆造数字。 |
+| `source_refs` | 非空对象数组 | 提炼陈述的来源。每个对象有非空字符串 `path`，可以有非空字符串 `heading` 和/或 `key_path`。 |
+| `evidence_refs` | 对象数组 | 支撑性来源。每个对象有非空字符串 `kind` 和 `ref`；可选的 `note` 为字符串。 |
+| `observation_status` | 字符串 | `observed`、`inferred` 或 `unverified` 之一。 |
+| `confidence` | 数字 | 闭区间 `0.0` 到 `1.0`；表示对提炼陈述的置信度，而非搜索相关度。 |
+| `assumptions` | 字符串数组 | 限定该记录的明确假设。 |
 
-Records must preserve raw source locations. Use `heading` for a Markdown
-section and `key_path` for a JSON location; a source reference may contain both
-when a source format provides both forms of location. Paths are repository
-relative and use forward slashes. `evidence_refs` may point to source files,
-external identifiers, or review artifacts, but do not replace `source_refs`.
+记录必须保留原始来源位置。Markdown 章节用 `heading`，JSON 位置用 `key_path`；当来源格式同时提供
+两种位置形式时，一个来源引用可以同时包含两者。路径相对于仓库根目录，使用正斜杠。`evidence_refs`
+可以指向源文件、外部标识符或评审产物，但不能替代 `source_refs`。
 
-`observed` means directly supported by a cited source or reference artifact.
-`inferred` means a reasoned interpretation retained with its assumptions.
-`unverified` means useful terminology or a candidate claim that still needs
-confirmation. Do not encode unsupported certainty: lower `confidence`, select
-the appropriate status, and record the qualifying assumption instead.
+`observed` 表示有被引用的来源或参考产物直接支撑。`inferred` 表示经过推理的解读，并保留其假设。
+`unverified` 表示有用的术语或仍需确认的候选论断。不要编码没有依据的确定性：应降低 `confidence`、
+选择合适的状态，并记录限定性假设。
